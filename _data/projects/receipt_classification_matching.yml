@@ -50,15 +50,12 @@ tech_details:
     - Higher recall matching can increase false positives in edge cases.
     - More aggressive categorization automation reduces manual effort but requires tighter audit checks.
 screenshots:
-  - src: /assets/images/placeholder-workflow.svg
-    alt: Receipt matching workflow board
-    caption: End-to-end flow from statement ingestion to exception review.
-  - src: /assets/images/placeholder-dashboard.svg
-    alt: Classification review panel
-    caption: Analyst review table showing matched pairs and category confidence.
-  - src: /assets/images/placeholder-architecture.svg
-    alt: Matching architecture sketch
-    caption: Pseudo-diagram of normalization, matching, and LLM ambiguity handling.
+  - src: /assets/images/receipt_img.pdf
+    alt: Receipt sample PDF document
+    caption: PDF receipt sample used for OCR extraction and line-item matching checks.
+  - src: /assets/images/recceipt_sample.html
+    alt: Receipt sample HTML export
+    caption: HTML receipt representation used to validate parser and structured extraction behavior.
 lessons_learned:
   - Confidence thresholds and review queues are essential for finance trust.
   - Merchant alias dictionaries dramatically improve initial matching quality.

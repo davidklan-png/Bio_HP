@@ -384,11 +384,27 @@ ol {
   background: #fbfdff;
 }
 
-.shot-card img {
+.shot-media {
   width: 100%;
+  min-height: 220px;
   border-radius: 8px;
   border: 1px solid #d7e6f3;
   background: #eef5fb;
+}
+
+.shot-frame {
+  min-height: 320px;
+}
+
+.shot-card img {
+  display: block;
+  object-fit: cover;
+}
+
+.shot-card iframe {
+  display: block;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .shot-card figcaption {

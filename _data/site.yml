@@ -1,9 +1,9 @@
 site_title: LLM Project Portfolio
 owner_name: David Klan
 owner_role: Senior AI/ML Engineer
-hero_tagline: Portfolio at a glance for executives and technophiles
-summary: I'm an IT Project Manager by day and design practial LLM systems that balance business value, engineering rigor, and production readiness.
-about_short: I combine prompt engineering, RAG architecture, automation, and change enablement to deliver measurable AI outcomes.
+hero_tagline: Portfolio at a glance 
+summary: I'm an IT Project Manager designing practical LLM systems.
+about_short: I utilize multiple agents, prompt engineering, RAG architecture, and automationto to deliver measurable AI outcomes.
 contacts:
   github: https://github.com/davidklan-png
   linkedin: https://www.linkedin.com/in/david-klan/
@@ -25,12 +25,12 @@ skills:
 now_next:
   now:
     - Deepening JTES domain coverage for Japanese tax workflows.
-    - Hardening citation quality and expert review loops before beta.
+    - Upgrade development infrastructure to build out services
   next:
     - JTES beta with tax professionals and structured feedback cycles.
-    - Publish benchmark snapshots for precision, citation fidelity, and response latency.
+    - Implement OCR for automated receipt processing.
 project_order:
   - receipt_classification_matching
-  - bilingual_ceremony_script_generator
   - jtes_specialized_rag
+  - bilingual_ceremony_script_generator
   - enterprise_ai_enablement_insurance
