@@ -1,0 +1,75 @@
+id: enterprise_ai_enablement_insurance
+detail_page: /projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/
+name: Enterprise AI Enablement in Insurance – Reporting & Incident Intelligence
+one_line_value: Automated reporting and incident intelligence to improve executive visibility and Change Management decisions.
+icon: insurance
+tags:
+  - Enterprise Automation
+  - Incident Intelligence
+  - Executive Reporting
+impact_bullets:
+  - Automated PM reporting and executive dashboard workflows.
+  - Unified insights across Confluence, Jira, SharePoint, Power Automate, and Power BI.
+  - Added coding-agent parsers for hundreds of MB of incident data trend analysis.
+executive_summary:
+  problem: PM reporting and incident trend analysis were fragmented across enterprise tools, limiting executive visibility and slowing Change Management response.
+  solution: Automated reporting pipelines and built executive dashboards, then introduced bespoke parser workflows (with coding agents) to analyze large incident datasets.
+  outcome: Improved reporting cadence, clearer incident trend signals, and stronger evidence for Change Management decisions.
+use_case:
+  summary: Insurance leadership needed reliable, cross-system intelligence for delivery status, incident patterns, and operational risk.
+  stakeholders:
+    - Executive leadership
+    - Program and project managers
+    - Change Management and incident response teams
+architecture:
+  overview: Operational data from collaboration and ticketing systems is transformed into dashboard-ready metrics, with parser pipelines for deep incident trend extraction.
+  diagram:
+    - "[Confluence | Jira | SharePoint]"
+    - "             |"
+    - "   Automation + ETL orchestration"
+    - "             |"
+    - "   Power BI executive dashboards"
+    - "             |"
+    - " Incident data parser pipelines"
+    - "             |"
+    - " Change Management trend insights"
+tech_details:
+  rag_prompt_patterns:
+    - Structured summarization prompts for status rollups.
+    - Parser-assisted analysis prompts for incident clustering.
+    - Executive-tailored narrative templates for dashboard briefings.
+  tools:
+    - Confluence, Jira, SharePoint
+    - Power Automate and Power BI
+    - Bespoke parser scripts supported by coding agents
+  constraints:
+    - Data quality inconsistency across tools and teams.
+    - Large incident corpora requiring efficient parsing.
+    - Need for executive-level clarity without losing technical detail.
+  tradeoffs:
+    - Highly automated reporting improves speed but needs governance checks.
+    - Deep parser analysis increases insight quality but requires stronger maintenance.
+screenshots:
+  - src: /assets/images/placeholder-dashboard.svg
+    alt: Executive reporting dashboard
+    caption: Portfolio-level executive view combining delivery and risk signals.
+  - src: /assets/images/placeholder-workflow.svg
+    alt: Incident parser flow
+    caption: Parser workflow for extracting trends from large incident datasets.
+  - src: /assets/images/placeholder-architecture.svg
+    alt: Enterprise automation architecture
+    caption: Cross-platform reporting and incident intelligence architecture.
+lessons_learned:
+  - Governance and taxonomy alignment are prerequisites for trustworthy dashboards.
+  - Parsing strategy must balance speed, maintainability, and traceability.
+  - Executive communication improves when metrics and narrative are co-designed.
+improve_next:
+  - Add near-real-time alerting for high-risk incident trend shifts.
+  - Add quality gates for parser output validation.
+  - Add scenario simulation views for proactive Change Management planning.
+repro:
+  runnable: false
+  steps:
+    - Review data flow from source tools into reporting layers.
+    - Walk through dashboard design logic and KPI definitions.
+    - Inspect parser methodology and trend detection examples.

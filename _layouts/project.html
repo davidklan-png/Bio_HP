@@ -1,0 +1,162 @@
+---
+layout: default
+---
+{% assign p = site.data.projects[page.project_id] %}
+{% if p %}
+<article class="project-detail">
+  <header class="project-header fade-up">
+    <div class="title-wrap">
+      <span class="icon-badge large">{% include icon.html name=p.icon %}</span>
+      <div>
+        <p class="eyebrow">Project Detail</p>
+        <h1>{{ p.name }}</h1>
+      </div>
+    </div>
+    <p class="project-value">{{ p.one_line_value }}</p>
+    <ul class="tag-list">
+      {% for tag in p.tags %}
+      <li>{{ tag }}</li>
+      {% endfor %}
+    </ul>
+  </header>
+
+  <section class="section-block fade-up delay-1">
+    <h2>Executive Summary</h2>
+    <div class="summary-grid">
+      <div>
+        <h3>Problem</h3>
+        <p>{{ p.executive_summary.problem }}</p>
+      </div>
+      <div>
+        <h3>Solution</h3>
+        <p>{{ p.executive_summary.solution }}</p>
+      </div>
+      <div>
+        <h3>Outcome</h3>
+        <p>{{ p.executive_summary.outcome }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-2">
+    <h2>Use Case &amp; Stakeholders</h2>
+    <p>{{ p.use_case.summary }}</p>
+    <ul class="bullet-list">
+      {% for stakeholder in p.use_case.stakeholders %}
+      <li>{{ stakeholder }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section-block fade-up delay-3">
+    <h2>Architecture</h2>
+    <p>{{ p.architecture.overview }}</p>
+    <pre class="diagram" aria-label="Architecture pseudo diagram">{% for line in p.architecture.diagram %}{{ line }}
+{% endfor %}</pre>
+  </section>
+
+  <section class="section-block fade-up delay-4">
+    <h2>Tech Details</h2>
+    <div class="tech-grid">
+      <div>
+        <h3>RAG / Prompt Patterns</h3>
+        <ul class="bullet-list">
+          {% for item in p.tech_details.rag_prompt_patterns %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>Tools</h3>
+        <ul class="bullet-list">
+          {% for item in p.tech_details.tools %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>Constraints</h3>
+        <ul class="bullet-list">
+          {% for item in p.tech_details.constraints %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>Tradeoffs</h3>
+        <ul class="bullet-list">
+          {% for item in p.tech_details.tradeoffs %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-5">
+    <h2>Screenshots Gallery</h2>
+    <div class="gallery-grid">
+      {% for shot in p.screenshots %}
+      <figure class="shot-card">
+        <img src="{{ shot.src | relative_url }}" alt="{{ shot.alt }}" loading="lazy">
+        <figcaption>{{ shot.caption }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-6">
+    <h2>Lessons Learned / What I'd Improve Next</h2>
+    <div class="improve-grid">
+      <div>
+        <h3>Lessons Learned</h3>
+        <ul class="bullet-list">
+          {% for lesson in p.lessons_learned %}
+          <li>{{ lesson }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>What I'd Improve Next</h3>
+        <ul class="bullet-list">
+          {% for item in p.improve_next %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-7">
+    <h2>Repro Notes / Demo Walkthrough</h2>
+    <p class="status-note">
+      {% if p.repro.runnable %}
+      Runnable project: follow the steps below.
+      {% else %}
+      Non-runnable public demo: use the walkthrough steps below.
+      {% endif %}
+    </p>
+    <ol class="number-list">
+      {% for step in p.repro.steps %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  {% if p.links %}
+  <section class="section-block fade-up delay-7">
+    <h2>Project Links</h2>
+    <ul class="link-list">
+      {% for link in p.links %}
+      <li><a href="{{ link.url }}" target="_blank" rel="noreferrer">{{ link.label }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</article>
+{% else %}
+<section class="section-block">
+  <h1>Project data not found</h1>
+  <p>Check `project_id` in this page front matter and matching YAML file in `_data/projects`.</p>
+</section>
+{% endif %}

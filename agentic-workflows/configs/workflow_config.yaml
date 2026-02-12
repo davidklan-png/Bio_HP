@@ -1,0 +1,4 @@
+max_steps: 4
+require_review: true
+max_tool_calls_per_step: 3
+confidence_threshold: 0.75

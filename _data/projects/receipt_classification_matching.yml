@@ -1,0 +1,75 @@
+id: receipt_classification_matching
+detail_page: /projects/receipt-classification-and-matching-system/
+name: Receipt Classification & Matching System
+one_line_value: Automated statement-to-receipt reconciliation for faster, cleaner tax submission workflows.
+icon: receipt
+tags:
+  - Document AI
+  - Expense Operations
+  - Classification
+impact_bullets:
+  - Reduced manual receipt matching and exception triage effort.
+  - Improved categorization consistency for tax-ready reporting.
+  - Added ambiguity handling for difficult vendor names.
+executive_summary:
+  problem: Credit card statements and receipts were reconciled manually, creating delays and inconsistent categorization before company tax submission.
+  solution: Built a Gemini Colab workflow using free LLMs to match statement lines to receipts, then classify transactions with ambiguity-aware vendor handling.
+  outcome: Delivered a repeatable review flow that speeds reconciliation and produces cleaner, tax-oriented expense categorization.
+use_case:
+  summary: Finance and operations teams need reliable monthly transaction matching and categorization without scaling manual review time.
+  stakeholders:
+    - Finance operations analysts
+    - Accounting and tax preparers
+    - Business managers submitting expenses
+architecture:
+  overview: Statement rows and receipt text are normalized, candidate matches are scored, and ambiguous vendors are sent through LLM-assisted classification before final review.
+  diagram:
+    - "[Credit Card Statement CSV/PDF]"
+    - "           |"
+    - "   OCR + normalization"
+    - "           |"
+    - "  Candidate match scoring"
+    - "           |"
+    - "Ambiguous vendor? -> LLM classifier"
+    - "           |"
+    - "  Human review queue + export"
+tech_details:
+  rag_prompt_patterns:
+    - Prompted ambiguity resolver with vendor-name and merchant-context hints.
+    - Structured output template for category labels and confidence.
+    - Lightweight fallback rules when model confidence drops.
+  tools:
+    - Gemini Colab notebook runtime
+    - Python data cleaning and matching logic
+    - Free LLM endpoints for classification support
+  constraints:
+    - Inconsistent receipt quality and OCR noise.
+    - Merchant aliases and truncated statement descriptors.
+    - Limited budget for model/API usage.
+  tradeoffs:
+    - Higher recall matching can increase false positives in edge cases.
+    - More aggressive categorization automation reduces manual effort but requires tighter audit checks.
+screenshots:
+  - src: /assets/images/placeholder-workflow.svg
+    alt: Receipt matching workflow board
+    caption: End-to-end flow from statement ingestion to exception review.
+  - src: /assets/images/placeholder-dashboard.svg
+    alt: Classification review panel
+    caption: Analyst review table showing matched pairs and category confidence.
+  - src: /assets/images/placeholder-architecture.svg
+    alt: Matching architecture sketch
+    caption: Pseudo-diagram of normalization, matching, and LLM ambiguity handling.
+lessons_learned:
+  - Confidence thresholds and review queues are essential for finance trust.
+  - Merchant alias dictionaries dramatically improve initial matching quality.
+  - Prompt schema enforcement prevents downstream parsing issues.
+improve_next:
+  - Add active-learning loops from reviewer corrections.
+  - Add document-level anomaly detection for missing receipts.
+  - Add monthly quality scorecards by category and vendor type.
+repro:
+  runnable: false
+  steps:
+    - Open the notebook flow and review sample statement/receipt inputs.
+    - Walk through matching score logic and ambiguity classifier prompts.
+    - Inspect exception-routing outputs and final categorized export format.

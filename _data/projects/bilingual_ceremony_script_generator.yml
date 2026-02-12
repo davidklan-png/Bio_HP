@@ -1,0 +1,75 @@
+id: bilingual_ceremony_script_generator
+detail_page: /projects/bilingual-ceremony-script-generator-notebooklm-collaboration/
+name: Bilingual Ceremony Script Generator (NotebookLM Collaboration)
+one_line_value: Produced grounded Japanese/English ceremony scripts with strong style control and iterative refinement.
+icon: bilingual
+tags:
+  - Grounded Generation
+  - Human-in-the-Loop
+  - Style Control
+impact_bullets:
+  - Used 10 prior scripts as grounding corpus for consistent quality.
+  - Generated theme-faithful bilingual output for an Ancient Grecian concept.
+  - Reduced rewriting time with collaborative iteration cycles.
+executive_summary:
+  problem: Ceremony script drafting required fast bilingual output while preserving tone and consistency with prior successful ceremonies.
+  solution: Built a grounded generation process in NotebookLM, anchored to 10 prior scripts, then iterated with human review to tune style and bilingual fluency.
+  outcome: Delivered tailored Japanese/English ceremony drafts aligned to the Ancient Grecian theme with improved consistency and editorial efficiency.
+use_case:
+  summary: Content planners needed high-quality bilingual scripts without sacrificing authenticity, ceremony flow, or stylistic coherence.
+  stakeholders:
+    - Event planning leads
+    - Ceremony script reviewers
+    - Bilingual MC and production teams
+architecture:
+  overview: Prior script corpus is used as grounding context, a themed prompt controls tone and structure, and reviewers iterate until final script acceptance.
+  diagram:
+    - "[10 Prior Script Documents]"
+    - "           |"
+    - "  Grounding + style constraints"
+    - "           |"
+    - " NotebookLM generation pass"
+    - "           |"
+    - " Human review and edit loop"
+    - "           |"
+    - " Final bilingual ceremony script"
+tech_details:
+  rag_prompt_patterns:
+    - Grounding prompts that cite prior script motifs and structure.
+    - Style-control blocks for theme, pace, and ceremonial language.
+    - Iterative critique prompts to tighten bilingual consistency.
+  tools:
+    - NotebookLM collaborative workspace
+    - Prompt templates for style and grounding checks
+    - Manual editorial checkpoints for quality assurance
+  constraints:
+    - Need to preserve nuance across Japanese and English.
+    - Theme-specific language can drift without tight constraints.
+    - Output quality depends on source corpus relevance.
+  tradeoffs:
+    - Strong style constraints improve consistency but can reduce creative variation.
+    - Faster generation cycles can increase reviewer burden if grounding is weak.
+screenshots:
+  - src: /assets/images/placeholder-dashboard.svg
+    alt: NotebookLM grounded generation workspace
+    caption: Grounding workflow with prior script references and theme constraints.
+  - src: /assets/images/placeholder-workflow.svg
+    alt: Iteration board for bilingual script revisions
+    caption: Human-in-the-loop revision cycle for tone, pacing, and translation quality.
+  - src: /assets/images/placeholder-architecture.svg
+    alt: Bilingual script architecture view
+    caption: Corpus grounding, generation, and editorial validation loop.
+lessons_learned:
+  - Grounding quality matters more than prompt verbosity.
+  - Side-by-side bilingual checks catch tone drift early.
+  - Human review cadence should be planned as part of the generation workflow.
+improve_next:
+  - Add automated terminology consistency checks across both languages.
+  - Add rubric-based scoring for ceremony rhythm and readability.
+  - Add reusable style packs for different ceremony themes.
+repro:
+  runnable: false
+  steps:
+    - Load a curated corpus of prior scripts and define style constraints.
+    - Run initial grounded generation and compare outputs by prompt variant.
+    - Review and revise with bilingual checkpoints before finalization.

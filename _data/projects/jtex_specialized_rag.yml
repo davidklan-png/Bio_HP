@@ -1,0 +1,78 @@
+id: jtex_specialized_rag
+detail_page: /projects/japanese-tax-expert-system-jtex-specialized-rag-for-professionals/
+name: Japanese Tax Expert System (JTEX) – Specialized RAG for Professionals
+one_line_value: Domain-specialized RAG system targeting high-precision, citation-backed tax guidance for professionals.
+icon: rag
+tags:
+  - Specialized RAG
+  - Citation Fidelity
+  - Professional Workflow
+impact_bullets:
+  - Designed for high-precision answers in expert tax contexts.
+  - Citation-backed outputs improve professional trust and reviewability.
+  - Progressing toward beta testing with tax professionals.
+executive_summary:
+  problem: Tax professionals need highly precise, source-grounded answers where factual errors and missing citations carry significant risk.
+  solution: Built JTEX as a domain-specialized RAG system with professional workflow controls, emphasizing retrieval quality and citation-backed response generation.
+  outcome: Established a beta-ready foundation focused on precision, transparent sourcing, and practitioner-oriented usability.
+use_case:
+  summary: Professional tax workflows require fast yet defensible answers that can be checked against source materials.
+  stakeholders:
+    - Tax professionals and advisors
+    - Compliance and review stakeholders
+    - Product owners preparing beta validation
+architecture:
+  overview: Domain documents are chunked and indexed, retrieval is tuned for precision, and generated answers include explicit citations and review cues.
+  diagram:
+    - "[Tax Law Corpus + Guidance Docs]"
+    - "           |"
+    - "   Parsing + chunk strategy"
+    - "           |"
+    - " Domain-tuned retrieval layer"
+    - "           |"
+    - " Citation-aware answer generation"
+    - "           |"
+    - " Professional review + feedback loop"
+tech_details:
+  rag_prompt_patterns:
+    - Citation-required answer schema with source references.
+    - Retrieval-first prompting before synthesis to reduce hallucinations.
+    - Clarification prompts when source confidence is insufficient.
+  tools:
+    - Domain document ingestion and indexing pipeline
+    - Retrieval tuning for professional query patterns
+    - Evaluation harness for precision and citation checks
+  constraints:
+    - High-stakes domain requires conservative answer behavior.
+    - Source freshness and jurisdiction nuance must be explicit.
+    - Precision goals can increase response latency.
+  tradeoffs:
+    - Tighter citation requirements improve trust but limit response breadth.
+    - Conservative refusal behavior reduces risk but can frustrate exploratory users.
+screenshots:
+  - src: /assets/images/placeholder-architecture.svg
+    alt: JTEX RAG architecture diagram
+    caption: Domain ingestion, retrieval, and citation-aware generation pipeline.
+  - src: /assets/images/placeholder-dashboard.svg
+    alt: Citation-backed answer panel
+    caption: Example answer UI showing source references and confidence cues.
+  - src: /assets/images/placeholder-workflow.svg
+    alt: Expert review workflow for JTEX
+    caption: Professional feedback loop used before and during beta readiness.
+lessons_learned:
+  - Retrieval tuning quality is the main driver of downstream answer reliability.
+  - Citation format consistency improves reviewer speed and confidence.
+  - Domain SMEs are critical for meaningful offline evaluation.
+improve_next:
+  - Expand benchmark set with adversarial tax scenarios.
+  - Add stronger freshness controls for source updates.
+  - Add per-answer evidence sufficiency scoring.
+repro:
+  runnable: false
+  steps:
+    - Review retrieval strategy and citation schema choices.
+    - Walk through representative professional questions and grounded responses.
+    - Inspect evaluation checklist used for beta readiness.
+links:
+  - label: JTEX Project Link
+    url: https://chatgpt.com/g/g-p-69506a2dfb04819193b3e819137d24b1-jtes/project

@@ -1,0 +1,4 @@
+python-dotenv>=1.0.1
+PyYAML>=6.0.2
+jupyterlab>=4.3.0
+pandas>=2.2.0

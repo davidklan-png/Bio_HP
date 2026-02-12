@@ -1,0 +1,36 @@
+site_title: LLM Project Portfolio
+owner_name: David Klan
+owner_role: Senior AI/ML Engineer
+hero_tagline: Portfolio at a glance for executives and technophiles
+summary: I'm an IT Project Manager by day and design practial LLM systems that balance business value, engineering rigor, and production readiness.
+about_short: I combine prompt engineering, RAG architecture, automation, and change enablement to deliver measurable AI outcomes.
+contacts:
+  github: https://github.com/davidklan-png
+  linkedin: https://www.linkedin.com/in/david-klan/
+  website: Under Construction
+  email: admin@dazbeez.com
+skills:
+  - name: Prompt Engineering
+    icon: prompt
+  - name: RAG
+    icon: rag
+  - name: Agentic Workflows
+    icon: workflow
+  - name: Change Enablement
+    icon: change
+  - name: Python/Automation
+    icon: python
+  - name: Evaluation
+    icon: evaluation
+now_next:
+  now:
+    - Deepening JTEX domain coverage for Japanese tax workflows.
+    - Hardening citation quality and expert review loops before beta.
+  next:
+    - JTEX beta with tax professionals and structured feedback cycles.
+    - Publish benchmark snapshots for precision, citation fidelity, and response latency.
+project_order:
+  - receipt_classification_matching
+  - bilingual_ceremony_script_generator
+  - jtex_specialized_rag
+  - enterprise_ai_enablement_insurance

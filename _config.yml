@@ -1,0 +1,11 @@
+title: LLM Project Portfolio
+description: Last-year LLM projects for business stakeholders and technophiles.
+baseurl: ""
+url: "https://your-username.github.io"
+markdown: kramdown
+permalink: pretty
+exclude:
+  - requirements.txt
+  - agentic-workflows/
+  - prompt-engineering-demos/
+  - use-case-notebooks/
