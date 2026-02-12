@@ -7,72 +7,84 @@ tags:
   - Specialized RAG
   - Citation Fidelity
   - Professional Workflow
+  - MVP Complete
 impact_bullets:
-  - Designed for high-precision answers in expert tax contexts.
-  - Citation-backed outputs improve professional trust and reviewability.
-  - Progressing toward beta testing with tax professionals.
+  - MVP completed in December 2025 and prepared for beta rollout.
+  - 14 of 18 milestones completed with architecture hardening in progress.
+  - Citation-backed responses and validation improve professional trust and reviewability.
 executive_summary:
   problem: Tax professionals need highly precise, source-grounded answers where factual errors and missing citations carry significant risk.
-  solution: Built JTES as a domain-specialized RAG system with professional workflow controls, emphasizing retrieval quality and citation-backed response generation.
-  outcome: Established a beta-ready foundation focused on precision, transparent sourcing, and practitioner-oriented usability.
+  solution: Built JTES as a production-oriented RAG platform with FastAPI + React, LlamaIndex orchestration, ChromaDB retrieval, modular embeddings (Ruri-v3/Sarashina/default), and strict citation validation.
+  outcome: Delivered an MVP-complete, beta-ready foundation focused on precision, transparent sourcing, bilingual UX support, and operational controls for professional workflows.
 use_case:
-  summary: Professional tax workflows require fast yet defensible answers that can be checked against source materials.
+  summary: Professional Japanese tax workflows require fast, defensible answers backed by verifiable sources across law, guidance, and operational documentation.
   stakeholders:
     - Tax professionals and advisors
     - Compliance and review stakeholders
     - Product owners preparing beta validation
+    - Business owners using tax interpretation support
 architecture:
-  overview: Domain documents are chunked and indexed, retrieval is tuned for precision, and generated answers include explicit citations and review cues.
+  overview: JTES uses a layered architecture with React frontend and FastAPI API over a RAG control plane, plus dedicated retrieval, LLM adapter, ingestion, and source-management subsystems.
   diagram:
-    - "[Tax Law Corpus + Guidance Docs]"
-    - "           |"
-    - "   Parsing + chunk strategy"
-    - "           |"
-    - " Domain-tuned retrieval layer"
-    - "           |"
-    - " Citation-aware answer generation"
-    - "           |"
-    - " Professional review + feedback loop"
+    - "[React Frontend (:3000)] <-> [FastAPI API (:8001)]"
+    - "                    |"
+    - "             [RAG Control Plane]"
+    - "          /          |           \\"
+    - " [Retrieval]    [LLM Adapters]   [Validation]"
+    - "      |                |               |"
+    - "  [ChromaDB]   [OpenAI/Claude/Ollama]  [Citation checks]"
+    - "                    |"
+    - "      [Ingestion: PDF/XML/OCR/Chunking]"
+    - "                    |"
+    - "      [Source Watchers + Document Registry]"
 tech_details:
   rag_prompt_patterns:
-    - Citation-required answer schema with source references.
-    - Retrieval-first prompting before synthesis to reduce hallucinations.
-    - Clarification prompts when source confidence is insufficient.
+    - Citation-required response schema with source linkage and provenance cues.
+    - Retrieval-first orchestration with context assembly before synthesis.
+    - Validation pass for citation enforcement and hallucination-risk reduction.
+    - Bilingual-ready prompting patterns for Japanese/English support.
   tools:
-    - Domain document ingestion and indexing pipeline
-    - Retrieval tuning for professional query patterns
-    - Evaluation harness for precision and citation checks
+    - LlamaIndex for ingestion/indexing/retrieval orchestration
+    - ChromaDB vector storage with configurable embedding providers
+    - FastAPI backend and React + Vite + Material UI frontend
+    - OCR and parsing stack (Tesseract OCR, pdfplumber, custom law XML parser)
+    - LLM adapters for OpenAI, Claude, and Ollama with failover support
   constraints:
-    - High-stakes domain requires conservative answer behavior.
-    - Source freshness and jurisdiction nuance must be explicit.
-    - Precision goals can increase response latency.
+    - High-stakes tax domain requires conservative answer behavior and strict traceability.
+    - Source freshness and jurisdiction nuance must be explicit for legal reliability.
+    - OCR variability and document formatting differences affect ingestion quality.
+    - Precision-focused retrieval and validation can increase response latency.
   tradeoffs:
-    - Tighter citation requirements improve trust but limit response breadth.
-    - Conservative refusal behavior reduces risk but can frustrate exploratory users.
+    - Tighter citation and validation requirements improve trust but reduce response breadth.
+    - Multi-provider flexibility increases resilience but adds configuration complexity.
+    - Conservative refusal behavior lowers compliance risk but may frustrate exploratory users.
 screenshots:
   - src: /assets/images/placeholder-architecture.svg
     alt: JTES RAG architecture diagram
-    caption: Domain ingestion, retrieval, and citation-aware generation pipeline.
+    caption: System architecture spanning frontend, API, RAG control plane, and data layer.
   - src: /assets/images/placeholder-dashboard.svg
     alt: Citation-backed answer panel
-    caption: Example answer UI showing source references and confidence cues.
+    caption: Query and evidence experience with citations, provenance, and reviewer cues.
   - src: /assets/images/placeholder-workflow.svg
     alt: Expert review workflow for JTES
-    caption: Professional feedback loop used before and during beta readiness.
+    caption: Ingestion-to-validation workflow including OCR quality gates and source controls.
 lessons_learned:
-  - Retrieval tuning quality is the main driver of downstream answer reliability.
-  - Citation format consistency improves reviewer speed and confidence.
-  - Domain SMEs are critical for meaningful offline evaluation.
+  - Retrieval quality and chunk strategy drive downstream answer fidelity more than model choice alone.
+  - Citation format consistency and provenance visibility improve reviewer speed and confidence.
+  - Modular provider design helps operational resilience, but only with disciplined config management.
+  - Domain SMEs are essential for credible offline evaluation in high-stakes workflows.
 improve_next:
-  - Expand benchmark set with adversarial tax scenarios.
-  - Add stronger freshness controls for source updates.
-  - Add per-answer evidence sufficiency scoring.
+  - Expand benchmark coverage with adversarial tax and edge-case scenarios.
+  - Strengthen source freshness controls and temporal validity handling.
+  - Add per-answer evidence sufficiency scoring and confidence calibration.
+  - Complete remaining milestones and structure beta feedback loops with professionals.
 repro:
   runnable: false
   steps:
-    - Review retrieval strategy and citation schema choices.
-    - Walk through representative professional questions and grounded responses.
-    - Inspect evaluation checklist used for beta readiness.
+    - Start backend and frontend services (FastAPI on 8001, React on 3000) in the source project.
+    - Ingest representative tax documents (PDF/XML/OCR paths) and verify registry/vector indexing.
+    - Run representative professional queries and inspect citations, provenance, and validation outputs.
+    - Review admin and metrics views for ingestion health, retrieval behavior, and provider configuration.
 links:
   - label: JTES Project Link
     url: https://chatgpt.com/g/g-p-69506a2dfb04819193b3e819137d24b1-jtes/project
