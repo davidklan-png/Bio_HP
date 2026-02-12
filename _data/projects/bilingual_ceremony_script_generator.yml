@@ -26,7 +26,7 @@ architecture:
   diagram:
     - "[10 Prior Script Documents]"
     - "           |"
-    - "  Grounding + style constraints"
+    - " Grounding + style constraints"
     - "           |"
     - " NotebookLM generation pass"
     - "           |"
@@ -50,15 +50,15 @@ tech_details:
     - Strong style constraints improve consistency but can reduce creative variation.
     - Faster generation cycles can increase reviewer burden if grounding is weak.
 screenshots:
-  - src: /assets/images/placeholder-dashboard.svg
-    alt: NotebookLM grounded generation workspace
-    caption: Grounding workflow with prior script references and theme constraints.
-  - src: /assets/images/placeholder-workflow.svg
-    alt: Iteration board for bilingual script revisions
-    caption: Human-in-the-loop revision cycle for tone, pacing, and translation quality.
-  - src: /assets/images/placeholder-architecture.svg
-    alt: Bilingual script architecture view
-    caption: Corpus grounding, generation, and editorial validation loop.
+  - src: /assets/images/Wedding_pic.JPG
+    alt: Wedding ceremony concept image
+    caption: Visual reference used to align ceremony tone and theme direction.
+  - src: /assets/images/Wedding_Mind Map.png
+    alt: Wedding ceremony planning mind map
+    caption: Mind map used to structure bilingual script flow and key moments.
+  - src: /assets/images/Wedding_info.png
+    alt: Wedding context and requirements notes
+    caption: Source notes capturing ceremony constraints and bilingual content requirements.
 lessons_learned:
   - Grounding quality matters more than prompt verbosity.
   - Side-by-side bilingual checks catch tone drift early.

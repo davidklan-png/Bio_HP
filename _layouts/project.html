@@ -97,8 +97,35 @@ layout: default
     <h2>Screenshots Gallery</h2>
     <div class="gallery-grid">
       {% for shot in p.screenshots %}
+      {% assign media_type = shot.type %}
+      {% if media_type == nil %}
+        {% assign ext = shot.src | split: '.' | last | downcase %}
+        {% if ext == 'pdf' %}
+          {% assign media_type = 'pdf' %}
+        {% elsif ext == 'html' or ext == 'htm' %}
+          {% assign media_type = 'html' %}
+        {% else %}
+          {% assign media_type = 'image' %}
+        {% endif %}
+      {% endif %}
       <figure class="shot-card">
-        <img src="{{ shot.src | relative_url }}" alt="{{ shot.alt }}" loading="lazy">
+        {% if media_type == 'pdf' %}
+        <iframe
+          class="shot-media shot-frame"
+          src="{{ shot.src | relative_url }}"
+          title="{{ shot.alt }}"
+          loading="lazy">
+        </iframe>
+        {% elsif media_type == 'html' %}
+        <iframe
+          class="shot-media shot-frame"
+          src="{{ shot.src | relative_url }}"
+          title="{{ shot.alt }}"
+          loading="lazy">
+        </iframe>
+        {% else %}
+        <img class="shot-media" src="{{ shot.src | relative_url }}" alt="{{ shot.alt }}" loading="lazy">
+        {% endif %}
         <figcaption>{{ shot.caption }}</figcaption>
       </figure>
       {% endfor %}
