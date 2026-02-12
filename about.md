@@ -24,6 +24,6 @@ permalink: /about/
   <ol class="number-list">
     <li>Start on the Home page for one-line value and impact bullets.</li>
     <li>Open each case study for architecture, technical decisions, and screenshots.</li>
-    <li>Use JTEX details for current focus and upcoming beta context.</li>
+    <li>Use JTES details for current focus and upcoming beta context.</li>
   </ol>
 </section>

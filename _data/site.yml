@@ -7,7 +7,7 @@ about_short: I combine prompt engineering, RAG architecture, automation, and cha
 contacts:
   github: https://github.com/davidklan-png
   linkedin: https://www.linkedin.com/in/david-klan/
-  website: Under Construction
+  website: 
   email: admin@dazbeez.com
 skills:
   - name: Prompt Engineering
@@ -24,13 +24,13 @@ skills:
     icon: evaluation
 now_next:
   now:
-    - Deepening JTEX domain coverage for Japanese tax workflows.
+    - Deepening JTES domain coverage for Japanese tax workflows.
     - Hardening citation quality and expert review loops before beta.
   next:
-    - JTEX beta with tax professionals and structured feedback cycles.
+    - JTES beta with tax professionals and structured feedback cycles.
     - Publish benchmark snapshots for precision, citation fidelity, and response latency.
 project_order:
   - receipt_classification_matching
   - bilingual_ceremony_script_generator
-  - jtex_specialized_rag
+  - jtes_specialized_rag
   - enterprise_ai_enablement_insurance

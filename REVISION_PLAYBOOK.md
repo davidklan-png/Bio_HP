@@ -8,7 +8,7 @@ Edit one file per project in `_data/projects/`:
 
 - `_data/projects/receipt_classification_matching.yml`
 - `_data/projects/bilingual_ceremony_script_generator.yml`
-- `_data/projects/jtex_specialized_rag.yml`
+- `_data/projects/jtes_specialized_rag.yml`
 - `_data/projects/enterprise_ai_enablement_insurance.yml`
 
 Safe fields to revise:

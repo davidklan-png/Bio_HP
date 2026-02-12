@@ -1,6 +1,6 @@
-id: jtex_specialized_rag
-detail_page: /projects/japanese-tax-expert-system-jtex-specialized-rag-for-professionals/
-name: Japanese Tax Expert System (JTEX) – Specialized RAG for Professionals
+id: jtes_specialized_rag
+detail_page: /projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/
+name: Japanese Tax Expert System (JTES) – Specialized RAG for Professionals
 one_line_value: Domain-specialized RAG system targeting high-precision, citation-backed tax guidance for professionals.
 icon: rag
 tags:
@@ -13,7 +13,7 @@ impact_bullets:
   - Progressing toward beta testing with tax professionals.
 executive_summary:
   problem: Tax professionals need highly precise, source-grounded answers where factual errors and missing citations carry significant risk.
-  solution: Built JTEX as a domain-specialized RAG system with professional workflow controls, emphasizing retrieval quality and citation-backed response generation.
+  solution: Built JTES as a domain-specialized RAG system with professional workflow controls, emphasizing retrieval quality and citation-backed response generation.
   outcome: Established a beta-ready foundation focused on precision, transparent sourcing, and practitioner-oriented usability.
 use_case:
   summary: Professional tax workflows require fast yet defensible answers that can be checked against source materials.
@@ -51,13 +51,13 @@ tech_details:
     - Conservative refusal behavior reduces risk but can frustrate exploratory users.
 screenshots:
   - src: /assets/images/placeholder-architecture.svg
-    alt: JTEX RAG architecture diagram
+    alt: JTES RAG architecture diagram
     caption: Domain ingestion, retrieval, and citation-aware generation pipeline.
   - src: /assets/images/placeholder-dashboard.svg
     alt: Citation-backed answer panel
     caption: Example answer UI showing source references and confidence cues.
   - src: /assets/images/placeholder-workflow.svg
-    alt: Expert review workflow for JTEX
+    alt: Expert review workflow for JTES
     caption: Professional feedback loop used before and during beta readiness.
 lessons_learned:
   - Retrieval tuning quality is the main driver of downstream answer reliability.
@@ -74,5 +74,5 @@ repro:
     - Walk through representative professional questions and grounded responses.
     - Inspect evaluation checklist used for beta readiness.
 links:
-  - label: JTEX Project Link
+  - label: JTES Project Link
     url: https://chatgpt.com/g/g-p-69506a2dfb04819193b3e819137d24b1-jtes/project
