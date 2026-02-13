@@ -11,6 +11,43 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
+    <script>
+      // Language persistence - remembers user choice until toggled back
+      (function() {
+        const currentLang = document.documentElement.lang || 'en';
+        const storedLang = localStorage.getItem('site-lang');
+        const effectiveLang = storedLang || currentLang;
+
+        // If viewing English but stored preference is Japanese, redirect to Japanese version
+        if (effectiveLang === 'ja' && !window.location.pathname.startsWith('/ja/')) {
+          const jaPath = window.location.pathname.replace(/^\/ja\//, '/ja/').replace(/^\//, '/ja/');
+          window.location.href = jaPath;
+        }
+        // If viewing Japanese but stored preference is English, redirect to English version
+        if (effectiveLang === 'en' && window.location.pathname.startsWith('/ja/')) {
+          const enPath = window.location.pathname.replace(/^\/ja\//, '').replace(/^\/ja/, '/');
+          window.location.href = enPath || '/';
+        }
+
+        // Update lang toggle active states based on current path
+        document.addEventListener('DOMContentLoaded', function() {
+          const isJa = window.location.pathname.startsWith('/ja/');
+          const enLink = document.querySelector('.lang-toggle a[href*="/"]');
+          const jaLink = document.querySelector('.lang-toggle a[href*="/ja/"]');
+          if (enLink) enLink.classList.toggle('active', !isJa);
+          if (jaLink) jaLink.classList.toggle('active', isJa);
+        });
+
+        // Store language choice when toggle is clicked
+        document.addEventListener('click', function(e) {
+          const target = e.target.closest('.lang-toggle a');
+          if (target) {
+            const lang = target.getAttribute('href').includes('/ja/') ? 'ja' : 'en';
+            localStorage.setItem('site-lang', lang);
+          }
+        });
+      })();
+    </script>
   </head>
   <body>
     <div class="site-bg" aria-hidden="true"></div>
