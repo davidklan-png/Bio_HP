@@ -130,6 +130,36 @@ ol {
   text-decoration: none;
 }
 
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lang-toggle a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.lang-toggle a:hover {
+  background: var(--accent);
+  text-decoration: none;
+}
+
+.lang-toggle a.active {
+  color: var(--brand-strong);
+  background: var(--accent);
+}
+
+.lang-toggle .divider {
+  color: var(--line);
+}
+
 .hero {
   margin-top: 2.4rem;
   padding: 2.2rem;

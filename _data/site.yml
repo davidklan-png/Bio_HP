@@ -1,9 +1,14 @@
 site_title: LLM Project Portfolio - David Klan
+site_title_ja: LLMプロジェクトポートフォリオ - David Klan
 owner_name: David Klan
 owner_role: Senior AI/ML Engineer
-hero_tagline: Portfolio at a glance 
+owner_role_ja: シニアAI/MLエンジニア
+hero_tagline: Portfolio at a glance
+hero_tagline_ja: ポートフォリオ概要
 summary: I'm an IT Project Manager designing practical LLM systems.
+summary_ja: 実用的なLLMシステムを設計するITプロジェクトマネージャー。
 about_short: I utilize multiple agents, prompt engineering, RAG architecture, and automation to deliver measurable AI outcomes.
+about_short_ja: マルチエージェント、プロンプトエンジニアリング、RAGアーキテクチャ、自動化を活用して、測定可能なAI成果を提供します。
 contacts:
   github: https://github.com/davidklan-png
   linkedin: https://www.linkedin.com/in/david-klan/
@@ -11,24 +16,36 @@ contacts:
   email: admin@dazbeez.com
 skills:
   - name: Prompt Engineering
+    name_ja: プロンプトエンジニアリング
     icon: prompt
   - name: RAG
+    name_ja: RAG
     icon: rag
   - name: Agentic Workflows
+    name_ja: エージェントワークフロー
     icon: workflow
   - name: Change Enablement
+    name_ja: 変革マネジメント
     icon: change
   - name: Python/Automation
+    name_ja: Python/自動化
     icon: python
   - name: Evaluation
+    name_ja: 評価
     icon: evaluation
 now_next:
   now:
     - Deepening JTES domain coverage for Japanese tax workflows.
     - Upgrade development infrastructure to build out services
+  now_ja:
+    - 日本の税務ワークフロー向けJTESドメインカバレッジの拡張。
+    - サービス構築のための開発インフラのアップグレード
   next:
     - JTES beta with tax professionals and structured feedback cycles.
     - Implement OCR for automated receipt processing.
+  next_ja:
+    - 税理士との構造化されたフィードバックサイクルによるJTESベータ版。
+    - レシート処理の自動化のためのOCR実装。
 project_order:
   - receipt_classification_matching
   - jtes_specialized_rag

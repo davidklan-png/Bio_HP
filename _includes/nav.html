@@ -6,5 +6,10 @@
       <a class="nav-link {% if current_url == "/" %}is-active{% endif %}" href="{{ "/" | relative_url }}">Home</a>
       <a class="nav-link {% if current_url == "/about/" %}is-active{% endif %}" href="{{ "/about/" | relative_url }}">About / Contact</a>
     </nav>
+    <div class="lang-toggle">
+      <a href="{{ "/" | relative_url }}" class="{% if page.lang != 'ja' %}active{% endif %}">EN</a>
+      <span class="divider">|</span>
+      <a href="{{ "/ja/" | relative_url }}" class="{% if page.lang == 'ja' %}active{% endif %}">日本語</a>
+    </div>
   </div>
 </header>

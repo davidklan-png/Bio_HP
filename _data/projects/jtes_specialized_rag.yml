@@ -1,17 +1,28 @@
 id: jtes_specialized_rag
 detail_page: /projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/
 name: Japanese Tax Expert System (JTES) – Specialized RAG for Professionals
+name_ja: 日本税務エキスパートシステム（JTES）- プロフェッショナル向け特化RAG
 one_line_value: AI-powered Japanese tax analysis built on official NTA and e-Gov sources, with verifiable citations for every answer.
+one_line_value_ja: 国税庁およびe-Govの公式データに基づく、すべての回答で検証可能な引用を提供する日本の税務分析AI。
 icon: rag
 tags:
   - Japanese Tax Law
   - Citation-Backed AI
   - Official Data Sources
   - Professional Workflow
+tags_ja:
+  - 日本税法
+  - 引用付きAI
+  - 公式データソース
+  - プロフェッショナルワークフロー
 impact_bullets:
   - Trusted answers for Japanese tax law based on official government data.
   - Four integrated solutions: Tax AI Advisor, Regulatory Monitoring, Legal Research and Comparison, and Multi-Tenant Platform.
   - Citation-first response design focused on verifiability over AI guesswork.
+impact_bullets_ja:
+  - 国の公式データに基づく信頼できる日本税法への回答。
+  - 税務AIアドバイザー、法令モニタリング、法令比較リサーチ、マルチテナントプラットフォームの4つの統合ソリューション。
+  - AIの推測よりも検証可能性を重視した引用優先のレスポンス設計。
 executive_summary:
   problem: Tax users need dependable guidance for Japanese tax topics where unsupported AI answers can create compliance and operational risk.
   solution: JTES analyzes official 国税庁 (NTA) and e-Gov sources, supports Japanese and English queries, and provides citation-backed answers with fail-closed behavior when evidence cannot be verified.

@@ -1,16 +1,26 @@
 id: receipt_classification_matching
 detail_page: /projects/receipt-classification-and-matching-system/
 name: Receipt Classification & Matching System
+name_ja: レシート分類・マッチングシステム
 one_line_value: Automated statement-to-receipt reconciliation for faster, cleaner tax submission workflows.
+one_line_value_ja: 明細書とレシートの自動照合による、より迅速で正確な確務申請ワークフロー。
 icon: receipt
 tags:
   - Document AI
   - Expense Operations
   - Classification
+tags_ja:
+  - ドキュメントAI
+  - 経費業務
+  - 分類
 impact_bullets:
   - Reduced manual receipt matching and exception triage effort.
   - Improved categorization consistency for tax-ready reporting.
   - Added ambiguity handling for difficult vendor names.
+impact_bullets_ja:
+  - 手動レシート照合と例外トリアージ作業の削減。
+  - 税務対応可能なレポーティングのための分類一貫性の向上。
+  - 曖昧なベンダー名に対するあいまい処理の追加。
 executive_summary:
   problem: Credit card statements and receipts were reconciled manually, creating delays and inconsistent categorization before company tax submission.
   solution: Built a Gemini Colab workflow using free LLMs to match statement lines to receipts, then classify transactions with ambiguity-aware vendor handling.
