@@ -1,90 +1,85 @@
 id: jtes_specialized_rag
 detail_page: /projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/
 name: Japanese Tax Expert System (JTES) – Specialized RAG for Professionals
-one_line_value: Domain-specialized RAG system targeting high-precision, citation-backed tax guidance for professionals.
+one_line_value: AI-powered Japanese tax analysis built on official NTA and e-Gov sources, with verifiable citations for every answer.
 icon: rag
 tags:
-  - Specialized RAG
-  - Citation Fidelity
+  - Japanese Tax Law
+  - Citation-Backed AI
+  - Official Data Sources
   - Professional Workflow
-  - MVP Complete
 impact_bullets:
-  - MVP completed in December 2025 and prepared for beta rollout.
-  - 14 of 18 milestones completed with architecture hardening in progress.
-  - Citation-backed responses and validation improve professional trust and reviewability.
+  - Trusted answers for Japanese tax law based on official government data.
+  - Four integrated solutions: Tax AI Advisor, Regulatory Monitoring, Legal Research & Comparison, and Multi-Tenant Platform.
+  - Citation-first response design focused on verifiability over AI guesswork.
 executive_summary:
-  problem: Tax professionals need highly precise, source-grounded answers where factual errors and missing citations carry significant risk.
-  solution: Built JTES as a production-oriented RAG platform with FastAPI + React, LlamaIndex orchestration, ChromaDB retrieval, modular embeddings (Ruri-v3/Sarashina/default), and strict citation validation.
-  outcome: Delivered an MVP-complete, beta-ready foundation focused on precision, transparent sourcing, bilingual UX support, and operational controls for professional workflows.
+  problem: Tax users need dependable guidance for Japanese tax topics where unsupported AI answers can create compliance and operational risk.
+  solution: JTES analyzes official 国税庁 (NTA) and e-Gov sources, supports Japanese and English queries, and provides citation-backed answers with fail-closed behavior when evidence cannot be verified.
+  outcome: A role-oriented tax AI platform that combines question answering, law-change monitoring, legal comparison workflows, and secure team usage in one system.
 use_case:
-  summary: Professional Japanese tax workflows require fast, defensible answers backed by verifiable sources across law, guidance, and operational documentation.
+  summary: JTES supports practical tax workflows from quick Q&A to ongoing regulatory tracking, with every response grounded in official source evidence.
   stakeholders:
-    - Tax professionals and advisors
-    - Compliance and review stakeholders
-    - Product owners preparing beta validation
-    - Business owners using tax interpretation support
+    - Sole proprietors (個人事業主)
+    - Tax professionals (税理士・会計士)
+    - SMB accounting and finance teams (中小企業)
+    - Accounting firms managing multiple client environments
 architecture:
-  overview: JTES uses a layered architecture with React frontend and FastAPI API over a RAG control plane, plus dedicated retrieval, LLM adapter, ingestion, and source-management subsystems.
+  overview: JTES is presented as a product suite centered on citation-backed tax intelligence, combining advisor, monitoring, comparison, and multi-tenant collaboration capabilities.
   diagram:
-    - "[React Frontend (:3000)] <-> [FastAPI API (:8001)]"
-    - "                    |"
-    - "             [RAG Control Plane]"
-    - "          /          |           \\"
-    - " [Retrieval]    [LLM Adapters]   [Validation]"
-    - "      |                |               |"
-    - "  [ChromaDB]   [OpenAI/Claude/Ollama]  [Citation checks]"
-    - "                    |"
-    - "      [Ingestion: PDF/XML/OCR/Chunking]"
-    - "                    |"
-    - "      [Source Watchers + Document Registry]"
+    - "[Tax AI Advisor / 税務AIアドバイザー] -> [Cited Answers from Official Sources]"
+    - "[Regulatory Monitoring / 法令モニタリング] -> [Importance-ranked Alerts + Change History]"
+    - "[Legal Research & Comparison / 法令比較リサーチ] -> [新旧対照表 + Amendment Timeline]"
+    - "[Multi-Tenant Platform / マルチテナントプラットフォーム] -> [Tenant Isolation + Role-Based Access]"
 tech_details:
   rag_prompt_patterns:
-    - Citation-required response schema with source linkage and provenance cues.
-    - Retrieval-first orchestration with context assembly before synthesis.
-    - Validation pass for citation enforcement and hallucination-risk reduction.
-    - Bilingual-ready prompting patterns for Japanese/English support.
+    - Ask in Japanese or English; retrieve and synthesize from Japanese official tax/legal sources.
+    - Return answers with explicit citations tied to official NTA and e-Gov materials.
+    - Apply fail-closed behavior when citation verification does not pass.
+    - Support temporal legal research for past laws and regulation changes.
   tools:
-    - LlamaIndex for ingestion/indexing/retrieval orchestration
-    - ChromaDB vector storage with configurable embedding providers
-    - FastAPI backend and React + Vite + Material UI frontend
-    - OCR and parsing stack (Tesseract OCR, pdfplumber, custom law XML parser)
-    - LLM adapters for OpenAI, Claude, and Ollama with failover support
+    - Tax AI Advisor (税務AIアドバイザー)
+    - Regulatory Monitoring (法令モニタリング)
+    - Legal Research & Comparison (法令比較リサーチ)
+    - Multi-Tenant Platform (マルチテナントプラットフォーム)
   constraints:
-    - High-stakes tax domain requires conservative answer behavior and strict traceability.
-    - Source freshness and jurisdiction nuance must be explicit for legal reliability.
-    - OCR variability and document formatting differences affect ingestion quality.
-    - Precision-focused retrieval and validation can increase response latency.
+    - Japanese tax and accounting terminology is preserved to avoid meaning loss from subjective translation.
+    - Source grounding is limited to official data such as 国税庁 (NTA) and e-Gov.
+    - Professional use requires conservative behavior when evidence is missing.
+    - Precision may be higher for Japanese queries because primary laws are authored in Japanese.
   tradeoffs:
-    - Tighter citation and validation requirements improve trust but reduce response breadth.
-    - Multi-provider flexibility increases resilience but adds configuration complexity.
-    - Conservative refusal behavior lowers compliance risk but may frustrate exploratory users.
+    - Strict citation requirements improve trust but can reduce response coverage.
+    - Fail-closed behavior reduces speculative risk but may withhold answers when evidence is insufficient.
+    - Temporal monitoring and comparison features add operational value with added system complexity.
 screenshots:
-  - src: /assets/images/placeholder-architecture.svg
-    alt: JTES RAG architecture diagram
-    caption: System architecture spanning frontend, API, RAG control plane, and data layer.
-  - src: /assets/images/placeholder-dashboard.svg
-    alt: Citation-backed answer panel
-    caption: Query and evidence experience with citations, provenance, and reviewer cues.
-  - src: /assets/images/placeholder-workflow.svg
-    alt: Expert review workflow for JTES
-    caption: Ingestion-to-validation workflow including OCR quality gates and source controls.
+  - src: /assets/images/jtes_products.png
+    alt: JTES four-solution product cards
+    caption: Product suite overview showing Tax AI Advisor, Regulatory Monitoring, Legal Research & Comparison, and Multi-Tenant Platform.
+  - src: /assets/images/jtes_workflow.png
+    alt: JTES simple three-step workflow
+    caption: 3-step usage flow: ask a tax question, run AI analysis across domains, and receive a cited answer.
+  - src: /assets/images/jtes_response.png
+    alt: JTES answer panel with confidence indicator
+    caption: Query response screen with structured Japanese tax guidance and displayed confidence level.
+  - src: /assets/images/jtes_citation.png
+    alt: JTES citation evidence panel
+    caption: Citation view linking answer claims to official documents with per-citation evidence blocks.
 lessons_learned:
-  - Retrieval quality and chunk strategy drive downstream answer fidelity more than model choice alone.
-  - Citation format consistency and provenance visibility improve reviewer speed and confidence.
-  - Modular provider design helps operational resilience, but only with disciplined config management.
-  - Domain SMEs are essential for credible offline evaluation in high-stakes workflows.
+  - In tax workflows, citation visibility is a primary trust driver.
+  - Role-based packaging improves usability across sole proprietors, specialists, and teams.
+  - Regulatory monitoring and law comparison reduce manual research burden for professionals.
+  - Enterprise adoption depends on tenant isolation and clear access controls.
 improve_next:
-  - Expand benchmark coverage with adversarial tax and edge-case scenarios.
-  - Strengthen source freshness controls and temporal validity handling.
-  - Add per-answer evidence sufficiency scoring and confidence calibration.
-  - Complete remaining milestones and structure beta feedback loops with professionals.
+  - Expand depth and breadth of official source coverage while preserving citation quality.
+  - Refine English-query precision for users who do not ask in Japanese.
+  - Improve alert ranking quality for regulatory monitoring updates.
+  - Add richer workflow analytics for team-wide tax issue tracking.
 repro:
   runnable: false
   steps:
-    - Start backend and frontend services (FastAPI on 8001, React on 3000) in the source project.
-    - Ingest representative tax documents (PDF/XML/OCR paths) and verify registry/vector indexing.
-    - Run representative professional queries and inspect citations, provenance, and validation outputs.
-    - Review admin and metrics views for ingestion health, retrieval behavior, and provider configuration.
+    - Ask a Japanese or English tax question and review cited official references in the response.
+    - Validate category coverage across major tax domains (for example 消費税, 所得税, 法人税, 源泉徴収).
+    - Test regulatory monitoring alerts and law comparison output (新旧対照表).
+    - Verify role-based access and tenant separation behavior in team scenarios.
 links:
   - label: JTES Project Link
     url: https://chatgpt.com/g/g-p-69506a2dfb04819193b3e819137d24b1-jtes/project
