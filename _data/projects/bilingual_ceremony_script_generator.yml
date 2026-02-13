@@ -1,16 +1,26 @@
 id: bilingual_ceremony_script_generator
 detail_page: /projects/bilingual-ceremony-script-generator-notebooklm-collaboration/
 name: Bilingual Ceremony Script Generator (NotebookLM Collaboration)
+name_ja: バイリンガルセレモニースクリプト生成（NotebookLM連携）
 one_line_value: Produced grounded Japanese/English ceremony scripts with strong style control and iterative refinement.
+one_line_value_ja: 強力なスタイル制御と反復改良による、根拠のある日英二言語のセレモニースクリプトを生成。
 icon: bilingual
 tags:
   - Grounded Generation
   - Human-in-the-Loop
   - Style Control
+tags_ja:
+  - 根拠付き生成
+  - ヒューマンインザループ
+  - スタイル制御
 impact_bullets:
   - Used 10 prior scripts as grounding corpus for consistent quality.
   - Generated theme-faithful bilingual output for an Ancient Grecian concept.
   - Reduced rewriting time with collaborative iteration cycles.
+impact_bullets_ja:
+  - 一貫した品質のために10の過去のスクリプトをグランディングコーパスとして使用。
+  - 古代ギリシャ概念に忠実なテーマによるバイリンガル出力を生成。
+  - コラボレーティブな反復サイクルにより、書き直し時間を短縮。
 executive_summary:
   problem: Ceremony script drafting required fast bilingual output while preserving tone and consistency with prior successful ceremonies.
   solution: Built a grounded generation process in NotebookLM, anchored to 10 prior scripts, then iterated with human review to tune style and bilingual fluency.

@@ -1,16 +1,26 @@
 id: enterprise_ai_enablement_insurance
 detail_page: /projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/
 name: Enterprise AI Enablement in Insurance – Reporting & Incident Intelligence
+name_ja: 保険業界におけるエンタープライズAI活用 – レポーティング・インシデントインテリジェンス
 one_line_value: Automated reporting and incident intelligence to improve executive visibility and decision making.
+one_line_value_ja: 経営の可視化と意思決定の向上のための自動化されたレポーティングとインシデントインテリジェンス。
 icon: insurance
 tags:
   - Enterprise Automation
   - Incident Intelligence
   - Executive Reporting
+tags_ja:
+  - エンタープライズ自動化
+  - インシデントインテリジェンス
+  - 経営レポーティング
 impact_bullets:
   - Automated PM reporting and executive dashboard workflows.
   - Unified insights across Confluence, Jira, SharePoint, Power Automate, and Power BI.
   - Added coding-agent parsers for hundreds of MB of incident data trend analysis.
+impact_bullets_ja:
+  - PMレポーティングと経営ダッシュボードワークフローの自動化。
+  - Confluence、Jira、SharePoint、Power Automate、Power BIにまたがる統合的なインサイト。
+  - 数百MBのインシデントデータトレンド分析のためのコーディングエージェントパーサーを追加。
 executive_summary:
   problem: PM reporting and incident trend analysis were fragmented across enterprise tools, limiting executive visibility and slowing Change Management response.
   solution: Automated reporting pipelines and built executive dashboards, then introduced bespoke parser workflows (with coding agents) to analyze large incident datasets.
