@@ -56,7 +56,7 @@ screenshots:
     caption: Product suite overview showing Tax AI Advisor, Regulatory Monitoring, Legal Research & Comparison, and Multi-Tenant Platform.
   - src: /assets/images/jtes_workflow.png
     alt: JTES simple three-step workflow
-    caption: 3-step usage flow: ask a tax question, run AI analysis across domains, and receive a cited answer.
+    caption: "3-step usage flow: ask a tax question, run AI analysis across domains, and receive a cited answer."
   - src: /assets/images/jtes_response.png
     alt: JTES answer panel with confidence indicator
     caption: Query response screen with structured Japanese tax guidance and displayed confidence level.
