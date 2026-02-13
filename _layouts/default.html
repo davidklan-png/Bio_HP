@@ -12,28 +12,23 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
     <script>
-      // Language persistence - remembers user choice until toggled back
+      // Language persistence and page-specific switching
       (function() {
-        const currentLang = document.documentElement.lang || 'en';
+        const isJaPage = window.location.pathname.startsWith('/ja/');
+        const currentLang = isJaPage ? 'ja' : 'en';
         const storedLang = localStorage.getItem('site-lang');
         const effectiveLang = storedLang || currentLang;
 
-        // If viewing English but stored preference is Japanese, redirect to Japanese version
-        if (effectiveLang === 'ja' && !window.location.pathname.startsWith('/ja/')) {
-          const jaPath = window.location.pathname.replace(/^\/ja\//, '/ja/').replace(/^\//, '/ja/');
-          window.location.href = jaPath;
-        }
-        // If viewing Japanese but stored preference is English, redirect to English version
-        if (effectiveLang === 'en' && window.location.pathname.startsWith('/ja/')) {
-          const enPath = window.location.pathname.replace(/^\/ja\//, '').replace(/^\/ja/, '/');
-          window.location.href = enPath || '/';
+        // Redirect only if stored preference differs from current page language
+        if ((effectiveLang === 'ja' && !isJaPage) || (effectiveLang === 'en' && isJaPage)) {
+          // Let the navigation handle the redirect via data-lang-switch links
         }
 
-        // Update lang toggle active states based on current path
+        // Update lang toggle active states
         document.addEventListener('DOMContentLoaded', function() {
           const isJa = window.location.pathname.startsWith('/ja/');
-          const enLink = document.querySelector('.lang-toggle a[href*="/"]');
-          const jaLink = document.querySelector('.lang-toggle a[href*="/ja/"]');
+          const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
+          const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
           if (enLink) enLink.classList.toggle('active', !isJa);
           if (jaLink) jaLink.classList.toggle('active', isJa);
         });
@@ -42,7 +37,7 @@
         document.addEventListener('click', function(e) {
           const target = e.target.closest('.lang-toggle a');
           if (target) {
-            const lang = target.getAttribute('href').includes('/ja/') ? 'ja' : 'en';
+            const lang = target.getAttribute('data-lang-switch');
             localStorage.setItem('site-lang', lang);
           }
         });
