@@ -336,3 +336,15 @@ This project is currently private and under development. Licensing terms will be
 Consultant, Dazbeez, LLC  
 📧 [david.klan@gmail.com](mailto:david.klan@gmail.com)  
 📞 +81-90-8266-9210
+
+---
+
+## 🤖 Agent Handover Notes (2026-02-13)
+
+This `JTES/` folder in the portfolio repo is reference material used for project context and writeups. Treat it as documentation snapshot content unless explicitly asked to synchronize with the upstream `JapaneseTaxExpertSystem` repository.
+
+- Portfolio-rendered JTES content is controlled by:
+  - `_data/projects/jtes_specialized_rag.yml`
+  - `projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals.md`
+- When updating screenshot captions in YAML, quote strings that contain `:` to prevent YAML parse failures in GitHub Pages.
+- Validate all `_data/**/*.yml` files before pushing changes that affect the static site build.

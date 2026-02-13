@@ -1,4 +1,10 @@
-"""Minimal agent components for planner/executor/reviewer workflow."""
+"""Minimal agent components for planner/executor/reviewer workflow.
+
+Agent handover notes:
+- Keep the stage order stable: plan -> execute -> review -> finalize.
+- Preserve the dictionary contract returned by ``finalize_response``.
+- Avoid embedding provider-specific logic in this module; keep it orchestration-only.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +12,17 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from tools import lookup_policy, summarize_context
+
+
+# Handover guardrail: downstream consumers parse these keys from finalize_response().
+FINAL_RESPONSE_KEYS = (
+    "task",
+    "model",
+    "plan",
+    "tool_outputs",
+    "review_notes",
+    "final_recommendation",
+)
 
 
 @dataclass
@@ -45,7 +62,7 @@ def review_outputs(state: TaskState) -> TaskState:
 
 def finalize_response(state: TaskState) -> dict:
     # Keep final output structured so downstream systems can parse it reliably.
-    return {
+    response = {
         "task": state.task,
         "model": state.model,
         "plan": state.plan,
@@ -53,3 +70,8 @@ def finalize_response(state: TaskState) -> dict:
         "review_notes": state.review_notes,
         "final_recommendation": "Proceed with mitigation plan and verify policy exceptions.",
     }
+    # Defensive check for future refactors that might break integration expectations.
+    for key in FINAL_RESPONSE_KEYS:
+        if key not in response:
+            raise KeyError(f"Missing required final response key: {key}")
+    return response

@@ -47,3 +47,29 @@ bundle exec jekyll serve
 ## Full revision guide
 
 See `REVISION_PLAYBOOK.md`.
+
+## Agent Handover (2026-02-13)
+
+Use this checklist when transferring work to a new coding agent.
+
+1. Start here:
+   - Site overview: `README.md`
+   - Revision workflow: `REVISION_PLAYBOOK.md`
+   - Agent runbook: `AGENTS.md`
+2. Canonical content locations:
+   - Project data: `_data/projects/*.yml`
+   - Layout rendering: `_layouts/project.html`
+   - Site config: `_config.yml`
+3. Validate YAML before push (prevents broken GitHub Pages builds):
+
+```bash
+python3 - <<'PY'
+import yaml, glob
+for path in glob.glob('_data/**/*.yml', recursive=True):
+    yaml.safe_load(open(path, encoding='utf-8'))
+print('ALL_YAML_OK')
+PY
+```
+
+4. Deployment target:
+   - GitHub Pages should publish from branch `main`, folder `/ (root)`.

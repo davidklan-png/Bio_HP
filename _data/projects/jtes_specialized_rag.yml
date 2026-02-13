@@ -80,6 +80,3 @@ repro:
     - Validate category coverage across major tax domains (for example 消費税, 所得税, 法人税, 源泉徴収).
     - Test regulatory monitoring alerts and law comparison output (新旧対照表).
     - Verify role-based access and tenant separation behavior in team scenarios.
-links:
-  - label: JTES Project Link
-    url: https://chatgpt.com/g/g-p-69506a2dfb04819193b3e819137d24b1-jtes/project
