@@ -139,6 +139,26 @@ ol {
   box-shadow: var(--shadow);
 }
 
+.hero-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.hero-text {
+  flex: 1;
+}
+
+.hero-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--line);
+  box-shadow: 0 4px 16px rgba(15, 35, 56, 0.12);
+  flex-shrink: 0;
+}
+
 .eyebrow {
   color: var(--brand-strong);
   font-weight: 600;
@@ -530,6 +550,17 @@ ol {
 
   .hero {
     padding: 1.4rem;
+  }
+
+  .hero-header {
+    flex-direction: column-reverse;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-avatar {
+    width: 120px;
+    height: 120px;
   }
 }
 
