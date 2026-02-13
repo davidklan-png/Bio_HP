@@ -3,9 +3,14 @@ layout: default
 title: Home
 ---
 <section class="hero fade-up">
-  <p class="eyebrow">{{ site.data.site.owner_role }}</p>
-  <h1>{{ site.data.site.hero_tagline }}</h1>
-  <p class="hero-summary">{{ site.data.site.summary }}</p>
+  <div class="hero-header">
+    <div class="hero-text">
+      <p class="eyebrow">{{ site.data.site.owner_role }}</p>
+      <h1>{{ site.data.site.hero_tagline }}</h1>
+      <p class="hero-summary">{{ site.data.site.summary }}</p>
+    </div>
+    <img src="{{ "/assets/images/DK_Avatar.jpeg" | relative_url }}" alt="{{ site.data.site.owner_name }}" class="hero-avatar">
+  </div>
   <div class="audience-grid">
     <article class="audience-card">
       <h2>For Business Stakeholders</h2>
