@@ -16,3 +16,17 @@ This site uses three shared placeholder images:
 3. Keep at least 3 screenshot entries per project for layout consistency.
 
 Supported formats: `.png`, `.jpg`, `.jpeg`, `.webp`, `.svg`.
+
+## Agent Handover Notes (2026-02-13)
+
+- Latest JTES images in use:
+  - `jtes_products.png`
+  - `jtes_workflow.png`
+  - `jtes_response.png`
+  - `jtes_citation.png`
+- Current JTES screenshot display expects a 2x2 order in `_data/projects/jtes_specialized_rag.yml`:
+  1. `jtes_products.png`
+  2. `jtes_workflow.png`
+  3. `jtes_response.png`
+  4. `jtes_citation.png`
+- If captions include `:`, quote the whole YAML string to avoid parse errors during Pages build.

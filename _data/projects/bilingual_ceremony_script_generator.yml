@@ -52,7 +52,7 @@ tech_details:
 screenshots:
   - src: /assets/images/Wedding_pic.JPG
     alt: Wedding ceremony concept image
-    caption: Visual reference used to align ceremony tone and theme direction.
+    caption: AI-enabled Priest.
   - src: /assets/images/Wedding_Mind Map.png
     alt: Wedding ceremony planning mind map
     caption: Mind map used to structure bilingual script flow and key moments.
@@ -63,13 +63,9 @@ lessons_learned:
   - Grounding quality matters more than prompt verbosity.
   - Side-by-side bilingual checks catch tone drift early.
   - Human review cadence should be planned as part of the generation workflow.
-improve_next:
-  - Add automated terminology consistency checks across both languages.
-  - Add rubric-based scoring for ceremony rhythm and readability.
-  - Add reusable style packs for different ceremony themes.
 repro:
   runnable: false
   steps:
     - Load a curated corpus of prior scripts and define style constraints.
     - Run initial grounded generation and compare outputs by prompt variant.
-    - Review and revise with bilingual checkpoints before finalization.
+    - Review and revise with the bride and groom regularly.

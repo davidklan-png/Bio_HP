@@ -1,7 +1,7 @@
 id: enterprise_ai_enablement_insurance
 detail_page: /projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/
 name: Enterprise AI Enablement in Insurance – Reporting & Incident Intelligence
-one_line_value: Automated reporting and incident intelligence to improve executive visibility and Change Management decisions.
+one_line_value: Automated reporting and incident intelligence to improve executive visibility and decision making.
 icon: insurance
 tags:
   - Enterprise Automation
@@ -24,7 +24,7 @@ use_case:
 architecture:
   overview: Operational data from collaboration and ticketing systems is transformed into dashboard-ready metrics, with parser pipelines for deep incident trend extraction.
   diagram:
-    - "[Confluence | Jira | SharePoint]"
+    - "[Confluence | Jira | SharePoint | ServiceNow]"
     - "             |"
     - "   Automation + ETL orchestration"
     - "             |"
@@ -49,27 +49,17 @@ tech_details:
   tradeoffs:
     - Highly automated reporting improves speed but needs governance checks.
     - Deep parser analysis increases insight quality but requires stronger maintenance.
-screenshots:
-  - src: /assets/images/placeholder-dashboard.svg
-    alt: Executive reporting dashboard
-    caption: Portfolio-level executive view combining delivery and risk signals.
-  - src: /assets/images/placeholder-workflow.svg
-    alt: Incident parser flow
-    caption: Parser workflow for extracting trends from large incident datasets.
-  - src: /assets/images/placeholder-architecture.svg
-    alt: Enterprise automation architecture
-    caption: Cross-platform reporting and incident intelligence architecture.
 lessons_learned:
-  - Governance and taxonomy alignment are prerequisites for trustworthy dashboards.
-  - Parsing strategy must balance speed, maintainability, and traceability.
+  - Garbage in = Garbage out.  Data quality is critical for automated reporting success.
+  - Data format consistency is essential for reliable parsing and analysis.
   - Executive communication improves when metrics and narrative are co-designed.
 improve_next:
-  - Add near-real-time alerting for high-risk incident trend shifts.
+  - Add Power Automate workflows to handle document processing.
   - Add quality gates for parser output validation.
-  - Add scenario simulation views for proactive Change Management planning.
+  - Improve dashboard focus for actionable insights.
 repro:
   runnable: false
   steps:
-    - Review data flow from source tools into reporting layers.
-    - Walk through dashboard design logic and KPI definitions.
-    - Inspect parser methodology and trend detection examples.
+    - Setup processes to capture data and receive feedback from surveys.
+    - Link to Power BI dashboards and validate KPI accuracy.
+    - Use ML to detect data trends and anomalies for incident and problem reduction.
