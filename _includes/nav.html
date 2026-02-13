@@ -1,31 +1,31 @@
 {% assign current_url = page.url | default: "/" %}
-{% assign is_ja = page.lang == '"'"ja'" %}
+{% assign is_ja = page.lang == 'ja' %}
 
 <header class="top-nav">
   <div class="container nav-inner">
     {% if is_ja %}
-      <a class="brand" href="{{ "/" | relative_url | append: '"'"ja/"' }}">{{ site.data.site.site_title_ja }}</a>
+      <a class="brand" href="{{ "/" | relative_url | append: 'ja/' }}">{{ site.data.site.site_title_ja }}</a>
     {% else %}
       <a class="brand" href="{{ "/" | relative_url }}">{{ site.data.site.site_title }}</a>
     {% endif %}
     <nav class="nav-links" aria-label="Primary">
       {% if is_ja %}
-        <a class="nav-link {% if current_url == '"'/ja/'" or current_url == '"'/ja" %}is-active{% endif %}" href="{{ '"'/ja/"' | relative_url }}">ホーム</a>
-        <a class="nav-link {% if current_url == '"'/ja/about/"' %}is-active{% endif %}" href="{{ '"'/ja/about/"' | relative_url }}">About / Contact</a>
+        <a class="nav-link {% if current_url == '/ja/' or current_url == '/ja' %}is-active{% endif %}" href="{{ '/ja/' | relative_url }}">ホーム</a>
+        <a class="nav-link {% if current_url == '/ja/about/' %}is-active{% endif %}" href="{{ '/ja/about/' | relative_url }}">About / Contact</a>
       {% else %}
-        <a class="nav-link {% if current_url == '"'" %}is-active{% endif %}" href="{{ "/" | relative_url }}">Home</a>
-        <a class="nav-link {% if current_url == '"/about/"' %}is-active{% endif %}" href="{{ "/about/" | relative_url }}">About / Contact</a>
+        <a class="nav-link {% if current_url == '/' %}is-active{% endif %}" href="{{ "/" | relative_url }}">Home</a>
+        <a class="nav-link {% if current_url == '/about/' %}is-active{% endif %}" href="{{ "/about/" | relative_url }}">About / Contact</a>
       {% endif %}
     </nav>
     <div class="lang-toggle">
       {% if is_ja %}
-        <a href="{{ current_url | remove: '"'/ja"'"', '"'" | prepend: '"'"/"'" | default: '"'"' }}" data-lang-switch="en" class="active">EN</a>
+        <a href="{{ current_url | remove: '/ja', '' | prepend: '/' | default: '/' }}" data-lang-switch="en" class="active">EN</a>
         <span class="divider">|</span>
         <span class="current">日本語</span>
       {% else %}
         <span class="current">EN</span>
         <span class="divider">|</span>
-        <a href="{{ current_url | append: '"'/ja/"'" | default: '"'/ja/"'" }}" data-lang-switch="ja">日本語</a>
+        <a href="{{ current_url | append: '/ja/' | default: '/ja/' }}" data-lang-switch="ja">日本語</a>
       {% endif %}
     </div>
   </div>
