@@ -1,5 +1,10 @@
-import { describe, expect, it, beforeAll } from "vitest";
-import { analyzeJobDescription, type Profile, validateAnalyzeBody } from "./analysis";
+import { describe, expect, it } from "vitest";
+import {
+  analyzeJobDescription,
+  assertEvidenceIsFromProfile,
+  type Profile,
+  validateAnalyzeBody
+} from "./analysis";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -88,6 +93,55 @@ const noJapaneseProfile: Profile = {
     availability: "Open to full-time roles"
   }
 };
+
+// Build valid evidence URLs set from profile
+const validEvidenceUrls = new Set<string>();
+for (const project of bilingualProfile.projects) {
+  for (const url of project.evidence_urls) {
+    validEvidenceUrls.add(url);
+  }
+}
+
+describe("Milestone 1: Strict grounding", () => {
+  describe("assertEvidenceIsFromProfile", () => {
+    it("returns true for valid profile evidence URLs", () => {
+      const validUrl = "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/";
+      expect(assertEvidenceIsFromProfile(validUrl, validEvidenceUrls)).toBe(true);
+    });
+
+    it("returns false for fake/injected URLs not in profile", () => {
+      const fakeUrl = "https://malicious-site.com/fake-evidence";
+      expect(assertEvidenceIsFromProfile(fakeUrl, validEvidenceUrls)).toBe(false);
+    });
+
+    it("returns false for empty string", () => {
+      expect(assertEvidenceIsFromProfile("", validEvidenceUrls)).toBe(false);
+    });
+
+    it("returns false for JD text masquerading as URL", () => {
+      const jdTextAsUrl = "Matched JD requirement via: Design and implement agentic workflows";
+      expect(assertEvidenceIsFromProfile(jdTextAsUrl, validEvidenceUrls)).toBe(false);
+    });
+  });
+
+  describe("analyzeJobDescription debug output", () => {
+    it("includes debug.discarded_matches in response", () => {
+      const result = analyzeJobDescription(fixtureJD, bilingualProfile, "ms1-test-1");
+
+      expect(result.debug).toBeDefined();
+      expect(result.debug?.discarded_matches).toBeDefined();
+      expect(typeof result.debug?.discarded_matches).toBe("number");
+    });
+
+    it("all evidence URLs in strengths are from profile", () => {
+      const result = analyzeJobDescription(fixtureJD, bilingualProfile, "ms1-test-2");
+
+      for (const strength of result.strengths) {
+        expect(assertEvidenceIsFromProfile(strength.evidence_url, validEvidenceUrls)).toBe(true);
+      }
+    });
+  });
+});
 
 describe("Milestone 0: Regression fixture test", () => {
   it("validates the fixture JD itself", () => {
