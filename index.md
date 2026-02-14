@@ -13,12 +13,12 @@ title: Home
   </div>
   <div class="audience-grid">
     <article class="audience-card">
-      <h2>For Business Stakeholders</h2>
-      <p>Scan value, impact, and decision relevance in under two minutes.</p>
+      <h2>For Decision Makers</h2>
+      <p>The signal beneath the noise — value, impact, and what it means for your next move. Two minutes.</p>
     </article>
     <article class="audience-card">
-      <h2>For Technophiles</h2>
-      <p>Dive into architecture, constraints, tradeoffs, and implementation patterns.</p>
+      <h2>For Those Who Look Deeper</h2>
+      <p>Descend into the architecture — constraints, tradeoffs, and the implementation patterns where novelty crystallizes into working systems.</p>
     </article>
   </div>
 </section>
@@ -41,8 +41,8 @@ title: Home
 
 <section class="section-block fade-up delay-2">
   <div class="section-heading">
-    <h2>Portfolio at a Glance</h2>
-    <p>Four projects from the last year, each with executive and technical depth.</p>
+    <h2>Four Investigations</h2>
+    <p>Each project maps a different territory where language models meet the resistance of the real world.</p>
   </div>
 
   <div class="card-grid">

@@ -5,7 +5,7 @@ permalink: /about/
 ---
 <section class="section-block fade-up">
   <h1>About</h1>
-  <p>{{ site.data.site.owner_name }} is a {{ site.data.site.owner_role }} focused on shipping pragmatic LLM systems that balance business value, delivery speed, and technical rigor.</p>
+  <p>{{ site.data.site.owner_name }} is a {{ site.data.site.owner_role }} working at the boundary where artificial systems become genuine tools — shipping LLM architectures that balance business reality, delivery discipline, and the hard question of what machines should and shouldn't decide.</p>
   <p>{{ site.data.site.about_short }}</p>
 </section>
 
