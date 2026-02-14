@@ -31,6 +31,31 @@ python3 scripts/tdd_guard.py --against origin/main
 
 To make enforcement strict for all contributors, set GitHub branch protection on `main` and require the `TDD Quality Gates` workflow.
 
+## Commit And Push
+
+Use feature branches, then open/refresh a PR.
+
+```bash
+# 1) branch from latest main
+git checkout main
+git pull origin main
+git checkout -b fix/short-description
+
+# 2) stage and commit
+git add -A
+git commit -m "Describe the change"
+
+# 3) push branch
+git push -u origin fix/short-description
+
+# 4) open PR (or update existing PR branch)
+gh pr create --base main --head fix/short-description --title "PR title" --body "Summary"
+```
+
+Notes:
+- Pre-commit and pre-push hooks run automatically and may block pushes until checks pass.
+- To update an existing PR, commit additional changes on the same branch and run `git push`.
+
 ## Repository Layout
 
 ```text

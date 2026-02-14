@@ -53,6 +53,26 @@ python3 scripts/tdd_guard.py --against origin/main
 cd worker && npm run check && npm test
 ```
 
+## Commit And Push Workflow
+
+```bash
+# create/update feature branch
+git checkout main
+git pull origin main
+git checkout -b fix/short-description
+
+# stage and commit
+git add -A
+git commit -m "Describe the change"
+
+# push and create PR
+git push -u origin fix/short-description
+gh pr create --base main --head fix/short-description --title "PR title" --body "Summary"
+```
+
+- Keep related changes in the same commit series.
+- If hooks fail, fix tests/checks before pushing.
+
 ## Deployment Notes
 
 - Deployment target: GitHub Pages from `main` branch, root folder.

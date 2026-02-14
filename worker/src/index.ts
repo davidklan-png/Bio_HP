@@ -9,11 +9,19 @@ import {
   validateAnalyzeBodyWithLimit
 } from "./analysis";
 import { parseConfig, type ConfigEnv } from "./config";
+import {
+  buildSubmissionRecord,
+  insertRateLimitRecord,
+  insertSubmission,
+  insertValidationError,
+  sha256Hex
+} from "./storage";
 
 type Env = {
   ALLOWED_ORIGINS?: string;
   ANALYTICS_SAMPLE_RATE?: string;
   RATE_LIMITER: DurableObjectNamespace;
+  DB: D1Database;
 } & ConfigEnv;
 
 interface RateLimitDecision {
@@ -41,6 +49,7 @@ const PROFILE: Profile = parseAndValidateProfile(profileData);
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const requestId = crypto.randomUUID();
+    const requestStartTime = Date.now();
     const url = new URL(request.url);
     const isAnalyzePath = url.pathname === "/analyze" || url.pathname === "/api/analyze";
     if (!isAnalyzePath) {
@@ -55,6 +64,7 @@ export default {
     }
 
     const origin = request.headers.get("Origin");
+    const userAgent = request.headers.get("User-Agent");
     const cors = resolveCors(origin, env.ALLOWED_ORIGINS);
 
     if (request.method === "OPTIONS") {
@@ -128,6 +138,13 @@ export default {
     const rateHeaders = buildRateHeaders(rate.remaining, rate.resetAt);
 
     if (!rate.allowed) {
+      const latencyMs = Date.now() - requestStartTime;
+      const rateLimitPayload = buildRateLimitErrorPayload(requestId, rate.retryAfterSeconds);
+
+      // Store rate limit record (non-blocking)
+      const userAgentHash = userAgent ? await sha256Hex(userAgent) : null;
+      insertRateLimitRecord(env, requestId, origin, userAgentHash, latencyMs, rateLimitPayload);
+
       logRequestLifecycle(env, {
         requestId,
         jdLength: 0,
@@ -138,7 +155,7 @@ export default {
 
       return jsonResponse(
         429,
-        buildRateLimitErrorPayload(requestId, rate.retryAfterSeconds),
+        rateLimitPayload,
         {
           ...cors.headers,
           ...rateHeaders,
@@ -203,10 +220,27 @@ export default {
 
     const validationError = validateAnalyzeBodyWithLimit(body, runtimeConfig.maxJdChars);
     if (validationError) {
-      const jdLength =
-        typeof (body as { jd_text?: unknown }).jd_text === "string"
-          ? (body as { jd_text: string }).jd_text.length
-          : 0;
+      const latencyMs = Date.now() - requestStartTime;
+      const jdTextRaw = typeof (body as { jd_text?: unknown }).jd_text === "string"
+        ? (body as { jd_text: string }).jd_text
+        : "";
+      const jdLength = jdTextRaw.length;
+      const jdSha256 = jdTextRaw ? await sha256Hex(jdTextRaw) : "";
+      const userAgentHash = userAgent ? await sha256Hex(userAgent) : null;
+
+      // Store validation error record (non-blocking)
+      insertValidationError(
+        env,
+        requestId,
+        jdTextRaw.slice(0, 15000),
+        jdSha256,
+        origin,
+        userAgentHash,
+        latencyMs,
+        validationError,
+        { request_id: requestId, error: validationError }
+      );
+
       logRequestLifecycle(env, {
         requestId,
         jdLength,
@@ -218,7 +252,23 @@ export default {
     }
 
     const jdText = (body as { jd_text: string }).jd_text.trim();
+    const jdSha256 = await sha256Hex(jdText);
+    const userAgentHash = userAgent ? await sha256Hex(userAgent) : null;
     const analysis = analyzeJobDescription(jdText, PROFILE, requestId);
+
+    // Store successful submission (non-blocking)
+    const latencyMs = Date.now() - requestStartTime;
+    const submission = buildSubmissionRecord(
+      requestId,
+      jdText,
+      jdSha256,
+      origin,
+      userAgentHash,
+      latencyMs,
+      analysis
+    );
+    insertSubmission(env, submission);
+
     logRequestLifecycle(env, {
       requestId,
       jdLength: jdText.length,
