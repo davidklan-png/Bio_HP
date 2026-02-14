@@ -1,0 +1,56 @@
+{
+  "skills": [
+    "Python",
+    "TypeScript",
+    "LLM application architecture",
+    "RAG",
+    "Prompt engineering",
+    "Evaluation and observability"
+  ],
+  "projects": [
+    {
+      "name": "Japanese Tax Expert System (JTES)",
+      "tags": ["RAG", "Tax domain", "Citation grounding"],
+      "summary": "Specialized retrieval-augmented assistant for Japanese tax workflows.",
+      "outcomes": [
+        "Built evidence-grounded answer flow with citations",
+        "Improved retrieval relevance using domain-specific chunking"
+      ],
+      "stack": ["Python", "Vector search", "LLM APIs", "Jekyll"],
+      "evidence_urls": [
+        "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/"
+      ]
+    },
+    {
+      "name": "Insurance Reporting & Incident Intelligence",
+      "tags": ["Enterprise AI", "Reporting automation", "Incident analysis"],
+      "summary": "Workflow automation for insurance reporting and incident intelligence tasks.",
+      "outcomes": [
+        "Reduced manual report preparation through structured AI assistance",
+        "Standardized triage flow for faster analyst handoff"
+      ],
+      "stack": ["Python", "Automation", "Data pipelines"],
+      "evidence_urls": [
+        "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/"
+      ]
+    },
+    {
+      "name": "Receipt Classification and Matching System",
+      "tags": ["Document AI", "Classification", "Matching"],
+      "summary": "Receipt ingestion pipeline with categorization and matching support.",
+      "outcomes": [
+        "Improved classification consistency",
+        "Enabled faster financial reconciliation workflows"
+      ],
+      "stack": ["Python", "OCR", "Rules + ML"],
+      "evidence_urls": [
+        "https://kinokoholic.com/projects/receipt-classification-and-matching-system/"
+      ]
+    }
+  ],
+  "constraints": {
+    "location": "United States (open to remote and hybrid)",
+    "languages": ["English", "Japanese"],
+    "availability": "Open to full-time Senior AI/ML Engineer opportunities"
+  }
+}

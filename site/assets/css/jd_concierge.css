@@ -1,0 +1,131 @@
+.jd-concierge {
+  border: 1px solid #d6d9de;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fbfcfe;
+  color: #1f2937;
+}
+
+.jd-concierge__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.jd-concierge__subtitle {
+  margin: 0.5rem 0 1rem;
+  color: #4b5563;
+}
+
+.jd-concierge__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.jd-concierge__textarea {
+  width: 100%;
+  min-height: 220px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.jd-concierge__actions {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.jd-concierge__button {
+  border: none;
+  border-radius: 8px;
+  background: #1e40af;
+  color: #ffffff;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jd-concierge__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.jd-concierge__loading {
+  color: #334155;
+}
+
+.jd-concierge__error {
+  margin-top: 0.75rem;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.jd-concierge__results {
+  margin-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.jd-concierge__score {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.jd-concierge__confidence {
+  color: #334155;
+}
+
+.jd-concierge__summary p {
+  margin: 0.3rem 0;
+}
+
+.jd-concierge__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.jd-concierge__grid h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.jd-concierge__grid ul,
+.jd-concierge__results ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.jd-concierge__grid li,
+.jd-concierge__results li {
+  margin-bottom: 0.55rem;
+}
+
+.jd-concierge__table-wrap {
+  overflow-x: auto;
+}
+
+.jd-concierge__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.jd-concierge__table th,
+.jd-concierge__table td {
+  border: 1px solid #dbe1ea;
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+@media (min-width: 860px) {
+  .jd-concierge__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
