@@ -7,7 +7,12 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate": "wrangler d1 migrations apply jd_concierge --remote",
+    "db:migrate:local": "wrangler d1 migrations apply jd_concierge --local",
+    "db:query": "wrangler d1 execute jd_concierge --remote --command",
+    "db:query:local": "wrangler d1 execute jd_concierge --local --command",
+    "db:export": "node scripts/export-submissions.js"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260120.0",
