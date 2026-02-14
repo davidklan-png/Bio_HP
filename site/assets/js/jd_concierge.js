@@ -1,8 +1,8 @@
 (function () {
   "use strict";
 
-  var MAX_LEN = 15000;
-  var EXAMPLE_JD = [
+  const MAX_LEN = 15000;
+  const EXAMPLE_JD = [
     "Role: GenAI Enablement Consultant",
     "",
     "Responsibilities:",
@@ -21,16 +21,16 @@
     "- Familiarity with RAG systems"
   ].join("\n");
 
-  var roots = document.querySelectorAll("[data-jd-concierge]");
+  const roots = document.querySelectorAll("[data-jd-concierge]");
 
   roots.forEach(function (root) {
-    var input = root.querySelector("[data-jd-input]");
-    var counter = root.querySelector("[data-jd-counter]");
-    var analyzeButton = root.querySelector("[data-jd-submit]");
-    var exampleButton = root.querySelector("[data-jd-example]");
-    var loading = root.querySelector("[data-jd-loading]");
-    var errorBox = root.querySelector("[data-jd-error]");
-    var results = root.querySelector("[data-jd-results]");
+    const input = root.querySelector("[data-jd-input]");
+    const counter = root.querySelector("[data-jd-counter]");
+    const analyzeButton = root.querySelector("[data-jd-submit]");
+    const exampleButton = root.querySelector("[data-jd-example]");
+    const loading = root.querySelector("[data-jd-loading]");
+    const errorBox = root.querySelector("[data-jd-error]");
+    const results = root.querySelector("[data-jd-results]");
 
     if (!input || !counter || !analyzeButton || !exampleButton || !loading || !errorBox || !results) {
       return;
@@ -56,9 +56,9 @@
   });
 
   function submitAnalysis(root, input, counter, analyzeButton, exampleButton, loading, errorBox, results, scrollToResults) {
-    var jdText = input.value.trim();
-    var apiBase = (root.getAttribute("data-api-base") || "").trim();
-    var rawLength = input.value.length;
+    const jdText = input.value.trim();
+    const apiBase = (root.getAttribute("data-api-base") || "").trim();
+    const rawLength = input.value.length;
 
     clearError(errorBox);
     results.hidden = true;
@@ -80,7 +80,7 @@
 
     setLoadingState(analyzeButton, exampleButton, loading, true);
 
-    var endpoint = apiBase.replace(/\/$/, "") + "/analyze";
+    const endpoint = apiBase.replace(/\/$/, "") + "/analyze";
 
     fetch(endpoint, {
       method: "POST",
@@ -119,14 +119,14 @@
   }
 
   function renderResults(container, data) {
-    var score = typeof data.score === "number" ? data.score : 0;
-    var confidence = data.confidence || "Low";
-    var scoreBand = score >= 80 ? "strong" : score >= 60 ? "moderate" : "limited";
+    const score = typeof data.score === "number" ? data.score : 0;
+    const confidence = data.confidence || "Low";
+    const scoreBand = score >= 80 ? "strong" : score >= 60 ? "moderate" : "limited";
 
-    var strengthsHtml = asList((data.strengths || []).map(function (item) {
-      var title = escapeHtml(item.area || "Strength");
-      var evidenceTitle = escapeHtml(item.evidence_title || "Evidence");
-      var rationale = escapeHtml(item.rationale || "");
+    const strengthsHtml = asList((data.strengths || []).map(function (item) {
+      const title = escapeHtml(item.area || "Strength");
+      const evidenceTitle = escapeHtml(item.evidence_title || "Evidence");
+      const rationale = escapeHtml(item.rationale || "");
 
       if (!item.evidence_url) {
         return "<strong>" + title + "</strong>: " + evidenceTitle +
@@ -134,23 +134,23 @@
           "<br><span>" + rationale + "</span>";
       }
 
-      var evidenceUrl = escapeHtml(item.evidence_url);
+      const evidenceUrl = escapeHtml(item.evidence_url);
       return "<strong>" + title + "</strong>: <a href=\"" + evidenceUrl +
         "\" target=\"_blank\" rel=\"noopener noreferrer\">" + evidenceTitle +
         "</a><br><span>" + rationale + "</span>";
     }), "No evidence found on site.");
 
-    var gapsHtml = asList((data.gaps || []).map(function (item) {
-      var area = escapeHtml(item.area || "Gap");
-      var why = escapeHtml(item.why_it_matters || "No details");
-      var mitigation = escapeHtml(item.mitigation || "");
+    const gapsHtml = asList((data.gaps || []).map(function (item) {
+      const area = escapeHtml(item.area || "Gap");
+      const why = escapeHtml(item.why_it_matters || "No details");
+      const mitigation = escapeHtml(item.mitigation || "");
       return "<strong>" + area + "</strong>: " + why + "<br><span>Mitigation: " + mitigation + "</span>";
     }), "No major gaps detected.");
 
-    var risks = data.risk_flags || [];
-    var riskHtml = risks.length ? asList(risks.map(escapeHtml), "") : "<p>None detected.</p>";
+    const risks = data.risk_flags || [];
+    const riskHtml = risks.length ? asList(risks.map(escapeHtml), "") : "<p>None detected.</p>";
 
-    var rubricRows = (data.rubric_breakdown || [])
+    const rubricRows = (data.rubric_breakdown || [])
       .map(function (item) {
         return "<tr><td>" +
           escapeHtml(item.category || "") +
@@ -164,7 +164,7 @@
       })
       .join("");
 
-    var requestId = data.request_id ? "<p class=\"jd-concierge__request-id\">Request ID: " + escapeHtml(data.request_id) + "</p>" : "";
+    const requestId = data.request_id ? "<p class=\"jd-concierge__request-id\">Request ID: " + escapeHtml(data.request_id) + "</p>" : "";
 
     container.innerHTML = "" +
       "<div class=\"jd-concierge__summary\">" +
@@ -202,9 +202,9 @@
   }
 
   function syncCounterAndButton(input, counter, analyzeButton) {
-    var length = input.value.length;
-    var remaining = MAX_LEN - length;
-    var isValid = length > 0 && length <= MAX_LEN;
+    const length = input.value.length;
+    const remaining = MAX_LEN - length;
+    const isValid = length > 0 && length <= MAX_LEN;
 
     counter.innerHTML =
       "<span>" + escapeHtml(String(length)) + " / " + escapeHtml(String(MAX_LEN)) + "</span>" +
@@ -217,7 +217,7 @@
 
   function formatApiError(status, data) {
     if (status === 429 && data && typeof data.retry_after_seconds === "number") {
-      var minutes = Math.ceil(data.retry_after_seconds / 60);
+      const minutes = Math.ceil(data.retry_after_seconds / 60);
       return "Rate limit exceeded. Try again in " + minutes + " minute(s).";
     }
     if (status === 400) {

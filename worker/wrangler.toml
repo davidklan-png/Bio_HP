@@ -9,6 +9,12 @@ routes = [
 ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
 ANALYTICS_SAMPLE_RATE = "0"
 
+# Scoring thresholds (optional - defaults used if not specified)
+# JAPANESE_HARD_CAP = "60"
+# ONSITE_HARD_CAP = "70"
+# MAX_JD_CHARS = "15000"
+# MAX_CONTENT_LENGTH = "30000"
+
 [[durable_objects.bindings]]
 name = "RATE_LIMITER"
 class_name = "RateLimiterDO"

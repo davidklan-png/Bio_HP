@@ -1,0 +1,390 @@
+openapi: 3.0.3
+info:
+  title: JD Concierge API
+  description: |
+    Analyzes job descriptions against a profile to provide evidence-based compatibility scoring.
+
+    **Scoring Logic:**
+    - Matches JD text against portfolio evidence (skills, projects, outcomes)
+    - Returns strengths (with evidence URLs) and gaps
+    - Applies hard caps for Japanese fluency or onsite work mismatches
+    - Rate limited to 5 requests per hour per IP
+
+    **Usage:**
+    - POST a JD text to receive a compatibility score (0-100)
+    - All strengths must have evidence URLs from the profile
+    - Missing evidence is surfaced as gaps/unknowns
+  version: 1.1.0
+  contact:
+    name: API Support
+    url: https://kinokoholic.com
+  license:
+    name: MIT
+
+servers:
+  - url: https://kinokoholic.com/api
+    description: Production API
+  - url: http://localhost:8787/api
+    description: Local development (wrangler dev)
+
+security:
+  - corsProtection: []
+
+paths:
+  /analyze:
+    post:
+      summary: Analyze job description
+      description: |
+        Analyzes a job description against the configured profile to determine compatibility.
+        Returns evidence-based scoring with confidence ratings.
+      operationId: analyzeJD
+      security:
+        - corsProtection: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+            examples:
+              fullJD:
+                summary: Full job description
+                value:
+                  jd_text: |
+                    Role: Senior AI Engineer
+
+                    Responsibilities:
+                    - Lead prompt engineering initiatives
+                    - Design agentic AI workflows
+                    - Mentor junior engineers
+
+                    Requirements:
+                    - 5+ years experience with LLMs
+                    - TypeScript proficiency
+                    - Experience with RAG systems
+
+                    Nice-to-have:
+                    - Japanese language skills
+                    - Enterprise AI experience
+              minimal:
+                summary: Minimal request
+                value:
+                  jd_text: "Looking for AI engineer with RAG experience"
+      responses:
+        '200':
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponse'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                score: 75
+                confidence: "High"
+                fit_summary: "Compatibility score 75/100 (High confidence). Evidence-backed strengths: 3. Gaps or unknowns: 2. No major constraints risk was detected from JD text."
+                strengths:
+                  - area: "Responsibilities"
+                    evidence_title: "Enterprise AI Enablement System"
+                    evidence_url: "https://kinokoholic.com/projects/enterprise-ai"
+                    rationale: "Matched JD requirement to project evidence via: \"Lead prompt engineering initiatives\""
+                gaps:
+                  - area: "Requirements"
+                    why_it_matters: "No evidence found for: \"5+ years experience\""
+                    mitigation: "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+                risk_flags: []
+                rubric_breakdown:
+                  - category: "Responsibilities match"
+                    score: 26
+                    weight: 30
+                    notes: "8/9 responsibilities items have direct portfolio evidence."
+                  - category: "Must-haves"
+                    score: 24
+                    weight: 30
+                    notes: "6/7 must-haves have direct portfolio evidence."
+                  - category: "Nice-to-haves"
+                    score: 5
+                    weight: 10
+                    notes: "No explicit nice-to-have section found; assigned neutral midpoint."
+                  - category: "Domain fit"
+                    score: 10
+                    weight: 10
+                    notes: "Matched domain terms with evidence: prompt engineering, workflows, mentoring."
+                  - category: "Delivery credibility"
+                    score: 10
+                    weight: 15
+                    notes: "Evidence spans 2 project(s), indicating delivery track record."
+                  - category: "Risk/constraints alignment"
+                    score: 5
+                    weight: 5
+                    notes: "No explicit constraint conflicts detected."
+          headers:
+            X-RateLimit-Limit:
+              description: Rate limit ceiling
+              schema:
+                type: integer
+                example: 5
+            X-RateLimit-Remaining:
+              description: Remaining requests in window
+              schema:
+                type: integer
+                example: 4
+            X-RateLimit-Reset:
+              description: Unix timestamp when window resets
+              schema:
+                type: integer
+                example: 1707873600
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingField:
+                  value:
+                    request_id: "550e8400-1234-5678-9abc-def012345678"
+                    error: "Field jd_text must be a string"
+                emptyText:
+                  value:
+                    request_id: "550e8400-1234-5678-9abc-def012345678"
+                    error: "Field jd_text cannot be empty"
+                tooLong:
+                  value:
+                    request_id: "550e8400-1234-5678-9abc-def012345678"
+                    error: "Field jd_text exceeds max length of 15000 characters"
+        '403':
+          description: Forbidden - Origin not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                error: "Origin is not allowed"
+        '413':
+          description: Payload Too Large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                error: "Payload too large. Max 30000 bytes."
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                error: "Content-Type must be application/json"
+        '429':
+          description: Rate Limit Exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                error: "Rate limit exceeded"
+                retry_after_seconds: 3600
+          headers:
+            Retry-After:
+              description: Seconds until retry is allowed
+              schema:
+                type: integer
+                example: 3600
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              example: 5
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              example: 0
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Rate Limiter Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                request_id: "550e8400-1234-5678-9abc-def012345678"
+                error: "Rate limiter unavailable. Try again shortly."
+
+components:
+  securitySchemes:
+    corsProtection:
+      type: apiKey
+      description: |
+        CORS-restricted access. Only allowed origins may request.
+        Allowed origins are configured via ALLOWED_ORIGINS in wrangler.toml.
+      in: header
+      name: Origin
+
+  schemas:
+    AnalyzeRequest:
+      type: object
+      required:
+        - jd_text
+      properties:
+        jd_text:
+          type: string
+          minLength: 1
+          maxLength: 15000
+          description: The job description text to analyze
+
+    AnalyzeResponse:
+      type: object
+      required:
+        - request_id
+        - score
+        - confidence
+        - fit_summary
+        - strengths
+        - gaps
+        - risk_flags
+        - rubric_breakdown
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this request
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Overall compatibility score (0-100)
+        confidence:
+          type: string
+          enum: [Low, Medium, High]
+          description: Confidence level based on evidence coverage
+        fit_summary:
+          type: string
+          description: Human-readable summary of the fit analysis
+        strengths:
+          type: array
+          description: Matched strengths with portfolio evidence
+          items:
+            $ref: '#/components/schemas/Strength'
+        gaps:
+          type: array
+          description: Identified gaps without portfolio evidence
+          items:
+            $ref: '#/components/schemas/Gap'
+        risk_flags:
+          type: array
+          description: Warnings about constraints or risks
+          items:
+            type: string
+        rubric_breakdown:
+          type: array
+          description: Detailed scoring breakdown
+          items:
+            $ref: '#/components/schemas/RubricItem'
+
+    Strength:
+      type: object
+      required:
+        - area
+        - evidence_title
+        - evidence_url
+        - rationale
+      properties:
+        area:
+          type: string
+          description: Category where strength was found (e.g., "Responsibilities", "Must-haves")
+        evidence_title:
+          type: string
+          description: Title of the portfolio project providing evidence
+        evidence_url:
+          type: string
+          format: uri
+          description: URL to portfolio evidence
+        rationale:
+          type: string
+          description: Explanation of how the evidence matches
+
+    Gap:
+      type: object
+      required:
+        - area
+        - why_it_matters
+        - mitigation
+      properties:
+        area:
+          type: string
+          description: Category where gap was identified
+        why_it_matters:
+          type: string
+          description: Why this gap matters
+        mitigation:
+          type: string
+          description: Suggested mitigation approach
+
+    RubricItem:
+      type: object
+      required:
+        - category
+        - score
+        - weight
+        - notes
+      properties:
+        category:
+          type: string
+          description: Scoring category name
+        score:
+          type: number
+          description: Points earned in this category
+        weight:
+          type: number
+          description: Maximum possible points for this category
+        notes:
+          type: string
+          description: Detailed notes for this category
+
+    Error:
+      type: object
+      required:
+        - request_id
+        - error
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this request
+        error:
+          type: string
+          description: Human-readable error message
+
+    RateLimitError:
+      type: object
+      required:
+        - request_id
+        - error
+        - retry_after_seconds
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        error:
+          type: string
+          enum: ["Rate limit exceeded"]
+        retry_after_seconds:
+          type: integer
+          minimum: 1
+          description: Seconds until request may be retried
+
+tags:
+  - name: Analysis
+    description: Job description analysis operations
