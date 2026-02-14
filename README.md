@@ -1,192 +1,214 @@
 # JD Concierge (Jekyll + Cloudflare Worker)
 
-Minimal end-to-end job-description concierge for a static Jekyll site.
+Minimal end-to-end JD fit concierge:
 
-- Frontend: dependency-free widget (`textarea + button + results`)
-- Backend: Cloudflare Worker (TypeScript, Wrangler)
-- Grounding: `shared/profile.json` is the source of truth for evidence links
-- Guardrails: honest evidence-only strengths, request size limits, and per-IP rate limiting
-- `/site` is plain Jekyll (GitHub Pages compatible, no custom plugins required)
+- Frontend: plain Jekyll widget under `/site`
+- Backend: Cloudflare Worker (`/worker`)
+- Grounding: `shared/profile.json`
+- Guardrails: evidence-only strengths, size limits, DO rate limiting
 
 ## Repository Layout
 
 ```text
 shared/
-  profile.json                  # Source-of-truth profile dataset
-worker/
-  src/index.ts                 # /analyze endpoint + rubric scorer + Durable Object limiter
-  wrangler.toml                # Worker config (ALLOWED_ORIGINS + DO binding)
-  tsconfig.json
-  package.json
+  profile.json
 site/
-  _includes/jd_concierge.html  # Portable include for Jekyll sites
+  _config.yml
+  _includes/jd_concierge.html
   assets/js/jd_concierge.js
   assets/css/jd_concierge.css
+  index.md
+  projects/jd-concierge-sandbox.md
+worker/
+  src/index.ts
+  src/analysis.ts
+  src/analysis.test.ts
+  wrangler.toml
+  package.json
+  tsconfig.json
 ```
 
-For portability, the widget implementation is canonical under `/site`.
+## 1) Profile Dataset
 
-## 1) Edit Your Profile Dataset
+Source inputs:
 
-File: `shared/profile.json`
+- Portfolio evidence pages (`/projects/...`)
+- Work history source files under `_data/hero/`
 
-Schema fields:
+Curate those inputs into `shared/profile.json`:
 
 - `skills[]`
-- `projects[]` with:
-  - `name`
-  - `tags[]`
-  - `summary`
-  - `outcomes[]`
-  - `stack[]`
-  - `evidence_urls[]`
-- `constraints`:
-  - `location`
-  - `languages[]`
-  - `availability`
+- `projects[]` with `name`, `tags[]`, `summary`, `outcomes[]`, `stack[]`, `evidence_urls[]`
+- `constraints` with `location`, `languages[]`, `availability`
+- optional provenance metadata such as `source_documents[]`
 
-Honesty rule in scoring:
+Recommended update flow when `_data/hero` changes:
 
-- A strength is only returned if at least one `evidence_url` is matched.
-- If match evidence is missing, output becomes a gap/unknown (`No evidence found`).
+1. Update `/site/work-history.md` with public, linkable evidence summary.
+2. Update `shared/profile.json` tags/outcomes/skills so Worker scoring can match the new signals.
+3. Keep all claims tied to `evidence_urls` (portfolio page or `/work-history/`).
 
-## 2) Worker Setup (Cloudflare)
+Honesty rule:
 
-Prereqs:
+- Strengths are only emitted when evidence URLs exist.
+- Missing evidence is surfaced as gaps/unknowns.
 
-- Node.js 18+
-- Cloudflare account
+## 2) Local Development (OAuth Flow)
 
-Commands:
+This is the normal local path (no API token required):
 
 ```bash
-wrangler login
-cd worker && npm i && wrangler dev
+cd worker
+npm i
+npx wrangler login
+npx wrangler dev
 ```
 
-Local Worker URL is printed by Wrangler (usually `http://127.0.0.1:8787`).
-
-### CORS Allowed Origins
-
-`ALLOWED_ORIGINS` is a comma-separated environment variable in `worker/wrangler.toml`:
-
-```toml
-[vars]
-ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
-```
-
-The Worker returns proper preflight responses for `OPTIONS /analyze`.
-
-### Secrets
-
-v1 does not require external API keys.
-If you add external providers later, store keys with Wrangler secrets (never frontend):
-
-```bash
-wrangler secret put OPENAI_API_KEY
-```
-
-### Deploy Worker
-
-```bash
-cd worker && wrangler deploy
-```
-
-After deploy, copy Worker URL and set it in Jekyll config:
-
-- Root site: `_config.yml` -> `worker_api_base`
-- Portable `/site` config: `site/_config.yml` -> `worker_api_base`
-
-## 3) Jekyll Widget Setup
-
-Embed in any page/layout:
-
-```liquid
-{% include jd_concierge.html %}
-```
-
-The include loads:
-
-- `/assets/css/jd_concierge.css`
-- `/assets/js/jd_concierge.js`
-
-Worker base URL is read from:
-
-```yml
-worker_api_base: "https://jd-concierge-worker.<your-subdomain>.workers.dev"
-```
-
-## 4) End-to-End Local Test
-
-Terminal 1: run Worker
-
-```bash
-cd worker && npm i && wrangler dev
-```
-
-Terminal 2: run the `/site` Jekyll app
+In another terminal:
 
 ```bash
 cd site
 bundle exec jekyll serve
 ```
 
-API quick test with curl:
+## 3) Deploy
+
+### Local deploy (OAuth session)
 
 ```bash
-curl -sS http://127.0.0.1:8787/analyze \
-  -H 'Content-Type: application/json' \
-  -d '{"jd_text":"Responsibilities: Build RAG systems. Requirements: Python, TypeScript, Cloud deployment."}' | jq
+cd worker
+npx wrangler deploy
 ```
 
-Expected JSON shape:
+### CI deploy (API token)
+
+Set `CLOUDFLARE_API_TOKEN` in CI secrets, then:
+
+```bash
+cd worker
+npm ci
+npx wrangler deploy
+```
+
+## 4) Worker Config
+
+`worker/wrangler.toml`:
+
+- `ALLOWED_ORIGINS` (comma-separated; strict allowlist)
+- `ANALYTICS_SAMPLE_RATE` (`0` to `1`, default `0`)
+
+Example:
+
+```toml
+[vars]
+ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
+ANALYTICS_SAMPLE_RATE = "0"
+```
+
+## 5) Widget Integration
+
+Set Worker base URL in `site/_config.yml`:
+
+```yml
+worker_api_base: "https://kinokoholic.com/api"
+```
+
+Embed on any page:
+
+```liquid
+{% include jd_concierge.html %}
+```
+
+Widget features:
+
+- Character counter (`X / 15000`, remaining chars)
+- Analyze disabled when empty or over limit
+- Loading spinner + button disable during request
+- Error handling for validation, rate limit, network
+- Example JD button with auto-analyze + auto-scroll
+- Collapsible rubric breakdown
+
+## 6) Unit Tests (No Network)
+
+Tests are pure function tests in `worker/src/analysis.test.ts`:
+
+- Japanese hard-gate cap
+- Onsite hard-gate cap
+- Confidence tier logic
+- Request size validation
+- 429 payload shape (`retry_after_seconds`)
+
+Run:
+
+```bash
+cd worker
+npm i
+npm test
+```
+
+## 7) Production Verification
+
+### A) Response includes `request_id`
+
+```bash
+curl -sS -X POST https://kinokoholic.com/api/analyze \
+  -H "Origin: https://kinokoholic.com" \
+  -H "Content-Type: application/json" \
+  -d '{"jd_text":"Looking for AI consultant with prompt engineering experience"}' | jq '{request_id,score,confidence}'
+```
+
+### B) `Cache-Control: no-store` header
+
+```bash
+curl -i -sS -X POST https://kinokoholic.com/api/analyze \
+  -H "Origin: https://kinokoholic.com" \
+  -H "Content-Type: application/json" \
+  -d '{"jd_text":"Requirements: Python"}' | tr -d '\r' | rg -i 'cache-control|content-type|access-control-allow-origin'
+```
+
+### C) Rate limit payload includes `retry_after_seconds`
+
+```bash
+for i in 1 2 3 4 5 6; do
+  curl -sS -o /tmp/jd-rate-$i.json -w "call_$i=%{http_code}\n" \
+    -X POST https://kinokoholic.com/api/analyze \
+    -H "Origin: https://kinokoholic.com" \
+    -H "Content-Type: application/json" \
+    -d '{"jd_text":"Requirements: Python"}'
+done
+cat /tmp/jd-rate-6.json | jq
+```
+
+Expected on the blocked call:
 
 ```json
 {
-  "score": 0,
-  "confidence": "Low",
-  "fit_summary": "...",
-  "strengths": [
-    {
-      "area": "...",
-      "evidence_title": "...",
-      "evidence_url": "...",
-      "rationale": "..."
-    }
-  ],
-  "gaps": [
-    {
-      "area": "...",
-      "why_it_matters": "...",
-      "mitigation": "..."
-    }
-  ],
-  "risk_flags": ["..."],
-  "rubric_breakdown": [
-    {
-      "category": "Responsibilities match",
-      "score": 0,
-      "weight": 30,
-      "notes": "..."
-    }
-  ]
+  "request_id": "...",
+  "error": "Rate limit exceeded",
+  "retry_after_seconds": 3600
 }
 ```
 
-## 5) Anti-Abuse and Upgrade Notes
+## 8) Observability
 
-Current v1 protections in Worker:
+Runtime logs include:
 
-- Request content-type enforcement (`application/json`)
-- `jd_text` shape validation and max length (`<= 15000` chars)
-- Payload size guard (`content-length` cap)
-- Durable Object per-IP sliding window rate limiting (`5 requests / 60 minutes`)
+- `request_id`
+- `timestamp`
+- `jd_text_length`
+- `score`
+- `confidence`
+- `rate_limited`
 
-Durable Object is the default implementation (not in-memory), so limits work across Worker isolates.
+Optional sampled analytics log (safe by default):
 
-## 6) GitHub Pages Deploy
+- enabled only when `ANALYTICS_SAMPLE_RATE > 0`
+- logs compact JSON with `request_id`, `score`, `confidence`, `length`, `timestamp`
+- never logs full JD text
 
-1. Ensure `worker_api_base` in `site/_config.yml` points to deployed Worker URL.
-2. Push `main` branch.
-3. Deploy your GitHub Pages site from the `/site` Jekyll content (or mirror `/site` into your Pages root/docs source).
-4. If stale, hard refresh and wait for Pages rebuild.
+View logs:
+
+```bash
+cd worker
+npx wrangler tail
+```

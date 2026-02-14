@@ -1,0 +1,301 @@
+﻿David Klan, PMP     デイビット・クラン
+ Nearest station:                                Higashi Nakano - Chuo-sen (Tokyo)
+  Mobile / email:                                090-8266-9210 / david.klan@gmail.com
+        Languages:                                English – (Native)        Japanese – (Business level)
+        Nationality:                                USA
+        Date of birth:                                05/09/1975
+        Visa Status:                                Spousal Visa valid until Feb 15, 2016
+
+
+Profile
+15 years of IT experience with over five years managing teams of vendors, application developers, SA, BA, and SMEs.  I am Intent on delivering projects with full lifecycle and contributing to the overall performance of the organization.
+* Project delivery experience for Web-based applications, client/server infrastructure, middleware upgrade, Enterprise/mainframe Database consolidation and ETL.
+
+
+PROFESSIONAL EXPERIENCE / ACCOMPLISHMENTS (2009-Present)
+AIG Business Partners, KK                                                                   06/13 to Present
+Infrastructure Lead – Database consolidation (Consultant)
+  Multi-year program to bring policy, claim, party, and object data from 45 Japanese source systems into a common data model hosted on a Global platform in the US.  Responsibilities included creation of Architecture Profile-Specification-Design, security, ERD, Network Diagrams, and project management within infrastructure using waterfall and agile methodologies.
+
+
+Fusion Systems, Japan                                                                        02/13 to 05/13
+IT Managed Services - PMO and Project Manager (Consultant)
+  Provided governance within the organization to plan and execute internal and customer facing projects.  Managed the initiation and planning of a 500-seat office move for SFDC and provided project management reporting for 25 other projects.
+
+
+AXA Technology Japan, Tokyo                                                                04/11 to 06/12
+Project Manager - Infrastructure Refresh (Consultant)
+  Responsible for delivering the Infrastructure related Refresh program for 10,000 client PCs and over 400 servers. Each project consists of managing a team of 6 to 10 members working closely with the client, vendors, and global resources to deliver business critical OS and middleware upgrades.  Projects follow a commercial process consisting of charter, high level design, scoping, scoping confirmation, implementation, warranty, and closure.   
+
+
+Japan Institute for Educational Measurement (JIEM), Tokyo                                06/10 to 03/11        
+Project Manager – Web-based application (Consultant)                        http://passnavi.evidus.com/web-moshi
+  The client requested development of an online mock University entrance examination system (センター模試).  After hearing and requirements gathering with the client, specifications were created by a team of 4 local engineers and then delegated to a team of developers in Vietnam.  We defined and documented the project management plan, the project team was acquired and managed through to on scope, schedule, and budget completion of the client requested application.
+
+
+Study Buddy, Tokyo                                                                        03/09 to 6/10
+Project Manager – Web-based application (Partner)                                http://studybuddy.jp
+    I sponsored the project, provided direction and project management to initiate, plan, execute and control the project.  The program enables teachers to track student progress and uses spaced repetition to ensure lifelong retention of words learned using the system.  
+
+
+
+
+Technical Skills
+OS
+	DOS, Windows, Windows Server, Ubuntu, Debian, CentOS, OS/2
+	Programming Language
+	VB, VBScript, Java, JSP, Javascript, XML/XLST, HTML/CSS, bash shell, Office Macro
+	Database
+	MySQL, SQL Server, MS Access, DB/2
+	Business Applications
+	Cybozu, Lotus Notes, HP PPM, Project.net, MS Office 2000-2010, SharePoint
+	
+
+Education and Certification
+University of Hawaii - Manoa, USA                                                                12/02
+Bachelor of Business Administration (BBA) in Management Information Systems (MIS)
+Project Management Professional (PMP)                                                         11/12
+________________
+               PROJECT SUMMARY
+  
+
+  
+
+DETAILED PROJECT LIST - Responsibilities
+
+
+Application Projects:  Client/Server application using the Drupal CMF on LAMP stack (1500 users). ETL using IBM DataStage with DB2 staging area (1.2GB of raw data transformation per business day).
+
+
+Infrastructure Projects:  SBC/VDI Thin Client replacement (1000 client desktops), laptop replacement (3000 client laptops), client OS and middleware upgrades (10,000+ clients), Server software upgrades (400+ servers), Mainframe product upgrades, Call Center platform consolidation (300+ seats).
+
+
+Responsibilities
+* Scope Management
+   * Deliver projects and program on scope
+   * Define program scope objective, goals and success criteria
+   * Control scope through change management
+   * Provide weekly reports to stakeholders on scope performance
+* Budget Management
+   * Deliver projects and program on budget
+   * Ensure all project resources and materials are accounted for in the budget
+   * Reconcile actual and commitment costs
+   * Obtain formal sponsor funding approval by creating commercial documentation
+   * Provide weekly reports to stakeholders on budget performance
+* Schedule Management
+   * Deliver projects and program on schedule
+   * Define and document schedules (WBS, Roadmap, Timeline)
+   * Monitor progress and find creative solutions to accelerate activities
+   * Provide weekly reports to stakeholders on schedule performance
+* Resource Management
+   * Acquire resources for the project
+   * Provide resource plans in the form of a Statement of Work
+   * Identify stakeholders and create stakeholder register
+   * Complete on-boarding and off-boarding of resources
+* Issue / Risk Management
+   * Define and document issues and risks with impact, mitigation, resolution date and escalation for each item
+   * Provide weekly reports to stakeholders  on risks and issues
+* Communication Management
+   * Define and document Communication and stakeholder management plans
+   * Provide timely and targeted reports to all stakeholders
+   * Provide weekly status, steering committee and governance reports including scope, schedule, budget, resources, risks/issues, mitigation and internal/external dependencies
+* Governance Management
+   * Define and document a governance model that covers all stakeholders across governance, steering, program and project levels
+   * Define and document stakeholder management plan targeting each stakeholder’s interests
+   * Manage stakeholder and sponsor support within the program objectives
+* Closure Management
+   * Define criteria for project closure
+   * Obtain handover signoff from stakeholders and operations management
+   * Create full financial report and reconciliation at the time of project closure and handover
+________________
+DETAILED PROJECT LIST – Project Life Cycle
+Phase
+	Activity
+	Pre-Scoping
+HIGH LEVEL
+	Create High Level Design document
+	Requirements
+	Scope
+	Schedule
+	Resource
+	Risks/Issues
+	Dependencies
+	Budget
+	Appropriation Request and funding confirmation
+	Scoping
+BASIC DESIGN
+	Kickoff meeting
+	Resource request (vendor and internal)
+	RFP to vendors
+	Statement of Work
+	Bill of Materials
+	Vendor scorecard
+	Create Business Proposal and basic design
+	Executive summary
+	Requirements
+	Scope
+	Schedule
+	Resource
+	Communication 
+	HW/SW/NW requirements
+	Risks/Issues
+	Dependencies
+	Budget
+	Presentation to Stakeholders, feedback, acceptance
+	Final vendor selection
+	Scoping Confirmation
+DETAIL DESIGN
+	Update resource request (vendor and internal)
+	RFQ to vendors
+	Create Commercial Proposal and detail design
+	Executive summary
+	Requirements
+	Scope
+	Schedule
+	Resource
+	Communication 
+	HW/SW/NW requirements
+	Risks/Issues
+	Dependencies
+	Project closure criteria
+	Financial summary (P/L, Opex, CAPex)
+	Presentation to Stakeholders, feedback, acceptance
+	Implementation
+	Scope Management
+	Budget/Cost Management
+	Schedule Management
+	Resource Management
+	Communications Management
+	Demand Management
+	Issue/Risk Management
+	Governance Management
+	Warranty and Closure
+	Warranty period
+	Review project deliverables
+	Lessons learned
+	Signoff from Operations
+	Signoff from Stakeholders
+	Project Closure
+	
+
+DETAILED PROJECT LIST – Project Summaries (2009 – 2012)
+Infrastructure - SBC and VDI pilot program for 1000 clients
+  The scope of this project was a pilot program to replace 1000 client desktops with thin client devices based on server and storage expansion within the regional data hubs.
+  Based on client request, three separate Project Management plans were defined, documented, and presented representing different approaches and phases for the project.  None of the plans were accepted so the Project Management plans were handed over to another project manager.
+Infrastructure - Upgrade mainframe DB2 from v8.1 to v9.1
+
+
+
+
+Infrastructure - Upgrade 10,000 clients from Windows SP2 to SP3
+  All 10,000 client PCs on the network were required to be upgraded to Windows XPsp3 before June 2012 to avoid OS extended support fees.
+  By April, it was clear that organizational issues on the client side were preventing necessary approvals from being obtained to upgrade the client PCs.  In order to deliver the project before penalties were incurred, normal approval processes were overturned and the project communicated with Change and Release management directly to meet the delivery deadline.
+
+
+Infrastructure - Laptop replacement for 3000 clients
+  3000 old laptops used by the business users on the client side were identified to be replaced before the end of September.
+Normally, hardware replacement is performed by the Operations team, so backfill resources were brought in from a vendor to assist Operations while key operations staff were assigned directly to the project.
+
+
+Infrastructure - Upgrade mainframe DB2 from v8.1 to v9.1
+  AS/400 Mainframe Product upgrades are routinely performed to keep in sync with the host mainframe to avoid Single Version penalties.  
+This project was received 3 months after it was scheduled to start with only 2 months before the Service-in deadline.  An emergency meeting was held with the stakeholders to explain the situation, ad-hoc meetings were held with the host mainframe team in North America and the client's Release Management team to gain approval for accellerated implementation dates.  The product upgrade was delivered on time, on scope and under budget.
+
+
+Infrastructure - Upgrade 55 servers from NSM 2.4.2 and 3.1 to R11.2
+  Client servers had multiple versions of legacy NSM monitoring software installed and these needed to be upgraded to the latest version R11.2.  At the time of project transfer, the project was over schedule, under scope and over budget.  These factors were brought to the stakeholder's attention, the project was re-baselined, and a scrum methodology was used to accelerate the progress of both internal and global resources.
+
+
+Infrastructure - Upgrade IE6 to IE8 for 10,000 clients
+  As Internet Explorer 6.0 had reached End of Life in 2010, all 10,000 client PCs were targeted for deployment and installation of IE 8.0.  After extensive application testing and fixing managed by the project, 4000 clients were upgraded in 2011 and 6000 clients in 2012.
+Project planning, execution, control and closing were managed to deliver all client upgrades with minimal disruption to the applications and the business.
+
+
+Infrastructure - Upgrade anti-virus for 9,000 clients
+  The original scope was to upgrade all 10,000 client PCs to Symantec Endpoint Protection, however, 3,000 PCs did not meet the minimum RAM requirements and had to be upgraded with CA E-Trust.  In addition, a shift from local to global operating model for anti-virus was managed by the project after implementation.
+Defined and documented the Project Management plan, then led the team to deliver the original scope and change requests that were accepted by the stakeholders.
+
+
+
+
+Infrastructure - Call Center standardization and integration
+  Company call centers were operating on two platforms and these needed to be consolidated to reduce support and maintenance costs.
+Based on this strategic direction a project management plan was produced and vendors engaged to submit proposals.  After vendor proposals were received, evaluated, and proposed to the client, new requirements emerged and the project was closed and re-initiated within a different program.
+
+
+Infrastructure - VM MS Office 2010 testing platform
+  This project setup and managed 20 VM testing environments for MS Office 2010 on Windows XPsp3 and Windows 7 OS for over 400 applications running on the client side.
+Primary responsibilities included requirements gathering from the client, gathering a team to create the testing platform, and implementing the platform.  Due to incomplete requirements, a majority of effort was spent processing change requests.
+
+
+Infrastructure - Application standardization
+  This project was initiated to upgrade the server infrastructure middleware to standard versions and update the client application software on these servers in preparation for a data center move the following year.
+Support was given to the senior project manager by creating Roadmaps, Risks, Issues and Decision logs.  The basic Project Management Plan was defined and documented during the Scoping Confirmation phase.
+
+
+Infrastructure - Initiate DR Data Hub
+  This project was initiated to establish a secondary Data Hub in Japan for the purpose of Disaster Recovery after the Tohoku earthquake.
+Support was given to the senior project manager by creating Roadmaps, Risks, Issues and Decision logs. Attention was focused on controlling the schedule as other projects had a dependency on establishment of the secondary data hub.
+
+
+Application - Web based testing system
+  The client requested development of an online mock University entrance examination system (センター模試).  After hearing and requirements gathering with the client, specifications were created by a team of 4 local engineers and then delegated to a team of developers in Vietnam.  
+After defining and documenting the project management plan, the project team was acquired and managed through to on scope, schedule, and budget completion of the client requested application.
+
+
+Application - Computer based learning
+  Partnered with a Linguistics specialist to develop an advanced flashcard system for Japanese students studying English.  The program enables teachers to track student progress and uses spaced repetition to ensure lifelong retention of any words learned using the system.  
+As a project sponsor with a limited budget, direction and project management was used to initiate, plan execute and control the project.
+
+
+________________
+Technical Roles and Project Support (2004 - 2009)
+Construction - ISO9000, ISO9001, SOX implementation
+ AS/400 accounting system (BPCS) updated to meet governmental and industry standards 
+
+
+Construction - Warehouse Management System interface 
+Orders were placed in the AS400 System and an interface was developed to enable inventory management using a Warehouse Management System. After goods arrived at the warehouse all the processes from incoming registration to outgoing shipping were interfaced between the two systems. Primary responsibilities included Bug tracking, translation/interpretation, and specification gathering.
+
+
+Construction - Enterprise System separation 
+Create separate entities in the AS400 System to control the Global and Domestic systems in Holland
+
+
+Construction - Shipping Data download receiving program 
+Automate receipt and processing of invoices from Singapore
+
+
+Construction - Parts data update program 
+Create a program for Depots administrators to upload Parts data updates directly into the AS400 system
+
+
+Construction - Parts Control system development for new Depot in Dubai 
+Create the User manual and a one-week training presentation for new system users.  Managed after-training support, Alpha and Beta user testing
+
+
+Construction - ZaxisNet Global Online Parts Ordering system maintenance 
+Bug fixing and feature enhancements
+
+
+Construction - eService Global Online Parts inventory viewer system maintenance 
+Bug fixing and feature enhancements
+
+
+Construction - Global Depot software system support 
+User support, investigation, and escalation of program and data problems
+
+
+Technical Roles and Project Support (1995 - 2003)
+Government – Administrative evaluation system for Higashi-Matsuyama shiyakusho
+Coded a financial module and produced a report evaluating the web-based administrative systems within the Japanese prefectural governments.
+
+
+Travel – Networking and Operations at JTB
+Maintain DB servers for Credit card processing, Customer and tour information, and the Accounting department.  Operations, Print server management, system administration and batch job automation responsibilities are handled by the IT team on a wide range of client and server systems including AS/400, Windows NT/2000, and UNIX.
+
+
+Other IT related roles at University of Hawaii, Computer Warehouse, Data Control Technology, and freelance
+Network and PC Support (level 1, 2 and 3)
+Computer repair and service technician
+Computer assembly, delivery, and setup technician

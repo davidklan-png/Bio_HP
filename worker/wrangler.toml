@@ -6,7 +6,8 @@ routes = [
 ]
 
 [vars]
-ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com,https://www.kinokholic.com"
+ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
+ANALYTICS_SAMPLE_RATE = "0"
 
 [[durable_objects.bindings]]
 name = "RATE_LIMITER"

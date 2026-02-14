@@ -1,0 +1,158 @@
+Contact
+
+This is the email address link
+
+
+This is the Linkedin profile link
+
+
+Top Skills
+
+Retrieval-Augmented Generation(RAG)
+
+Anthropic Claude
+
+Artificial Intelligence (AI)
+
+David Klan
+
+IT Project Delivery | Scalable Infra & Data Projects | AXA, AIG,
+Manulife | Open to Startups & Tech-Driven Firms
+
+Tokyo, Tokyo, Japan
+
+Summary
+
+I’m a Tokyo-based IT project manager with 15+ years ofexperience delivering scalable infrastructure, data governance, andtransformation projects for global enterprises like AIG and Manulife.
+I specialize in:
+Data migrations and integrationsInfrastructure scale-ups and disaster recoveryCross-border team leadership and vendor coordinationI’m now exploring startup, scale-up, or consulting roles with moredynamic risk/reward potential—especially where infrastructurematurity, compliance, and delivery excellence intersect.
+Fluent in native English and business-level Japanese. Permanentresident in Japan. Open to fractional, freelance, or advisory rolesacross APAC and remote-friendly orgs.
+
+Experience
+
+Smart Partners KK
+
+10 years 10 months
+
+Project Delivery Manager
+
+February 2021 - Present (5 years 1 month)
+Tokyo, Japan
+
+Led customer data migration project during mainframe sunset, ensuring zerocritical data loss across multiple systems.
+Coordinated with internal IS/IT teams, external vendors, and business units todeliver compliance-ready data governance workflows.
+Created risk-based progress reports and dashboards that helped seniorstakeholders proactively identify and resolve data quality issues.
+Initiated workflow optimizations that reduced manual data correction time by40%.
+
+
+
+
+
+
+Project Delivery Manager
+
+May 2015 - June 2021 (6 years 2 months)
+Tokyo, Japan
+
+Managed infrastructure programs including the merger and build-out of 1,200+
+servers across global environments.
+Delivered an automated onboarding workflow system integrating identity, HR,
+and provisioning platforms—reducing setup time from 3 days to under 1.
+Aligned infrastructure delivery with strict disaster recovery (DR) and businesscontinuity (BCP) standards across multi-region environments.
+Acted as cross-functional liaison across Japan, EMEA, and North Americateams to ensure adherence to compliance, risk, and global policy frameworks.
+
+
+
+Smart Partners KK
+
+Information Technology Infrastructure Manager
+
+June 2013 - February 2015 (1 year 9 months)
+Tokyo, Japan
+
+Standardized client and server platforms post-merger, consolidating ITsystems and ensuring a unified data governance model.
+Drove DR/BCP policy implementation across high-availability infrastructuresupporting 10,000+ users.
+Led vendor negotiations and internal stakeholder workshops to drive alignmenton infrastructure architecture and delivery timelines.
+
+
+
+Fusion Systems Japan
+
+Senior Project Manager
+
+February 2013 - June 2013 (5 months)
+Short term contract to create and negotiate contracts for SFDC office move inTokyo
+
+
+
+AXA Technologies Japan
+
+Project Manager - Infrastructure
+
+April 2011 - June 2012 (1 year 3 months)
+Delivered a large-scale infrastructure refresh across 10,000 client PCsand 400+ servers, ensuring system reliability and security through OS andmiddleware upgrades.
+Led cross-functional teams of 6–10 members across client, vendor, and globalresource groups, maintaining alignment through structured governance andescalation channels.
+Managed project lifecycle from charter through warranty using a phasedcommercial process (charter → HLD → scoping → implementation → closure).
+
+
+
+
+
+
+Facilitated weekly delivery meetings, program-level syncs, and executivesteering committees to ensure OTOBOS delivery (on time, on budget, onscope).
+Proactively mitigated risks through tight stakeholder engagement and issuetracking, achieving zero critical delays across multiple parallel workstreams.
+
+
+
+Network Information Center - System Integration
+
+Project Manager - Application
+
+June 2010 - March 2011 (10 months)
+Tokyo, Japan
+
+Led end-to-end delivery of a web-based university entrance exam simulationplatform (センター模試) for a Japanese education services client.
+Conducted client interviews and requirements gathering, translating academicneeds into detailed functional specifications.
+Directed a hybrid development team of 4 local engineers and offshoredevelopers in Vietnam, managing handoffs, timelines, and QA.
+Mitigated offshore delivery risks by providing hands-on database developmentand aggressive system testing, ensuring the platform met strict performanceand reliability criteria.
+Successfully launched the platform by the January deadline, meeting bothscope and quality targets despite technical skill gaps in the remote team.
+
+
+
+Hitachi Construction Machinery
+
+Bridge System Engineer
+
+July 2004 - March 2009 (4 years 9 months)
+Kandatsu, Ibaraki
+
+Served as the key liaison between business users, offshore teams, andvendors to deliver enhancements and system integrations on AS/400 platformsacross global depots.
+Led compliance implementation of ISO9000/ISO9001 and SOX requirementsby upgrading BPCS accounting systems to meet regulatory standards.
+Designed and developed an interface between AS/400 and the WarehouseManagement System, streamlining the entire inventory process from orderintake to shipping.
+Delivered key enterprise system separation in AS/400 to create distinctoperational entities for Global and Domestic businesses in Europe.
+Built and deployed a shipping data automation program to streamline invoiceprocessing from Singapore, reducing manual entry.
+Developed a parts data upload tool for depot administrators, improving updateefficiency and reducing IT dependency.
+
+
+
+
+
+
+Supported the launch of a new Dubai depot by developing user manuals andtraining materials, and managing Alpha/Beta testing cycles for the parts controlsystem.
+Maintained and enhanced ZaxisNet (online parts ordering) and eService(inventory viewing) platforms, handling bug fixes and feature rollouts.
+Provided global depot system support, including root-cause analysis,
+user issue investigation, and escalation management for AS/400-basedapplications.
+
+
+
+Education
+
+University of Hawaii at Manoa
+
+BBA, Mngt Info Systems · (1998 - 2002)
+
+
+
+
+
+
