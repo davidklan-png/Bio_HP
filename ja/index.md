@@ -48,7 +48,8 @@ lang: ja
     <article class="project-card fade-up delay-1">
       <div class="card-top">
         <span class="icon-badge">{% include icon.html name=p.icon %}</span>
-        <h3><a href="{{ p.detail_page | relative_url }}">{{ p.name_ja }}</a></h3>
+        {% assign detail_ja = p.detail_page | replace_first: '/projects/', '/ja/projects/' %}
+        <h3><a href="{{ detail_ja | relative_url }}">{{ p.name_ja }}</a></h3>
       </div>
       <p class="value-line">{{ p.one_line_value_ja }}</p>
       <ul class="tag-list">
@@ -61,7 +62,7 @@ lang: ja
         <li>{{ bullet }}</li>
         {% endfor %}
       </ul>
-      <a class="inline-link" href="{{ p.detail_page | relative_url }}">詳細を見る</a>
+      <a class="inline-link" href="{{ detail_ja | relative_url }}">詳細を見る</a>
     </article>
 
     {% for project_id in site.data.site.project_order %}
@@ -70,7 +71,8 @@ lang: ja
     <article class="project-card fade-up delay-{{ forloop.index }}">
       <div class="card-top">
         <span class="icon-badge">{% include icon.html name=p.icon %}</span>
-        <h3><a href="{{ p.detail_page | relative_url }}">{{ p.name_ja }}</a></h3>
+        {% assign detail_ja = p.detail_page | replace_first: '/projects/', '/ja/projects/' %}
+        <h3><a href="{{ detail_ja | relative_url }}">{{ p.name_ja }}</a></h3>
       </div>
       <p class="value-line">{{ p.one_line_value_ja }}</p>
       <ul class="tag-list">
@@ -83,7 +85,7 @@ lang: ja
         <li>{{ bullet }}</li>
         {% endfor %}
       </ul>
-      <a class="inline-link" href="{{ p.detail_page | relative_url }}">詳細を見る</a>
+      <a class="inline-link" href="{{ detail_ja | relative_url }}">詳細を見る</a>
     </article>
     {% endif %}
     {% endfor %}

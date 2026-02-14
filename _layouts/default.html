@@ -1,12 +1,40 @@
 <!doctype html>
 <html lang="{% if page.lang %}{{ page.lang }}{% else %}en{% endif %}">
+  {% assign current_url = page.url | default: "/" %}
+  {% assign current_slice = current_url | slice: 0, 4 %}
+  {% assign is_ja_path = false %}
+  {% if current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
+    {% assign is_ja_path = true %}
+  {% endif %}
+  {% assign en_alt = current_url %}
+  {% assign ja_alt = current_url %}
+  {% if is_ja_path %}
+    {% if current_url == '/ja' or current_url == '/ja/' %}
+      {% assign en_alt = '/' %}
+      {% assign ja_alt = '/ja/' %}
+    {% else %}
+      {% assign en_alt = current_url | remove_first: '/ja' %}
+      {% assign ja_alt = current_url %}
+    {% endif %}
+  {% else %}
+    {% assign en_alt = current_url %}
+    {% if current_url == '/' %}
+      {% assign ja_alt = '/ja/' %}
+    {% else %}
+      {% assign ja_alt = '/ja' | append: current_url %}
+    {% endif %}
+  {% endif %}
+  {% if en_alt == '' %}
+    {% assign en_alt = '/' %}
+  {% endif %}
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.data.site.site_title }}</title>
     <meta name="description" content="{{ site.description }}">
-    <link rel="alternate" hreflang="en" href="{{ page.url | prepend: site.url }}">
-    <link rel="alternate" hreflang="ja" href="{{ page.url | prepend: '/ja' | prepend: site.url }}">
+    <link rel="alternate" hreflang="en" href="{{ en_alt | absolute_url }}">
+    <link rel="alternate" hreflang="ja" href="{{ ja_alt | absolute_url }}">
+    <link rel="alternate" hreflang="x-default" href="{{ en_alt | absolute_url }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +42,19 @@
     <script>
       // Language persistence and page-specific switching
       (function() {
-        const isJaPage = window.location.pathname.startsWith('/ja/');
+        const baseUrl = {{ site.baseurl | default: "" | jsonify }};
+        const stripBaseUrl = (pathname) => {
+          if (baseUrl && pathname.indexOf(baseUrl + '/') === 0) {
+            return pathname.slice(baseUrl.length);
+          }
+          if (baseUrl && pathname === baseUrl) {
+            return '/';
+          }
+          return pathname;
+        };
+
+        const currentPath = stripBaseUrl(window.location.pathname);
+        const isJaPage = currentPath === '/ja' || currentPath.indexOf('/ja/') === 0;
         const currentLang = isJaPage ? 'ja' : 'en';
         const storedLang = localStorage.getItem('site-lang');
         const effectiveLang = storedLang || currentLang;
@@ -26,7 +66,8 @@
 
         // Update lang toggle active states
         document.addEventListener('DOMContentLoaded', function() {
-          const isJa = window.location.pathname.startsWith('/ja/');
+          const pagePath = stripBaseUrl(window.location.pathname);
+          const isJa = pagePath === '/ja' || pagePath.indexOf('/ja/') === 0;
           const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
           const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
           if (enLink) enLink.classList.toggle('active', !isJa);
