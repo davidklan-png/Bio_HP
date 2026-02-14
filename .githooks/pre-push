@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+base_ref="origin/main"
+if ! git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
+  base_ref="HEAD~1"
+fi
+
+python3 scripts/tdd_guard.py --against "$base_ref"
+
+changed_range="$(git diff --name-only --diff-filter=ACMR "$base_ref"...HEAD || true)"
+
+if echo "$changed_range" | grep -q '^worker/'; then
+  echo "Running Worker checks (tsc + vitest)..."
+  (cd worker && npm run check && npm test)
+fi
+
+if echo "$changed_range" | grep -Eq '^(site/assets/js/|assets/js/|site/tests/|tests/js/)'; then
+  echo "Running site JS tests..."
+  ./scripts/run-site-js-tests.sh
+fi
+
+if echo "$changed_range" | grep -Eq '^(site/|_config.yml|_layouts/|_includes/|assets/)'; then
+  echo "Running Jekyll build check..."
+  bundle exec jekyll build >/dev/null
+fi

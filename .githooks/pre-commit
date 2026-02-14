@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 scripts/tdd_guard.py --staged
+
+staged_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if echo "$staged_files" | grep -q '^worker/'; then
+  echo "Running Worker checks (tsc + vitest)..."
+  (cd worker && npm run check && npm test)
+fi
+
+if echo "$staged_files" | grep -Eq '^(site/assets/js/|assets/js/|site/tests/|tests/js/)'; then
+  echo "Running site JS tests..."
+  ./scripts/run-site-js-tests.sh
+fi
