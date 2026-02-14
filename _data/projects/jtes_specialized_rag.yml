@@ -52,6 +52,12 @@ architecture:
     - "[Regulatory Monitoring / 法令モニタリング] -> [Importance-ranked Alerts + Change History]"
     - "[Legal Research & Comparison / 法令比較リサーチ] -> [新旧対照表 + Amendment Timeline]"
     - "[Multi-Tenant Platform / マルチテナントプラットフォーム] -> [Tenant Isolation + Role-Based Access]"
+architecture_image:
+  src: /assets/images/jtes-architecture-diagram.svg
+  alt: JTES end-to-end architecture diagram
+  alt_ja: JTESエンドツーエンドアーキテクチャ図
+  caption: End-to-end architecture showing presentation, API, orchestration, retrieval, model, and storage layers.
+  caption_ja: プレゼンテーション、API、オーケストレーション、検索、モデル、ストレージの各層を示すエンドツーエンド構成図。
 architecture_ja:
   overview: JTESは、引用根拠付き税務インテリジェンスを中核に、アドバイザー、モニタリング、比較、マルチテナント協業機能を統合したプロダクト群として提供されます。
   diagram:

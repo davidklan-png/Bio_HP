@@ -427,11 +427,20 @@ ol {
 }
 
 .shot-card {
+  position: relative;
   margin: 0;
   padding: 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: #fbfdff;
+}
+
+.architecture-card {
+  margin-top: 0.9rem;
+}
+
+.shot-media-wrap {
+  position: relative;
 }
 
 .shot-media {
@@ -455,6 +464,35 @@ ol {
   display: block;
   border-radius: 8px;
   background: #ffffff;
+}
+
+.shot-overlay-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.shot-overlay-link span {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #f6fbff;
+  background: rgba(12, 40, 63, 0.72);
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+}
+
+.shot-overlay-link:hover {
+  background: rgba(18, 56, 84, 0.08);
+}
+
+.shot-overlay-link:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 2px;
 }
 
 .shot-card figcaption {
