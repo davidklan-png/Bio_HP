@@ -1,7 +1,7 @@
 title: LLM Project Portfolio
 description: LLM Project Portfolio - David Klan. Senior AI/ML Engineer showcasing practical AI systems with agentic workflows, RAG architecture, and enterprise automation.
-baseurl: "/Bio_HP"
-url: "https://davidklan-png.github.io"
+baseurl: ""
+url: "https://kinokoholic.com"
 markdown: kramdown
 permalink: pretty
 exclude:
