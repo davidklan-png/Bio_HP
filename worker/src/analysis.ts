@@ -328,6 +328,10 @@ export function calculateConfidence(strengths: Strength[]): Confidence {
 }
 
 export function validateAnalyzeBody(body: unknown): string | null {
+  return validateAnalyzeBodyWithLimit(body, MAX_JD_CHARS);
+}
+
+export function validateAnalyzeBodyWithLimit(body: unknown, maxJdChars: number): string | null {
   if (!body || typeof body !== "object") {
     return "JSON body must be an object";
   }
@@ -341,8 +345,8 @@ export function validateAnalyzeBody(body: unknown): string | null {
     return "Field jd_text cannot be empty";
   }
 
-  if (candidate.jd_text.length > MAX_JD_CHARS) {
-    return `Field jd_text exceeds max length of ${MAX_JD_CHARS} characters`;
+  if (candidate.jd_text.length > maxJdChars) {
+    return `Field jd_text exceeds max length of ${maxJdChars} characters`;
   }
 
   return null;

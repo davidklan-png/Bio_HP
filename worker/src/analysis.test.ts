@@ -4,7 +4,8 @@ import {
   buildRateLimitErrorPayload,
   calculateConfidence,
   type Profile,
-  validateAnalyzeBody
+  validateAnalyzeBody,
+  validateAnalyzeBodyWithLimit
 } from "./analysis";
 
 const baseProfile: Profile = {
@@ -118,6 +119,11 @@ describe("input and rate-limit payload", () => {
   it("rejects jd_text over 15k chars", () => {
     const err = validateAnalyzeBody({ jd_text: "a".repeat(15001) });
     expect(err).toContain("exceeds max length");
+  });
+
+  it("respects custom jd_text max length overrides", () => {
+    const err = validateAnalyzeBodyWithLimit({ jd_text: "a".repeat(101) }, 100);
+    expect(err).toContain("exceeds max length of 100");
   });
 
   it("returns structured rate-limit payload with retry_after_seconds", () => {

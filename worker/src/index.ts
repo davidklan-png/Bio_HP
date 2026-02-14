@@ -1,15 +1,14 @@
 import profileData from "../../shared/profile.json";
 import {
-  MAX_CONTENT_LENGTH,
   analyzeJobDescription,
   buildRateLimitErrorPayload,
   initializeConfig,
   parseAndValidateProfile,
   type Confidence,
   type Profile,
-  validateAnalyzeBody
+  validateAnalyzeBodyWithLimit
 } from "./analysis";
-import type { ConfigEnv } from "./config";
+import { parseConfig, type ConfigEnv } from "./config";
 
 type Env = {
   ALLOWED_ORIGINS?: string;
@@ -109,6 +108,9 @@ export default {
       return jsonError(405, "Method not allowed", cors.headers, requestId);
     }
 
+    initializeConfig(env);
+    const runtimeConfig = parseConfig(env);
+
     const ip = getClientIp(request);
     let rate: RateLimitDecision;
     try {
@@ -166,7 +168,7 @@ export default {
     }
 
     const contentLength = Number.parseInt(request.headers.get("content-length") ?? "0", 10);
-    if (Number.isFinite(contentLength) && contentLength > MAX_CONTENT_LENGTH) {
+    if (Number.isFinite(contentLength) && contentLength > runtimeConfig.maxContentLength) {
       logRequestLifecycle(env, {
         requestId,
         jdLength: 0,
@@ -176,7 +178,7 @@ export default {
       });
       return jsonError(
         413,
-        `Payload too large. Max ${MAX_CONTENT_LENGTH} bytes.`,
+        `Payload too large. Max ${runtimeConfig.maxContentLength} bytes.`,
         {
           ...cors.headers,
           ...rateHeaders
@@ -199,7 +201,7 @@ export default {
       return jsonError(400, "Malformed JSON body", { ...cors.headers, ...rateHeaders }, requestId);
     }
 
-    const validationError = validateAnalyzeBody(body);
+    const validationError = validateAnalyzeBodyWithLimit(body, runtimeConfig.maxJdChars);
     if (validationError) {
       const jdLength =
         typeof (body as { jd_text?: unknown }).jd_text === "string"
@@ -216,7 +218,6 @@ export default {
     }
 
     const jdText = (body as { jd_text: string }).jd_text.trim();
-    initializeConfig(env);
     const analysis = analyzeJobDescription(jdText, PROFILE, requestId);
     logRequestLifecycle(env, {
       requestId,
