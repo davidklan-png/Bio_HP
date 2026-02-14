@@ -24,10 +24,6 @@ title: Home
 </section>
 
 <section class="section-block fade-up delay-2">
-  <div class="section-heading">
-    <h2>JD Concierge</h2>
-    <p>Paste a job description for evidence-grounded fit and gap analysis.</p>
-  </div>
   {% include jd_concierge.html %}
 </section>
 
