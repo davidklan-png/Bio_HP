@@ -42,6 +42,12 @@ export interface AnalyzeResponse {
   gaps: Gap[];
   risk_flags: string[];
   rubric_breakdown: RubricItem[];
+  ai_metadata?: {
+    ai_used: boolean;
+    ai_model?: string;
+    ai_interpreter_ok?: boolean;
+    ai_writer_ok?: boolean;
+  };
   debug?: {
     discarded_matches: number;
     parsed_jd?: {
@@ -406,11 +412,24 @@ const STOP_WORDS = new Set([
 export function analyzeJobDescription(
   jdText: string,
   profile: Profile,
-  requestId: string
+  requestId: string,
+  aiContext?: {
+    AI?: any;
+    aiModelId?: string;
+    aiEnabled?: boolean;
+  }
 ): AnalyzeResponse {
   const projectIndex = buildProjectIndex(profile);
   const skillEvidence = buildSkillEvidenceMap(profile, projectIndex);
   const domainTerms = buildDomainTerms(profile);
+
+  // AI metadata is always returned for observability, even when running deterministic-only scoring.
+  const aiMetadata: AnalyzeResponse["ai_metadata"] = {
+    ai_used: Boolean(aiContext?.AI && aiContext?.aiEnabled !== false),
+    ai_interpreter_ok: false,
+    ai_writer_ok: false,
+    ...(aiContext?.aiModelId ? { ai_model: aiContext.aiModelId } : {})
+  };
 
   // Grounding validation set - all valid evidence URLs from profile
   const validEvidenceUrls = new Set<string>();
@@ -580,6 +599,7 @@ export function analyzeJobDescription(
     gaps,
     risk_flags: riskEval.riskFlags,
     rubric_breakdown: rubricBreakdown,
+    ai_metadata: aiMetadata,
     debug: {
       discarded_matches: totalDiscardedMatches,
       parsed_jd: {
@@ -673,10 +693,14 @@ function getEvidenceLabel(project: ProfileProject, evidenceUrl: string): { label
   if (project.evidence && Array.isArray(project.evidence)) {
     const evidenceItem = project.evidence.find((e) => e.url === evidenceUrl);
     if (evidenceItem && typeof evidenceItem === "object" && evidenceItem !== null) {
-      return {
-        label: evidenceItem.label || undefined,
-        snippet: evidenceItem.snippet || undefined
-      };
+      const evidenceLabel: { label?: string; snippet?: string } = {};
+      if (evidenceItem.label) {
+        evidenceLabel.label = evidenceItem.label;
+      }
+      if (evidenceItem.snippet) {
+        evidenceLabel.snippet = evidenceItem.snippet;
+      }
+      return evidenceLabel;
     }
   }
   return {};
@@ -747,8 +771,11 @@ export function parseAndValidateProfile(input: unknown): Profile {
     if (!Array.isArray(typed.tags) || !Array.isArray(typed.outcomes) || !Array.isArray(typed.stack)) {
       throw new Error("Invalid profile data: project tags/outcomes/stack must be arrays");
     }
-    if (!Array.isArray(typed.evidence_urls)) {
-      throw new Error("Invalid profile data: project.evidence_urls must be an array");
+    // Support both legacy evidence_urls and new evidence format
+    const hasEvidenceUrls = Array.isArray(typed.evidence_urls);
+    const hasEvidence = Array.isArray(typed.evidence);
+    if (!hasEvidenceUrls && !hasEvidence) {
+      throw new Error("Invalid profile data: project must have evidence_urls or evidence array");
     }
   }
 
@@ -973,7 +1000,9 @@ function collectStrengths(
   let discardedCount = 0;
 
   for (const [area, evalResult] of entries) {
-    const evidenced = evalResult.matches.filter((match) => match.evidenceProject?.evidence_urls.length);
+    const evidenced = evalResult.matches.filter((match) =>
+      match.evidenceProject ? getProjectEvidenceUrls(match.evidenceProject).length > 0 : false
+    );
     if (evidenced.length === 0) {
       continue;
     }
@@ -987,7 +1016,8 @@ function collectStrengths(
       continue;
     }
 
-    const evidenceUrl = project.evidence_urls[0];
+    const evidenceUrls = getProjectEvidenceUrls(project);
+    const evidenceUrl = evidenceUrls[0];
     if (!evidenceUrl) {
       continue;
     }
@@ -1034,7 +1064,7 @@ function extractRequirementPhrase(jdLine: string): string {
   // If still long, truncate at first sentence or comma
   if (phrase.length > 60) {
     const firstSentence = phrase.split(/[.!?]/)[0];
-    if (firstSentence.length > 10 && firstSentence.length < 60) {
+    if (firstSentence && firstSentence.length > 10 && firstSentence.length < 60) {
       return firstSentence.trim();
     }
     // Otherwise truncate at word boundary
@@ -1372,7 +1402,7 @@ function buildSkillEvidenceMap(profile: Profile, projectIndex: ProjectIndex[]): 
 
 function findProjectForSkill(skillTerm: string, projectIndex: ProjectIndex[]): ProfileProject | undefined {
   for (const index of projectIndex) {
-    if (index.project.evidence_urls.length === 0) {
+    if (getProjectEvidenceUrls(index.project).length === 0) {
       continue;
     }
     if (index.searchableTerms.some((term) => containsTerm(term, skillTerm) || containsTerm(skillTerm, term))) {
@@ -1384,13 +1414,13 @@ function findProjectForSkill(skillTerm: string, projectIndex: ProjectIndex[]): P
 
 function findFallbackEvidenceProject(projectIndex: ProjectIndex[]): ProfileProject | undefined {
   const workHistoryProject = projectIndex.find((entry) =>
-    entry.project.evidence_urls.some((url) => /\/work-history\/?$/i.test(url))
+    getProjectEvidenceUrls(entry.project).some((url) => /\/work-history\/?$/i.test(url))
   );
   if (workHistoryProject) {
     return workHistoryProject.project;
   }
 
-  return projectIndex.find((entry) => entry.project.evidence_urls.length > 0)?.project;
+  return projectIndex.find((entry) => getProjectEvidenceUrls(entry.project).length > 0)?.project;
 }
 
 function containsTerm(normalizedText: string, normalizedTerm: string): boolean {

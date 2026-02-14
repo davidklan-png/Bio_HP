@@ -31,6 +31,7 @@
     {
       "name": "Japanese Tax Expert System (JTES)",
       "capability_tags": ["LLM foundations", "RAG"],
+      "domain_tags": ["Tax", "Finance", "Professional Services"],
       "tags": ["RAG", "Tax domain", "Citation grounding"],
       "summary": "Specialized retrieval-augmented assistant for Japanese tax workflows.",
       "outcomes": [
@@ -41,13 +42,15 @@
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
-          "label": "JTES Project Case Study"
+          "label": "JTES Project Case Study",
+          "snippet": "Specialized RAG system for Japanese tax professionals with citation grounding"
         }
       ]
     },
     {
       "name": "Insurance Reporting & Incident Intelligence",
       "capability_tags": ["Python & Integrations"],
+      "domain_tags": ["Insurance", "Finance", "Risk Management"],
       "tags": ["Enterprise AI", "Reporting automation", "Incident analysis"],
       "summary": "Workflow automation for insurance reporting and incident intelligence tasks.",
       "outcomes": [
@@ -58,13 +61,15 @@
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
-          "label": "Enterprise AI Case Study"
+          "label": "Enterprise AI Case Study",
+          "snippet": "AI-powered reporting automation and incident intelligence for insurance workflows"
         }
       ]
     },
     {
       "name": "Receipt Classification and Matching System",
       "capability_tags": ["Python & Integrations"],
+      "domain_tags": ["Finance", "FinTech", "Operations"],
       "tags": ["Document AI", "Classification", "Matching"],
       "summary": "Receipt ingestion pipeline with categorization and matching support.",
       "outcomes": [
@@ -75,13 +80,15 @@
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/receipt-classification-and-matching-system/",
-          "label": "Document AI Project"
+          "label": "Document AI Project",
+          "snippet": "Document AI for financial reconciliation with classification and matching"
         }
       ]
     },
     {
       "name": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
       "capability_tags": ["Governance & Delivery"],
+      "domain_tags": ["Insurance", "Finance", "Data Governance"],
       "tags": [
         "Data migration",
         "Data governance",
@@ -107,6 +114,7 @@
     {
       "name": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
       "capability_tags": ["Governance & Delivery"],
+      "domain_tags": ["Insurance", "Enterprise IT", "Infrastructure"],
       "tags": [
         "Infrastructure refresh",
         "Disaster recovery",
@@ -132,6 +140,7 @@
     {
       "name": "GenAI Enablement and Change Leadership",
       "capability_tags": ["Change enablement", "Workshops & Training", "Stakeholder management"],
+      "domain_tags": ["Enterprise Transformation"],
       "tags": [
         "Change management",
         "Enablement",
@@ -157,6 +166,7 @@
     {
       "name": "Application and Integration Delivery (Education / Depot Systems)",
       "capability_tags": ["Python & Integrations"],
+      "domain_tags": ["Education", "Logistics"],
       "tags": [
         "Web application delivery",
         "System integration",
