@@ -27,6 +27,10 @@ executive_summary:
   problem: Tax users need dependable guidance for Japanese tax topics where unsupported AI answers can create compliance and operational risk.
   solution: JTES analyzes official 国税庁 (NTA) and e-Gov sources, supports Japanese and English queries, and provides citation-backed answers with fail-closed behavior when evidence cannot be verified.
   outcome: A role-oriented tax AI platform that combines question answering, law-change monitoring, legal comparison workflows, and secure team usage in one system.
+executive_summary_ja:
+  problem: 税務領域では、根拠のないAI回答がコンプライアンスリスクや業務リスクにつながるため、利用者には信頼できる日本税務ガイダンスが必要です。
+  solution: JTESは国税庁（NTA）とe-Govの公式情報を解析し、日英の問い合わせに対応しつつ、根拠確認できない場合は回答を抑制するfail-closed挙動で引用付き回答を提供します。
+  outcome: 質問応答、法令改正モニタリング、法令比較ワークフロー、安全なチーム利用を1つに統合したロール指向の税務AIプラットフォームを実現しました。
 use_case:
   summary: JTES supports practical tax workflows from quick Q&A to ongoing regulatory tracking, with every response grounded in official source evidence.
   stakeholders:
@@ -34,6 +38,13 @@ use_case:
     - Tax professionals (税理士・会計士)
     - SMB accounting and finance teams (中小企業)
     - Accounting firms managing multiple client environments
+use_case_ja:
+  summary: JTESは、クイックQ&Aから継続的な法令追跡まで、すべての回答を公式ソース根拠に基づけた実務税務ワークフローを支援します。
+  stakeholders:
+    - 個人事業主
+    - 税理士・会計士
+    - 中小企業の経理・財務チーム
+    - 複数クライアント環境を管理する会計事務所
 architecture:
   overview: JTES is presented as a product suite centered on citation-backed tax intelligence, combining advisor, monitoring, comparison, and multi-tenant collaboration capabilities.
   diagram:
@@ -41,6 +52,13 @@ architecture:
     - "[Regulatory Monitoring / 法令モニタリング] -> [Importance-ranked Alerts + Change History]"
     - "[Legal Research & Comparison / 法令比較リサーチ] -> [新旧対照表 + Amendment Timeline]"
     - "[Multi-Tenant Platform / マルチテナントプラットフォーム] -> [Tenant Isolation + Role-Based Access]"
+architecture_ja:
+  overview: JTESは、引用根拠付き税務インテリジェンスを中核に、アドバイザー、モニタリング、比較、マルチテナント協業機能を統合したプロダクト群として提供されます。
+  diagram:
+    - "[税務AIアドバイザー] -> [公式ソースに基づく引用付き回答]"
+    - "[法令モニタリング] -> [重要度付きアラート + 変更履歴]"
+    - "[法令比較リサーチ] -> [新旧対照表 + 改正タイムライン]"
+    - "[マルチテナントプラットフォーム] -> [テナント分離 + ロールベースアクセス]"
 tech_details:
   rag_prompt_patterns:
     - Ask in Japanese or English; retrieve and synthesize from Japanese official tax/legal sources.
@@ -61,29 +79,67 @@ tech_details:
     - Strict citation requirements improve trust but can reduce response coverage.
     - Fail-closed behavior reduces speculative risk but may withhold answers when evidence is insufficient.
     - Temporal monitoring and comparison features add operational value with added system complexity.
+tech_details_ja:
+  rag_prompt_patterns:
+    - 日本語または英語で質問し、日本の公式税務・法令ソースから取得・統合する。
+    - 国税庁（NTA）やe-Govに紐づく明示的な引用を付けて回答する。
+    - 引用検証が通らない場合はfail-closed挙動を適用する。
+    - 過去法令や改正履歴を対象とした時系列リーガルリサーチに対応する。
+  tools:
+    - 税務AIアドバイザー
+    - 法令モニタリング
+    - 法令比較リサーチ
+    - マルチテナントプラットフォーム
+  constraints:
+    - 主観的翻訳による意味損失を避けるため、日本税務・会計用語を保持する必要がある。
+    - 根拠ソースは国税庁（NTA）やe-Govなど公式データに限定される。
+    - 専門業務利用では、根拠不足時に保守的挙動が求められる。
+    - 一次法令が日本語で書かれているため、日本語質問の方が精度が高い場合がある。
+  tradeoffs:
+    - 厳格な引用要件は信頼性を高める一方、回答カバレッジを下げる場合がある。
+    - fail-closed挙動は推測リスクを下げる一方、根拠不足時に回答を出さないことがある。
+    - 時系列モニタリングと比較機能は業務価値を高める一方、システム複雑性を増やす。
 screenshots:
   - src: /assets/images/jtes_products.png
     alt: JTES four-solution product cards
+    alt_ja: JTESの4ソリューション製品カード
     caption: Product suite overview showing Tax AI Advisor, Regulatory Monitoring, Legal Research & Comparison, and Multi-Tenant Platform.
+    caption_ja: 税務AIアドバイザー、法令モニタリング、法令比較リサーチ、マルチテナントプラットフォームの全体像。
   - src: /assets/images/jtes_workflow.png
     alt: JTES simple three-step workflow
+    alt_ja: JTESのシンプルな3ステップワークフロー
     caption: "3-step usage flow: ask a tax question, run AI analysis across domains, and receive a cited answer."
+    caption_ja: "3ステップの利用フロー：税務質問、領域横断AI分析、引用付き回答の受領。"
   - src: /assets/images/jtes_response.png
     alt: JTES answer panel with confidence indicator
+    alt_ja: 信頼度表示付きJTES回答パネル
     caption: Query response screen with structured Japanese tax guidance and displayed confidence level.
+    caption_ja: 構造化された日本税務ガイダンスと信頼度を表示する回答画面。
   - src: /assets/images/jtes_citation.png
     alt: JTES citation evidence panel
+    alt_ja: JTESの引用根拠パネル
     caption: Citation view linking answer claims to official documents with per-citation evidence blocks.
+    caption_ja: 回答の主張を公式文書へ紐づけ、引用ごとの根拠ブロックを確認できる画面。
 lessons_learned:
   - In tax workflows, citation visibility is a primary trust driver.
   - Role-based packaging improves usability across sole proprietors, specialists, and teams.
   - Regulatory monitoring and law comparison reduce manual research burden for professionals.
   - Enterprise adoption depends on tenant isolation and clear access controls.
+lessons_learned_ja:
+  - 税務ワークフローでは、引用の可視性が信頼形成の主要因になる。
+  - ロール別の機能提供は、個人事業主・専門家・チーム横断で使いやすさを高める。
+  - 法令モニタリングと法令比較は、専門家の手作業リサーチ負荷を下げる。
+  - エンタープライズ導入の鍵は、テナント分離と明確なアクセス制御にある。
 improve_next:
   - Expand depth and breadth of official source coverage while preserving citation quality.
   - Refine English-query precision for users who do not ask in Japanese.
   - Improve alert ranking quality for regulatory monitoring updates.
   - Add richer workflow analytics for team-wide tax issue tracking.
+improve_next_ja:
+  - 引用品質を維持しながら、公式ソースの深さと網羅性を拡大する。
+  - 日本語で質問しない利用者向けに英語問い合わせ精度を改善する。
+  - 法令モニタリング更新のアラート順位付け品質を改善する。
+  - チーム全体の税務課題追跡に向け、ワークフロー分析を強化する。
 repro:
   runnable: false
   steps:
@@ -91,3 +147,9 @@ repro:
     - Validate category coverage across major tax domains (for example 消費税, 所得税, 法人税, 源泉徴収).
     - Test regulatory monitoring alerts and law comparison output (新旧対照表).
     - Verify role-based access and tenant separation behavior in team scenarios.
+repro_ja:
+  steps:
+    - 日本語または英語で税務質問を行い、回答内の公式引用を確認する。
+    - 主要税目（例：消費税、所得税、法人税、源泉徴収）のカテゴリ網羅性を検証する。
+    - 法令モニタリングのアラートと法令比較（新旧対照表）の出力を確認する。
+    - チーム利用でのロールベースアクセスとテナント分離挙動を検証する。

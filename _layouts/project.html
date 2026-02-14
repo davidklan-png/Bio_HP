@@ -2,90 +2,159 @@
 layout: default
 ---
 {% assign p = site.data.projects[page.project_id] %}
+{% assign is_ja = page.lang == 'ja' %}
 {% if p %}
+{% assign display_name = p.name %}
+{% assign display_value = p.one_line_value %}
+{% assign display_tags = p.tags %}
+{% assign executive = p.executive_summary %}
+{% assign use_case = p.use_case %}
+{% assign architecture = p.architecture %}
+{% assign tech_details = p.tech_details %}
+{% assign lessons = p.lessons_learned %}
+{% assign improve_items = p.improve_next %}
+{% assign repro_steps = p.repro.steps %}
+
+{% assign eyebrow_label = "Project Detail" %}
+{% assign executive_label = "Executive Summary" %}
+{% assign problem_label = "Problem" %}
+{% assign solution_label = "Solution" %}
+{% assign outcome_label = "Outcome" %}
+{% assign use_case_label = "Use Case & Stakeholders" %}
+{% assign architecture_label = "Architecture" %}
+{% assign architecture_aria = "Architecture pseudo diagram" %}
+{% assign tech_label = "Tech Details" %}
+{% assign rag_label = "RAG / Prompt Patterns" %}
+{% assign tools_label = "Tools" %}
+{% assign constraints_label = "Constraints" %}
+{% assign tradeoffs_label = "Tradeoffs" %}
+{% assign screenshots_label = "Screenshots Gallery" %}
+{% assign lessons_section_label = "Lessons Learned / What I'd Improve Next" %}
+{% assign lessons_label = "Lessons Learned" %}
+{% assign improve_label = "What I'd Improve Next" %}
+{% assign repro_label = "Repro Notes / Demo Walkthrough" %}
+{% assign runnable_note = "Runnable project: follow the steps below." %}
+{% assign non_runnable_note = "Non-runnable public demo: use the walkthrough steps below." %}
+{% assign links_label = "Project Links" %}
+
+{% if is_ja %}
+  {% if p.name_ja %}{% assign display_name = p.name_ja %}{% endif %}
+  {% if p.one_line_value_ja %}{% assign display_value = p.one_line_value_ja %}{% endif %}
+  {% if p.tags_ja %}{% assign display_tags = p.tags_ja %}{% endif %}
+  {% if p.executive_summary_ja %}{% assign executive = p.executive_summary_ja %}{% endif %}
+  {% if p.use_case_ja %}{% assign use_case = p.use_case_ja %}{% endif %}
+  {% if p.architecture_ja %}{% assign architecture = p.architecture_ja %}{% endif %}
+  {% if p.tech_details_ja %}{% assign tech_details = p.tech_details_ja %}{% endif %}
+  {% if p.lessons_learned_ja %}{% assign lessons = p.lessons_learned_ja %}{% endif %}
+  {% if p.improve_next_ja %}{% assign improve_items = p.improve_next_ja %}{% endif %}
+  {% if p.repro_ja and p.repro_ja.steps %}{% assign repro_steps = p.repro_ja.steps %}{% endif %}
+
+  {% assign eyebrow_label = "プロジェクト詳細" %}
+  {% assign executive_label = "エグゼクティブサマリー" %}
+  {% assign problem_label = "課題" %}
+  {% assign solution_label = "解決策" %}
+  {% assign outcome_label = "成果" %}
+  {% assign use_case_label = "ユースケース・関係者" %}
+  {% assign architecture_label = "アーキテクチャ" %}
+  {% assign architecture_aria = "アーキテクチャ図（擬似図）" %}
+  {% assign tech_label = "技術詳細" %}
+  {% assign rag_label = "RAG / プロンプト設計" %}
+  {% assign tools_label = "使用ツール" %}
+  {% assign constraints_label = "制約" %}
+  {% assign tradeoffs_label = "トレードオフ" %}
+  {% assign screenshots_label = "スクリーンショットギャラリー" %}
+  {% assign lessons_section_label = "学びと次の改善点" %}
+  {% assign lessons_label = "学び" %}
+  {% assign improve_label = "次に改善したい点" %}
+  {% assign repro_label = "再現メモ / デモ手順" %}
+  {% assign runnable_note = "実行可能なプロジェクトです。以下の手順に従ってください。" %}
+  {% assign non_runnable_note = "公開デモ（非実行）です。以下の手順で確認してください。" %}
+  {% assign links_label = "関連リンク" %}
+{% endif %}
+
 <article class="project-detail">
   <header class="project-header fade-up">
     <div class="title-wrap">
       <span class="icon-badge large">{% include icon.html name=p.icon %}</span>
       <div>
-        <p class="eyebrow">Project Detail</p>
-        <h1>{{ p.name }}</h1>
+        <p class="eyebrow">{{ eyebrow_label }}</p>
+        <h1>{{ display_name }}</h1>
       </div>
     </div>
-    <p class="project-value">{{ p.one_line_value }}</p>
+    <p class="project-value">{{ display_value }}</p>
     <ul class="tag-list">
-      {% for tag in p.tags %}
+      {% for tag in display_tags %}
       <li>{{ tag }}</li>
       {% endfor %}
     </ul>
   </header>
 
   <section class="section-block fade-up delay-1">
-    <h2>Executive Summary</h2>
+    <h2>{{ executive_label }}</h2>
     <div class="summary-grid">
       <div>
-        <h3>Problem</h3>
-        <p>{{ p.executive_summary.problem }}</p>
+        <h3>{{ problem_label }}</h3>
+        <p>{{ executive.problem }}</p>
       </div>
       <div>
-        <h3>Solution</h3>
-        <p>{{ p.executive_summary.solution }}</p>
+        <h3>{{ solution_label }}</h3>
+        <p>{{ executive.solution }}</p>
       </div>
       <div>
-        <h3>Outcome</h3>
-        <p>{{ p.executive_summary.outcome }}</p>
+        <h3>{{ outcome_label }}</h3>
+        <p>{{ executive.outcome }}</p>
       </div>
     </div>
   </section>
 
   <section class="section-block fade-up delay-2">
-    <h2>Use Case &amp; Stakeholders</h2>
-    <p>{{ p.use_case.summary }}</p>
+    <h2>{{ use_case_label }}</h2>
+    <p>{{ use_case.summary }}</p>
     <ul class="bullet-list">
-      {% for stakeholder in p.use_case.stakeholders %}
+      {% for stakeholder in use_case.stakeholders %}
       <li>{{ stakeholder }}</li>
       {% endfor %}
     </ul>
   </section>
 
   <section class="section-block fade-up delay-3">
-    <h2>Architecture</h2>
-    <p>{{ p.architecture.overview }}</p>
-    <pre class="diagram" aria-label="Architecture pseudo diagram">{% for line in p.architecture.diagram %}{{ line }}
+    <h2>{{ architecture_label }}</h2>
+    <p>{{ architecture.overview }}</p>
+    <pre class="diagram" aria-label="{{ architecture_aria }}">{% for line in architecture.diagram %}{{ line }}
 {% endfor %}</pre>
   </section>
 
   <section class="section-block fade-up delay-4">
-    <h2>Tech Details</h2>
+    <h2>{{ tech_label }}</h2>
     <div class="tech-grid">
       <div>
-        <h3>RAG / Prompt Patterns</h3>
+        <h3>{{ rag_label }}</h3>
         <ul class="bullet-list">
-          {% for item in p.tech_details.rag_prompt_patterns %}
+          {% for item in tech_details.rag_prompt_patterns %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
       </div>
       <div>
-        <h3>Tools</h3>
+        <h3>{{ tools_label }}</h3>
         <ul class="bullet-list">
-          {% for item in p.tech_details.tools %}
+          {% for item in tech_details.tools %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
       </div>
       <div>
-        <h3>Constraints</h3>
+        <h3>{{ constraints_label }}</h3>
         <ul class="bullet-list">
-          {% for item in p.tech_details.constraints %}
+          {% for item in tech_details.constraints %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
       </div>
       <div>
-        <h3>Tradeoffs</h3>
+        <h3>{{ tradeoffs_label }}</h3>
         <ul class="bullet-list">
-          {% for item in p.tech_details.tradeoffs %}
+          {% for item in tech_details.tradeoffs %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
@@ -94,10 +163,16 @@ layout: default
   </section>
 
   <section class="section-block fade-up delay-5">
-    <h2>Screenshots Gallery</h2>
+    <h2>{{ screenshots_label }}</h2>
     <div class="gallery-grid">
       {% for shot in p.screenshots %}
       {% assign media_type = shot.type %}
+      {% assign shot_alt = shot.alt %}
+      {% assign shot_caption = shot.caption %}
+      {% if is_ja %}
+        {% if shot.alt_ja %}{% assign shot_alt = shot.alt_ja %}{% endif %}
+        {% if shot.caption_ja %}{% assign shot_caption = shot.caption_ja %}{% endif %}
+      {% endif %}
       {% if media_type == nil %}
         {% assign ext = shot.src | split: '.' | last | downcase %}
         {% if ext == 'pdf' %}
@@ -113,40 +188,40 @@ layout: default
         <iframe
           class="shot-media shot-frame"
           src="{{ shot.src | relative_url }}"
-          title="{{ shot.alt }}"
+          title="{{ shot_alt }}"
           loading="lazy">
         </iframe>
         {% elsif media_type == 'html' %}
         <iframe
           class="shot-media shot-frame"
           src="{{ shot.src | relative_url }}"
-          title="{{ shot.alt }}"
+          title="{{ shot_alt }}"
           loading="lazy">
         </iframe>
         {% else %}
-        <img class="shot-media" src="{{ shot.src | relative_url }}" alt="{{ shot.alt }}" loading="lazy">
+        <img class="shot-media" src="{{ shot.src | relative_url }}" alt="{{ shot_alt }}" loading="lazy">
         {% endif %}
-        <figcaption>{{ shot.caption }}</figcaption>
+        <figcaption>{{ shot_caption }}</figcaption>
       </figure>
       {% endfor %}
     </div>
   </section>
 
   <section class="section-block fade-up delay-6">
-    <h2>Lessons Learned / What I'd Improve Next</h2>
+    <h2>{{ lessons_section_label }}</h2>
     <div class="improve-grid">
       <div>
-        <h3>Lessons Learned</h3>
+        <h3>{{ lessons_label }}</h3>
         <ul class="bullet-list">
-          {% for lesson in p.lessons_learned %}
+          {% for lesson in lessons %}
           <li>{{ lesson }}</li>
           {% endfor %}
         </ul>
       </div>
       <div>
-        <h3>What I'd Improve Next</h3>
+        <h3>{{ improve_label }}</h3>
         <ul class="bullet-list">
-          {% for item in p.improve_next %}
+          {% for item in improve_items %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
@@ -155,16 +230,16 @@ layout: default
   </section>
 
   <section class="section-block fade-up delay-7">
-    <h2>Repro Notes / Demo Walkthrough</h2>
+    <h2>{{ repro_label }}</h2>
     <p class="status-note">
       {% if p.repro.runnable %}
-      Runnable project: follow the steps below.
+      {{ runnable_note }}
       {% else %}
-      Non-runnable public demo: use the walkthrough steps below.
+      {{ non_runnable_note }}
       {% endif %}
     </p>
     <ol class="number-list">
-      {% for step in p.repro.steps %}
+      {% for step in repro_steps %}
       <li>{{ step }}</li>
       {% endfor %}
     </ol>
@@ -172,10 +247,12 @@ layout: default
 
   {% if p.links %}
   <section class="section-block fade-up delay-7">
-    <h2>Project Links</h2>
+    <h2>{{ links_label }}</h2>
     <ul class="link-list">
       {% for link in p.links %}
-      <li><a href="{{ link.url }}" target="_blank" rel="noreferrer">{{ link.label }}</a></li>
+      {% assign link_label = link.label %}
+      {% if is_ja and link.label_ja %}{% assign link_label = link.label_ja %}{% endif %}
+      <li><a href="{{ link.url }}" target="_blank" rel="noreferrer">{{ link_label }}</a></li>
       {% endfor %}
     </ul>
   </section>
@@ -183,7 +260,12 @@ layout: default
 </article>
 {% else %}
 <section class="section-block">
+  {% if is_ja %}
+  <h1>プロジェクトデータが見つかりません</h1>
+  <p>このページのfront matterの`project_id`と`_data/projects`内のYAMLキーを確認してください。</p>
+  {% else %}
   <h1>Project data not found</h1>
   <p>Check `project_id` in this page front matter and matching YAML file in `_data/projects`.</p>
+  {% endif %}
 </section>
 {% endif %}

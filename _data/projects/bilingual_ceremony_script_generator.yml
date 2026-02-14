@@ -25,12 +25,22 @@ executive_summary:
   problem: Ceremony script drafting required fast bilingual output while preserving tone and consistency with prior successful ceremonies.
   solution: Built a grounded generation process in NotebookLM, anchored to 10 prior scripts, then iterated with human review to tune style and bilingual fluency.
   outcome: Delivered tailored Japanese/English ceremony drafts aligned to the Ancient Grecian theme with improved consistency and editorial efficiency.
+executive_summary_ja:
+  problem: 過去に成功したセレモニーとのトーンと一貫性を保ちながら、短時間で日英バイリンガルのスクリプトを作成する必要がありました。
+  solution: 10本の過去スクリプトを根拠データとしてNotebookLMでグラウンデッド生成プロセスを構築し、人手レビューを反復して文体とバイリンガルの自然さを調整しました。
+  outcome: 古代ギリシャテーマに沿った日英スクリプト案を提供し、一貫性と編集効率を改善しました。
 use_case:
   summary: Content planners needed high-quality bilingual scripts without sacrificing authenticity, ceremony flow, or stylistic coherence.
   stakeholders:
     - Event planning leads
     - Ceremony script reviewers
     - Bilingual MC and production teams
+use_case_ja:
+  summary: コンテンツ企画担当は、真正性・進行の流れ・文体の整合性を損なうことなく、高品質なバイリンガルスクリプトを必要としていました。
+  stakeholders:
+    - イベント企画リーダー
+    - セレモニースクリプトレビュー担当
+    - バイリンガル司会者と制作チーム
 architecture:
   overview: Prior script corpus is used as grounding context, a themed prompt controls tone and structure, and reviewers iterate until final script acceptance.
   diagram:
@@ -43,6 +53,18 @@ architecture:
     - " Human review and edit loop"
     - "           |"
     - " Final bilingual ceremony script"
+architecture_ja:
+  overview: 過去スクリプト群を根拠コンテキストとして使い、テーマ付きプロンプトでトーンと構成を制御し、最終受け入れまでレビューを反復します。
+  diagram:
+    - "[過去スクリプト文書10本]"
+    - "           |"
+    - " 根拠付け + スタイル制約"
+    - "           |"
+    - " NotebookLM生成"
+    - "           |"
+    - " 人手レビューと編集ループ"
+    - "           |"
+    - " 最終バイリンガルセレモニースクリプト"
 tech_details:
   rag_prompt_patterns:
     - Grounding prompts that cite prior script motifs and structure.
@@ -59,23 +81,62 @@ tech_details:
   tradeoffs:
     - Strong style constraints improve consistency but can reduce creative variation.
     - Faster generation cycles can increase reviewer burden if grounding is weak.
+tech_details_ja:
+  rag_prompt_patterns:
+    - 過去スクリプトのモチーフや構成を参照する根拠付けプロンプト。
+    - テーマ、テンポ、儀礼的表現を制御するスタイル制御ブロック。
+    - バイリンガルの一貫性を高めるための反復的な批評プロンプト。
+  tools:
+    - NotebookLMの共同編集ワークスペース
+    - スタイル確認と根拠確認のためのプロンプトテンプレート
+    - 品質保証のための手動編集チェックポイント
+  constraints:
+    - 日本語と英語の間でニュアンスを維持する必要がある。
+    - 厳密な制約がないとテーマ特有の表現がぶれやすい。
+    - 出力品質はソースコーパスの関連性に依存する。
+  tradeoffs:
+    - 強いスタイル制約は一貫性を高める一方、創造的な幅を狭める場合がある。
+    - 生成サイクルを速くすると、根拠が弱い場合にレビュー負荷が増える。
 screenshots:
   - src: /assets/images/Wedding_pic.JPG
     alt: Wedding ceremony concept image
+    alt_ja: ウェディングセレモニーのコンセプト画像
     caption: AI-enabled Priest.
+    caption_ja: AIを活用した司式者。
   - src: /assets/images/Wedding_Mind Map.png
     alt: Wedding ceremony planning mind map
+    alt_ja: ウェディングセレモニー企画のマインドマップ
     caption: Mind map used to structure bilingual script flow and key moments.
+    caption_ja: バイリンガルスクリプトの流れと重要場面を設計するために使用したマインドマップ。
   - src: /assets/images/Wedding_info.png
     alt: Wedding context and requirements notes
+    alt_ja: ウェディングの背景情報と要件メモ
     caption: Source notes capturing ceremony constraints and bilingual content requirements.
+    caption_ja: セレモニー制約とバイリンガル要件を整理したソースメモ。
 lessons_learned:
   - Grounding quality matters more than prompt verbosity.
   - Side-by-side bilingual checks catch tone drift early.
   - Human review cadence should be planned as part of the generation workflow.
+lessons_learned_ja:
+  - プロンプトの長さよりも、根拠データの質の方が重要。
+  - 日英を並列で確認すると、トーンのずれを早期に検知できる。
+  - 人手レビューの頻度は生成ワークフローの一部として事前設計すべき。
+improve_next:
+  - Add terminology guardrails for vow and ceremonial phrasing consistency.
+  - Add rubric-based scoring before reviewer handoff.
+  - Add versioned prompt packs by ceremony style.
+improve_next_ja:
+  - 誓い文句や儀礼表現の一貫性を保つ用語ガードレールを追加する。
+  - レビュー引き渡し前にルーブリック評価を追加する。
+  - セレモニースタイル別にバージョン管理されたプロンプトパックを追加する。
 repro:
   runnable: false
   steps:
     - Load a curated corpus of prior scripts and define style constraints.
     - Run initial grounded generation and compare outputs by prompt variant.
     - Review and revise with the bride and groom regularly.
+repro_ja:
+  steps:
+    - 過去スクリプトの厳選コーパスを読み込み、スタイル制約を定義する。
+    - 初期の根拠付き生成を実行し、プロンプト別に出力を比較する。
+    - 新郎新婦との定期レビューで修正を重ねる。

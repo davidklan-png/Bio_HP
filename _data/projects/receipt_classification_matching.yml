@@ -3,7 +3,7 @@ detail_page: /projects/receipt-classification-and-matching-system/
 name: Receipt Classification & Matching System
 name_ja: レシート分類・マッチングシステム
 one_line_value: Automated statement-to-receipt reconciliation for faster, cleaner tax submission workflows.
-one_line_value_ja: 明細書とレシートの自動照合による、より迅速で正確な確務申請ワークフロー。
+one_line_value_ja: 明細書とレシートの自動照合による、より迅速で正確な税務申請ワークフロー。
 icon: receipt
 tags:
   - Document AI
@@ -25,12 +25,22 @@ executive_summary:
   problem: Credit card statements and receipts were reconciled manually, creating delays and inconsistent categorization before company tax submission.
   solution: Built a Gemini Colab workflow using free LLMs to match statement lines to receipts, then classify transactions with ambiguity-aware vendor handling.
   outcome: Delivered a repeatable review flow that speeds reconciliation and produces cleaner, tax-oriented expense categorization.
+executive_summary_ja:
+  problem: クレジットカード明細とレシートの照合を手作業で行っていたため、会社の税務申告前に遅延と分類の不一致が発生していました。
+  solution: 無料LLMを使うGemini Colabワークフローを構築し、明細行とレシートを照合した上で、曖昧性を考慮したベンダー処理で取引分類を行いました。
+  outcome: 照合を高速化し、税務向けの経費分類品質を高める再現可能なレビュー工程を実現しました。
 use_case:
   summary: Finance and operations teams need reliable monthly transaction matching and categorization without scaling manual review time.
   stakeholders:
     - Finance operations analysts
     - Accounting and tax preparers
     - Business managers submitting expenses
+use_case_ja:
+  summary: 財務・業務チームは、手動レビュー時間を増やさずに、月次取引の信頼できる照合と分類を必要としていました。
+  stakeholders:
+    - 財務オペレーションアナリスト
+    - 経理担当および税務準備担当
+    - 経費申請を行う事業部マネージャー
 architecture:
   overview: Statement rows and receipt text are normalized, candidate matches are scored, and ambiguous vendors are sent through LLM-assisted classification before final review.
   diagram:
@@ -43,6 +53,18 @@ architecture:
     - "Ambiguous vendor? -> LLM classifier"
     - "           |"
     - "  Human review queue + export"
+architecture_ja:
+  overview: 明細行とレシートテキストを正規化し、候補マッチをスコアリングした後、曖昧なベンダーをLLM支援分類に回して最終レビューに接続します。
+  diagram:
+    - "[クレジットカード明細 CSV/PDF]"
+    - "           |"
+    - "   OCR + 正規化"
+    - "           |"
+    - "  候補マッチのスコアリング"
+    - "           |"
+    - "ベンダーが曖昧? -> LLM分類器"
+    - "           |"
+    - "  人手レビューキュー + エクスポート"
 tech_details:
   rag_prompt_patterns:
     - Prompted ambiguity resolver with vendor-name and merchant-context hints.
@@ -59,24 +81,57 @@ tech_details:
   tradeoffs:
     - Higher recall matching can increase false positives in edge cases.
     - More aggressive categorization automation reduces manual effort but requires tighter audit checks.
+tech_details_ja:
+  rag_prompt_patterns:
+    - ベンダー名と加盟店コンテキストのヒントを使った曖昧性解消プロンプト。
+    - カテゴリラベルと信頼度を返す構造化出力テンプレート。
+    - モデル信頼度が低下した場合の軽量フォールバックルール。
+  tools:
+    - Gemini Colabノートブック実行環境
+    - Pythonによるデータクレンジングと照合ロジック
+    - 分類支援のための無料LLMエンドポイント
+  constraints:
+    - レシート品質のばらつきとOCRノイズ。
+    - 加盟店別名や明細説明の省略表記。
+    - モデル/API利用予算の制約。
+  tradeoffs:
+    - 再現率を高める照合は、境界ケースで誤検出を増やす可能性がある。
+    - 分類自動化を強めるほど手作業は減るが、監査チェックを厳密にする必要がある。
 screenshots:
   - src: /assets/images/receipt_img.pdf
     alt: Receipt sample PDF document
+    alt_ja: レシートのサンプルPDF
     caption: PDF receipt sample used for OCR extraction and line-item matching checks.
+    caption_ja: OCR抽出と明細行照合チェックに使用したPDFレシートサンプル。
   - src: /assets/images/recceipt_sample.html
     alt: Receipt sample HTML export
+    alt_ja: レシートのサンプルHTML出力
     caption: HTML receipt representation used to validate parser and structured extraction behavior.
+    caption_ja: パーサーと構造化抽出挙動を検証するためのHTMLレシート表現。
 lessons_learned:
   - Confidence thresholds and review queues are essential for finance trust.
   - Merchant alias dictionaries dramatically improve initial matching quality.
   - Prompt schema enforcement prevents downstream parsing issues.
+lessons_learned_ja:
+  - 信頼度しきい値とレビューキューは、財務業務での信頼確保に不可欠。
+  - 加盟店別名辞書は初期照合品質を大幅に改善する。
+  - プロンプトスキーマの厳格化は後段の解析不具合を防ぐ。
 improve_next:
   - Add active-learning loops from reviewer corrections.
   - Add document-level anomaly detection for missing receipts.
   - Add monthly quality scorecards by category and vendor type.
+improve_next_ja:
+  - レビュー修正を取り込むアクティブラーニングループを追加する。
+  - レシート欠落を検知する文書レベル異常検知を追加する。
+  - カテゴリ別・ベンダー種別の月次品質スコアカードを追加する。
 repro:
   runnable: false
   steps:
     - Open the notebook flow and review sample statement/receipt inputs.
     - Walk through matching score logic and ambiguity classifier prompts.
     - Inspect exception-routing outputs and final categorized export format.
+repro_ja:
+  steps:
+    - ノートブックフローを開き、明細／レシートのサンプル入力を確認する。
+    - マッチングスコアロジックと曖昧性分類プロンプトを確認する。
+    - 例外ルーティング結果と最終分類エクスポート形式を確認する。
