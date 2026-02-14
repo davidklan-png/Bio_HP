@@ -2,7 +2,10 @@
 layout: default
 ---
 {% assign p = site.data.projects[page.project_id] %}
-{% assign is_ja = page.lang == 'ja' %}
+{% assign is_ja = false %}
+{% if page.lang == 'ja' %}
+  {% assign is_ja = true %}
+{% endif %}
 {% if p %}
 {% assign display_name = p.name %}
 {% assign display_value = p.one_line_value %}
