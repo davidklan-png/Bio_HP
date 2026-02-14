@@ -1,22 +1,22 @@
 ---
 layout: default
-title: About / Contact | LLMプロジェクトポートフォリオ
+title: 概要 / 連絡先 | LLMプロジェクトポートフォリオ
 permalink: /ja/about/
 lang: ja
 ---
 <section class="section-block fade-up">
-  <h1>About</h1>
+  <h1>概要</h1>
   <p>{{ site.data.site.owner_name }}は、ビジネス価値、提供スピード、技術的厳密さを両立させた実用的なLLMシステムに重点を置く{{ site.data.site.owner_role_ja }}です。</p>
   <p>{{ site.data.site.about_short_ja }}</p>
 </section>
 
 <section class="section-block fade-up delay-1">
-  <h2>Contact</h2>
+  <h2>連絡先</h2>
   <ul class="link-list">
     <li><a href="{{ site.data.site.contacts.github }}" target="_blank" rel="noreferrer">GitHub</a></li>
     <li><a href="{{ site.data.site.contacts.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a></li>
-    <li><a href="{{ site.data.site.contacts.website }}" target="_blank" rel="noreferrer">Personal Website</a></li>
-    <li><a href="mailto:{{ site.data.site.contacts.email }}">Email</a></li>
+    <li><a href="{{ site.data.site.contacts.website }}" target="_blank" rel="noreferrer">個人サイト</a></li>
+    <li><a href="mailto:{{ site.data.site.contacts.email }}">メール</a></li>
   </ul>
 </section>
 

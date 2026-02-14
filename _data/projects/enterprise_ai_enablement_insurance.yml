@@ -25,12 +25,22 @@ executive_summary:
   problem: PM reporting and incident trend analysis were fragmented across enterprise tools, limiting executive visibility and slowing Change Management response.
   solution: Automated reporting pipelines and built executive dashboards, then introduced bespoke parser workflows (with coding agents) to analyze large incident datasets.
   outcome: Improved reporting cadence, clearer incident trend signals, and stronger evidence for Change Management decisions.
+executive_summary_ja:
+  problem: PMレポーティングとインシデント傾向分析が複数の業務ツールに分散しており、経営可視性の低下とChange Management対応の遅延を招いていました。
+  solution: レポーティングパイプラインを自動化して経営ダッシュボードを構築し、さらに大規模インシデントデータを分析するための専用パーサーワークフロー（コーディングエージェント活用）を導入しました。
+  outcome: レポーティング頻度が向上し、インシデント傾向が明確になり、Change Management判断の根拠が強化されました。
 use_case:
   summary: Insurance leadership needed reliable, cross-system intelligence for delivery status, incident patterns, and operational risk.
   stakeholders:
     - Executive leadership
     - Program and project managers
     - Change Management and incident response teams
+use_case_ja:
+  summary: 保険業界の経営層は、デリバリー状況、インシデント傾向、運用リスクを横断的に把握できる信頼性の高いインテリジェンスを必要としていました。
+  stakeholders:
+    - 経営層
+    - プログラム／プロジェクトマネージャー
+    - Change Managementおよびインシデント対応チーム
 architecture:
   overview: Operational data from collaboration and ticketing systems is transformed into dashboard-ready metrics, with parser pipelines for deep incident trend extraction.
   diagram:
@@ -43,6 +53,18 @@ architecture:
     - " Incident data parser pipelines"
     - "             |"
     - " Change Management trend insights"
+architecture_ja:
+  overview: コラボレーション／チケット管理システムの運用データをダッシュボード向けメトリクスへ変換し、パーサーパイプラインでインシデント傾向を深掘り抽出します。
+  diagram:
+    - "[Confluence | Jira | SharePoint | ServiceNow]"
+    - "             |"
+    - "   自動化 + ETLオーケストレーション"
+    - "             |"
+    - "   Power BI経営ダッシュボード"
+    - "             |"
+    - " インシデントデータ・パーサーパイプライン"
+    - "             |"
+    - " Change Management向け傾向インサイト"
 tech_details:
   rag_prompt_patterns:
     - Structured summarization prompts for status rollups.
@@ -59,17 +81,46 @@ tech_details:
   tradeoffs:
     - Highly automated reporting improves speed but needs governance checks.
     - Deep parser analysis increases insight quality but requires stronger maintenance.
+tech_details_ja:
+  rag_prompt_patterns:
+    - ステータス集約向けの構造化要約プロンプト。
+    - インシデントクラスタリング向けのパーサー支援分析プロンプト。
+    - ダッシュボード説明用の経営層向けナラティブテンプレート。
+  tools:
+    - Confluence、Jira、SharePoint
+    - Power Automate と Power BI
+    - コーディングエージェントで支援した専用パーサースクリプト
+  constraints:
+    - ツール／チーム間でデータ品質が不均一。
+    - 大規模インシデント群のため効率的な解析が必要。
+    - 技術詳細を失わずに経営層へ明瞭に伝える必要がある。
+  tradeoffs:
+    - 高度な自動化は速度を上げる一方、ガバナンス確認が不可欠。
+    - 深いパーサー分析は洞察の質を高める一方、保守負荷が増える。
 lessons_learned:
   - Garbage in = Garbage out.  Data quality is critical for automated reporting success.
   - Data format consistency is essential for reliable parsing and analysis.
   - Executive communication improves when metrics and narrative are co-designed.
+lessons_learned_ja:
+  - Garbage in = Garbage out。自動レポーティングの成功にはデータ品質が最重要。
+  - 信頼できる解析にはデータ形式の一貫性が不可欠。
+  - メトリクスと説明文を同時設計すると経営層への伝達品質が上がる。
 improve_next:
   - Add Power Automate workflows to handle document processing.
   - Add quality gates for parser output validation.
   - Improve dashboard focus for actionable insights.
+improve_next_ja:
+  - 文書処理を扱うPower Automateワークフローを追加。
+  - パーサー出力の検証用に品質ゲートを追加。
+  - 実行可能な示唆に集中したダッシュボードへ改善。
 repro:
   runnable: false
   steps:
     - Setup processes to capture data and receive feedback from surveys.
     - Link to Power BI dashboards and validate KPI accuracy.
     - Use ML to detect data trends and anomalies for incident and problem reduction.
+repro_ja:
+  steps:
+    - データ収集とアンケートフィードバック取得のプロセスを整備する。
+    - Power BIダッシュボードに接続し、KPI精度を検証する。
+    - MLを活用してデータ傾向と異常を検知し、インシデント／問題の削減に生かす。
