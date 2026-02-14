@@ -42,6 +42,7 @@ export interface AnalyzeResponse {
   gaps: Gap[];
   risk_flags: string[];
   rubric_breakdown: RubricItem[];
+  debug?: { discarded_matches: number };
 }
 
 export interface ProfileProject {
@@ -90,6 +91,7 @@ interface SectionEval {
   notes: string;
   matches: LineMatch[];
   misses: string[];
+  discardedCount?: number;
 }
 
 interface RiskEvaluation extends SectionEval {
@@ -115,6 +117,94 @@ let activeConfig = {
   japaneseHardCap: JAPANESE_HARD_CAP,
   onsiteHardCap: ONSITE_HARD_CAP,
 };
+
+/** Domain-specific terms for domain fit scoring (not generic tech skills) */
+const DOMAIN_TERMS = [
+  "cosmetics",
+  "beauty",
+  "skincare",
+  "makeup",
+  "fragrance",
+  "consumer goods",
+  "cpg",
+  "retail",
+  "ecommerce",
+  "e-commerce",
+  "fmcg",
+  "fashion",
+  "luxury",
+  "personal care",
+  "wellness",
+  "apparel",
+  "jewelry",
+  "footwear"
+];
+
+/** Non-domain technical terms that should not count for domain fit */
+const TECH_EXCLUDE_TERMS = new Set([
+  "python",
+  "javascript",
+  "typescript",
+  "java",
+  "golang",
+  "rust",
+  "c++",
+  "react",
+  "vue",
+  "angular",
+  "node",
+  "docker",
+  "kubernetes",
+  "aws",
+  "azure",
+  "gcp",
+  "sql",
+  "nosql",
+  "mongodb",
+  "postgresql",
+  "mysql",
+  "redis",
+  "graphql",
+  "rest",
+  "api",
+  "llm",
+  "llms",
+  "prompt",
+  "prompts",
+  "prompting",
+  "rag",
+  "vector",
+  "embedding",
+  "embeddings",
+  "transformer",
+  "transformers",
+  "model",
+  "models",
+  "training",
+  "inference",
+  "deployment",
+  "integration",
+  "integrations",
+  "automation",
+  "workflow",
+  "workflows",
+  "pipeline",
+  "pipelines",
+  "etl",
+  "data",
+  "analytics",
+  "reporting",
+  "governance",
+  "management",
+  "communication",
+  "leadership",
+  "delivery",
+  "stakeholder",
+  "cross",
+  "functional",
+  "focused",
+  "adoption"
+]);
 
 /** Initialize configuration from environment variables */
 export function initializeConfig(env: ConfigEnv): void {
@@ -177,6 +267,16 @@ export function analyzeJobDescription(
   const projectIndex = buildProjectIndex(profile);
   const skillEvidence = buildSkillEvidenceMap(profile, projectIndex);
   const domainTerms = buildDomainTerms(profile);
+
+  // Grounding validation set - all valid evidence URLs from profile
+  const validEvidenceUrls = new Set<string>();
+  for (const project of profile.projects) {
+    for (const url of project.evidence_urls) {
+      validEvidenceUrls.add(url);
+    }
+  }
+
+  let totalDiscardedMatches = 0;
 
   const sections = splitIntoSections(jdText);
   const allLines = extractLines(jdText);
@@ -270,12 +370,17 @@ export function analyzeJobDescription(
     }
   ];
 
-  const strengths = collectStrengths([
-    ["Responsibilities", responsibilitiesEval],
-    ["Must-haves", mustHavesEval],
-    ["Nice-to-haves", niceEval],
-    ["Domain fit", domainEval]
-  ]);
+  const strengthsResult = collectStrengths(
+    [
+      ["Responsibilities", responsibilitiesEval],
+      ["Must-haves", mustHavesEval],
+      ["Nice-to-haves", niceEval],
+      ["Domain fit", domainEval]
+    ],
+    validEvidenceUrls
+  );
+  totalDiscardedMatches += strengthsResult.discardedCount;
+  const strengths = strengthsResult.strengths;
 
   const gaps = collectGaps([
     ["Responsibilities", responsibilitiesEval],
@@ -312,7 +417,8 @@ export function analyzeJobDescription(
     strengths,
     gaps,
     risk_flags: riskEval.riskFlags,
-    rubric_breakdown: rubricBreakdown
+    rubric_breakdown: rubricBreakdown,
+    debug: { discarded_matches: totalDiscardedMatches }
   };
 }
 
@@ -325,6 +431,14 @@ export function calculateConfidence(strengths: Strength[]): Confidence {
     return "Medium";
   }
   return "Low";
+}
+
+/**
+ * Grounding guard: verifies that an evidence URL is from the profile (not JD text)
+ * Returns true if the URL is valid profile evidence, false otherwise
+ */
+export function assertEvidenceIsFromProfile(evidenceUrl: string, validEvidenceUrls: Set<string>): boolean {
+  return validEvidenceUrls.has(evidenceUrl);
 }
 
 export function validateAnalyzeBody(body: unknown): string | null {
@@ -540,9 +654,16 @@ function evaluateRiskAndConstraints(
   }
 
   const requiredLanguages = detectLanguageRequirements(normalizedJd);
-  const profileLanguages = constraints.languages.map((lang) => normalizeText(lang));
+  // Check if profile satisfies each required language using word boundary matching
   for (const language of requiredLanguages) {
-    if (!profileLanguages.includes(language)) {
+    const profileHasLanguage = constraints.languages.some((langEntry) => {
+      const normalizedEntry = normalizeText(langEntry);
+      // Use word boundary matching to check if the language is mentioned
+      const pattern = new RegExp(`\\b${escapeRegex(language)}\\b`, "i");
+      return pattern.test(normalizedEntry);
+    });
+
+    if (!profileHasLanguage) {
       addRiskFlag(`No evidence found for required language: ${language}.`);
       score -= 2;
     }
@@ -602,9 +723,13 @@ function evaluateRiskAndConstraints(
   };
 }
 
-function collectStrengths(entries: Array<[string, SectionEval]>): Strength[] {
+function collectStrengths(
+  entries: Array<[string, SectionEval]>,
+  validEvidenceUrls: Set<string>
+): { strengths: Strength[]; discardedCount: number } {
   const strengths: Strength[] = [];
   const seen = new Set<string>();
+  let discardedCount = 0;
 
   for (const [area, evalResult] of entries) {
     const evidenced = evalResult.matches.filter((match) => match.evidenceProject?.evidence_urls.length);
@@ -626,6 +751,12 @@ function collectStrengths(entries: Array<[string, SectionEval]>): Strength[] {
       continue;
     }
 
+    // Grounding guard: ensure evidence URL is from profile
+    if (!assertEvidenceIsFromProfile(evidenceUrl, validEvidenceUrls)) {
+      discardedCount++;
+      continue;
+    }
+
     const key = `${area}:${project.name}`;
     if (seen.has(key)) {
       continue;
@@ -640,7 +771,7 @@ function collectStrengths(entries: Array<[string, SectionEval]>): Strength[] {
     });
   }
 
-  return strengths.slice(0, 8);
+  return { strengths: strengths.slice(0, 8), discardedCount };
 }
 
 function collectGaps(entries: Array<[string, SectionEval]>): Gap[] {
@@ -847,30 +978,26 @@ function buildProjectIndex(profile: Profile): ProjectIndex[] {
 function buildDomainTerms(profile: Profile): string[] {
   const domainSet = new Set<string>();
 
-  for (const skill of profile.skills) {
-    const normalizedSkill = normalizeText(skill);
-    if (normalizedSkill.length >= 3) {
-      domainSet.add(normalizedSkill);
-    }
-    for (const token of tokenize(skill)) {
-      if (token.length >= 4) {
-        domainSet.add(token);
-      }
-    }
+  // Add curated domain terms
+  for (const term of DOMAIN_TERMS) {
+    domainSet.add(term.toLowerCase());
   }
 
+  // Extract domain-relevant terms from profile projects (but exclude generic tech terms)
   for (const project of profile.projects) {
     for (const tag of project.tags) {
-      for (const token of tokenize(tag)) {
-        if (token.length >= 4) {
-          domainSet.add(token);
-        }
+      const normalized = normalizeText(tag);
+      // Only add if not in tech exclude list and length >= 4
+      if (!TECH_EXCLUDE_TERMS.has(normalized) && normalized.length >= 4) {
+        domainSet.add(normalized);
       }
     }
 
-    for (const token of tokenize(project.summary)) {
-      if (token.length >= 5) {
-        domainSet.add(token);
+    // Also check summary for domain-specific terms
+    const normalizedSummary = normalizeText(project.summary);
+    for (const term of DOMAIN_TERMS) {
+      if (normalizedSummary.includes(term.toLowerCase())) {
+        domainSet.add(term.toLowerCase());
       }
     }
   }
