@@ -22,6 +22,7 @@ type Env = {
   ANALYTICS_SAMPLE_RATE?: string;
   RATE_LIMITER: DurableObjectNamespace;
   DB: D1Database;
+  AI?: unknown;
 } & ConfigEnv;
 
 interface RateLimitDecision {
@@ -254,7 +255,13 @@ export default {
     const jdText = (body as { jd_text: string }).jd_text.trim();
     const jdSha256 = await sha256Hex(jdText);
     const userAgentHash = userAgent ? await sha256Hex(userAgent) : null;
-    const analysis = analyzeJobDescription(jdText, PROFILE, requestId);
+
+    // Call analyzeJobDescription with AI binding if available
+    const analysis = analyzeJobDescription(jdText, PROFILE, requestId, {
+      AI: env.AI,
+      aiModelId: runtimeConfig.aiModelId,
+      aiEnabled: runtimeConfig.aiEnabled
+    });
 
     // Store successful submission (non-blocking)
     const latencyMs = Date.now() - requestStartTime;

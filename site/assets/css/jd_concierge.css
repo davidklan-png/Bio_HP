@@ -9,6 +9,16 @@
 .jd-concierge__title {
   margin: 0;
   font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.jd-concierge__avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .jd-concierge__subtitle {
