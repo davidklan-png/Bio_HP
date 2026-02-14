@@ -23,6 +23,14 @@ title: Home
   </div>
 </section>
 
+<section class="section-block fade-up delay-2">
+  <div class="section-heading">
+    <h2>JD Concierge</h2>
+    <p>Paste a job description for evidence-grounded fit and gap analysis.</p>
+  </div>
+  {% include jd_concierge.html %}
+</section>
+
 <section class="skills-strip fade-up delay-1" aria-label="Skills demonstrated">
   <h2>Skills Demonstrated</h2>
   <div class="skills-grid">
