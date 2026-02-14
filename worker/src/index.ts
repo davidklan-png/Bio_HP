@@ -3,17 +3,19 @@ import {
   MAX_CONTENT_LENGTH,
   analyzeJobDescription,
   buildRateLimitErrorPayload,
+  initializeConfig,
   parseAndValidateProfile,
   type Confidence,
   type Profile,
   validateAnalyzeBody
 } from "./analysis";
+import type { ConfigEnv } from "./config";
 
-interface Env {
+type Env = {
   ALLOWED_ORIGINS?: string;
   ANALYTICS_SAMPLE_RATE?: string;
   RATE_LIMITER: DurableObjectNamespace;
-}
+} & ConfigEnv;
 
 interface RateLimitDecision {
   allowed: boolean;
@@ -214,6 +216,7 @@ export default {
     }
 
     const jdText = (body as { jd_text: string }).jd_text.trim();
+    initializeConfig(env);
     const analysis = analyzeJobDescription(jdText, PROFILE, requestId);
     logRequestLifecycle(env, {
       requestId,
