@@ -42,7 +42,16 @@ export interface AnalyzeResponse {
   gaps: Gap[];
   risk_flags: string[];
   rubric_breakdown: RubricItem[];
-  debug?: { discarded_matches: number };
+  debug?: {
+    discarded_matches: number;
+    parsed_jd?: {
+      has_responsibilities: boolean;
+      has_requirements: boolean;
+      has_nice_to_haves: boolean;
+      has_languages: boolean;
+      languages_found: string[];
+    };
+  };
 }
 
 export interface ProfileProject {
@@ -221,6 +230,139 @@ const SYNONYM_GROUPS: string[][] = [
   ["prompt engineering", "llm prompting", "prompt design"],
   ["agentic workflows", "agents", "ai orchestration"],
   ["digital transformation", "dx", "modernization"]
+];
+
+/** Concept clusters for semantic matching instead of token soup */
+interface ConceptCluster {
+  id: string;
+  label: string;
+  terms: string[];
+  weight: number;
+  sections: Array<"must_haves" | "responsibilities" | "nice_to_have">;
+}
+
+const CONCEPT_CLUSTERS: ConceptCluster[] = [
+  {
+    id: "prompt_engineering",
+    label: "Prompt Engineering",
+    terms: [
+      "prompt engineering",
+      "prompt design",
+      "llm prompting",
+      "prompt optimization",
+      "prompt crafting",
+      "prompt strategies"
+    ],
+    weight: 3,
+    sections: ["must_haves", "responsibilities"]
+  },
+  {
+    id: "agentic_workflows",
+    label: "Agentic Workflows",
+    terms: [
+      "agentic workflows",
+      "ai agents",
+      "ai orchestration",
+      "agent systems",
+      "multi-agent",
+      "autonomous agents",
+      "agent architecture"
+    ],
+    weight: 3,
+    sections: ["must_haves", "responsibilities"]
+  },
+  {
+    id: "change_enablement",
+    label: "Change Enablement",
+    terms: [
+      "change management",
+      "adoption",
+      "enablement",
+      "change leadership",
+      "organizational change",
+      "transformation",
+      "digital transformation"
+    ],
+    weight: 3,
+    sections: ["must_haves", "responsibilities"]
+  },
+  {
+    id: "workshops_training",
+    label: "Workshops and Training",
+    terms: [
+      "workshops",
+      "training",
+      "coaching",
+      "mentorship",
+      "enablement",
+      "knowledge sharing",
+      "upskilling",
+      "teaching non-technical",
+      "de-mystifying ai"
+    ],
+    weight: 2,
+    sections: ["must_haves", "responsibilities", "nice_to_have"]
+  },
+  {
+    id: "python_integrations",
+    label: "Python & Integrations",
+    terms: [
+      "python",
+      "python integration",
+      "api integration",
+      "automation",
+      "scripting",
+      "backend development",
+      "data pipelines"
+    ],
+    weight: 2,
+    sections: ["must_haves", "responsibilities", "nice_to_have"]
+  },
+  {
+    id: "llm_foundations",
+    label: "LLM Foundations",
+    terms: [
+      "llm",
+      "large language models",
+      "rag",
+      "retrieval augmented",
+      "vector search",
+      "embeddings",
+      "llm application architecture",
+      "generative ai"
+    ],
+    weight: 2,
+    sections: ["must_haves", "responsibilities", "nice_to_have"]
+  },
+  {
+    id: "stakeholder_management",
+    label: "Stakeholder Management",
+    terms: [
+      "stakeholder management",
+      "cross-functional",
+      "vendor coordination",
+      "client communication",
+      "executive presence",
+      "reporting"
+    ],
+    weight: 2,
+    sections: ["must_haves", "responsibilities"]
+  },
+  {
+    id: "governance_delivery",
+    label: "Governance and Delivery",
+    terms: [
+      "governance",
+      "delivery",
+      "program management",
+      "pmo",
+      "steering",
+      "risk management",
+      "compliance"
+    ],
+    weight: 2,
+    sections: ["must_haves", "responsibilities", "nice_to_have"]
+  }
 ];
 
 const RUBRIC_WEIGHTS = {
@@ -405,9 +547,27 @@ export function analyzeJobDescription(
   const score =
     typeof riskEval.hardScoreCap === "number" ? Math.min(rawScore, riskEval.hardScoreCap) : rawScore;
 
-  const confidence = calculateConfidence(strengths);
+  // Determine if parser succeeded (has parsed sections)
+  const parserSuccess = sections.responsibilities.length > 0 ||
+                      sections.requirements.length > 0 ||
+                      sections.nice_to_have.length > 0 ||
+                      sections.languages.length > 0;
+
+  // Determine if there was a hard gate failure
+  const hasHardGateFailure = typeof riskEval.hardScoreCap === "number" && riskEval.hardScoreCap < 80;
+
+  const confidence = calculateConfidence({
+    strengths,
+    mustHavesEval,
+    domainEval,
+    hasHardGateFailure,
+    parserSuccess
+  });
 
   const fitSummary = buildFitSummary(score, confidence, strengths.length, gaps.length, riskEval.riskFlags);
+
+  // Detect languages found in JD (for debug metadata)
+  const languagesFound = detectLanguageRequirements(normalizeText(jdText));
 
   return {
     request_id: requestId,
@@ -418,18 +578,69 @@ export function analyzeJobDescription(
     gaps,
     risk_flags: riskEval.riskFlags,
     rubric_breakdown: rubricBreakdown,
-    debug: { discarded_matches: totalDiscardedMatches }
+    debug: {
+      discarded_matches: totalDiscardedMatches,
+      parsed_jd: {
+        has_responsibilities: sections.responsibilities.length > 0,
+        has_requirements: sections.requirements.length > 0,
+        has_nice_to_haves: sections.nice_to_have.length > 0,
+        has_languages: sections.languages.length > 0,
+        languages_found: languagesFound
+      }
+    }
   };
 }
 
-export function calculateConfidence(strengths: Strength[]): Confidence {
-  const strongEvidenceByCategory = new Set(strengths.map((item) => item.area)).size;
-  if (strongEvidenceByCategory >= 3) {
+export interface ConfidenceInput {
+  strengths: Strength[];
+  mustHavesEval: SectionEval;
+  domainEval: SectionEval;
+  hasHardGateFailure: boolean;
+  parserSuccess: boolean;
+}
+
+export function calculateConfidence(input: ConfidenceInput | Strength[]): Confidence {
+  // Handle legacy call signature (just strengths array)
+  if (Array.isArray(input)) {
+    const strongEvidenceByCategory = new Set(input.map((item) => item.area)).size;
+    if (strongEvidenceByCategory >= 3) {
+      return "High";
+    }
+    if (strongEvidenceByCategory >= 1) {
+      return "Medium";
+    }
+    return "Low";
+  }
+
+  // New signature with full context
+  const { strengths, mustHavesEval, domainEval, hasHardGateFailure, parserSuccess } = input;
+
+  // If parser failed or hard gate failed, confidence is Low
+  if (!parserSuccess || hasHardGateFailure) {
+    return "Low";
+  }
+
+  // Count unique evidence URLs (grounded evidence)
+  const uniqueEvidenceUrls = new Set(strengths.map((s) => s.evidence_url)).size;
+
+  // Count must-have coverage (how many must-haves have evidence)
+  const mustHaveCoverage = mustHavesEval.matches.length > 0
+    ? mustHavesEval.matches.filter((m) => m.evidenceProject).length / mustHavesEval.matches.length
+    : 0;
+
+  // Domain certainty: domain fit score indicates alignment
+  const domainCertainty = domainEval.score >= 5; // At least 50% of domain fit weight
+
+  // High confidence: good must-have coverage (70%+), multiple evidence URLs, domain aligned
+  if (mustHaveCoverage >= 0.7 && uniqueEvidenceUrls >= 3 && domainCertainty) {
     return "High";
   }
-  if (strongEvidenceByCategory >= 1) {
+
+  // Medium confidence: at least one evidence URL, parser succeeded
+  if (uniqueEvidenceUrls >= 1) {
     return "Medium";
   }
+
   return "Low";
 }
 
@@ -763,15 +974,101 @@ function collectStrengths(
     }
 
     seen.add(key);
+
+    // Map to cluster-based label for better semantics
+    const clusterLabel = findClusterLabel(best.line, area);
+
+    // Build a cleaner rationale that mentions the requirement and project
+    const requirementPhrase = extractRequirementPhrase(best.line);
+    const rationale = buildStrengthRationale(requirementPhrase, project.name, area);
+
     strengths.push({
-      area,
+      area: clusterLabel || area,
       evidence_title: project.name,
       evidence_url: evidenceUrl,
-      rationale: `Matched JD requirement to project evidence via: "${truncate(best.line, 120)}".`
+      rationale
     });
   }
 
   return { strengths: strengths.slice(0, 8), discardedCount };
+}
+
+/** Extract a short, meaningful phrase from the JD line for the rationale */
+function extractRequirementPhrase(jdLine: string): string {
+  // Remove common bullet prefixes and trim
+  let phrase = jdLine
+    .replace(/^[-*•]\s+/, "")
+    .replace(/^\d+[.)]\s+/, "")
+    .trim();
+
+  // If still long, truncate at first sentence or comma
+  if (phrase.length > 60) {
+    const firstSentence = phrase.split(/[.!?]/)[0];
+    if (firstSentence.length > 10 && firstSentence.length < 60) {
+      return firstSentence.trim();
+    }
+    // Otherwise truncate at word boundary
+    return truncate(phrase, 50) + "...";
+  }
+
+  return phrase;
+}
+
+/** Build a clean, human-readable rationale */
+function buildStrengthRationale(requirement: string, projectName: string, category: string): string {
+  // Remove trailing period if present
+  const cleanReq = requirement.replace(/\.$/, "").trim();
+  const categoryStr = category === "Domain fit" ? "domain alignment" : category.toLowerCase();
+  return `Matched "${cleanReq}" to ${projectName} (${categoryStr}).`;
+}
+
+/** Find a semantic cluster label based on the matched JD text */
+function findClusterLabel(jdLine: string, sectionArea: string): string | null {
+  const normalizedLine = normalizeText(jdLine);
+
+  for (const cluster of CONCEPT_CLUSTERS) {
+    // Check if any cluster term matches the JD line
+    for (const term of cluster.terms) {
+      const normalizedTerm = normalizeText(term);
+      if (normalizedLine.includes(normalizedTerm)) {
+        return cluster.label;
+      }
+    }
+  }
+
+  // If no cluster match, return null (caller will use section area)
+  return null;
+}
+
+/** Lines that look like headings and should not create gaps */
+const HEADING_PATTERNS = [
+  /^languages?\s*:?$/i,
+  /^capacity\s*:?$/i,
+  /^location\s*:?$/i,
+  /^availability\s*:?$/i,
+  /^requirements?\s*:?$/i,
+  /^responsibilities?\s*:?$/i,
+  /^nice-?\s*to-?\s*have\s*:?$/i,
+  /^(project )?summary\s*:?$/i
+];
+
+function isHeadingLine(line: string): boolean {
+  const trimmed = line.trim();
+  // Empty lines are not headings
+  if (!trimmed) {
+    return false;
+  }
+  // Check against heading patterns
+  for (const pattern of HEADING_PATTERNS) {
+    if (pattern.test(trimmed)) {
+      return true;
+    }
+  }
+  // Very short lines (under 15 chars) ending with colon are likely headings
+  if (trimmed.length < 15 && trimmed.endsWith(":")) {
+    return true;
+  }
+  return false;
 }
 
 function collectGaps(entries: Array<[string, SectionEval]>): Gap[] {
@@ -782,7 +1079,10 @@ function collectGaps(entries: Array<[string, SectionEval]>): Gap[] {
       continue;
     }
 
-    for (const missedLine of evalResult.misses.slice(0, 2)) {
+    // Filter out heading lines from gaps
+    const meaningfulMisses = evalResult.misses.filter((line) => !isHeadingLine(line));
+
+    for (const missedLine of meaningfulMisses.slice(0, 2)) {
       gaps.push({
         area,
         why_it_matters: `No evidence found for: "${truncate(missedLine, 120)}".`,

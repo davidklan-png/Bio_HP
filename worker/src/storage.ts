@@ -1,6 +1,6 @@
 import type { AnalyzeResponse, Confidence } from "./analysis";
 
-export const SCORER_VERSION = "1.1.0";
+export const SCORER_VERSION = "1.2.0";
 
 export interface Env {
   DB: D1Database;
