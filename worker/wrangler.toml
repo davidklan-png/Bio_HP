@@ -1,0 +1,17 @@
+name = "jd-concierge-worker"
+main = "src/index.ts"
+compatibility_date = "2026-02-14"
+routes = [
+  { pattern = "kinokoholic.com/api/*", zone_name = "kinokoholic.com" }
+]
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com,https://www.kinokholic.com"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiterDO"]

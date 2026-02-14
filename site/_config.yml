@@ -1,0 +1,3 @@
+# Jekyll config for the /site folder integration.
+# Update this in production with your Worker URL.
+worker_api_base: "https://jd-concierge-worker.<your-subdomain>.workers.dev"

@@ -5,3 +5,5 @@ vendor/
 _site/
 .jekyll-cache/
 .jekyll-metadata
+node_modules/
+worker/.wrangler/
