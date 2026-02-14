@@ -7,3 +7,5 @@ _site/
 .jekyll-metadata
 node_modules/
 worker/.wrangler/
+__pycache__/
+*.pyc
