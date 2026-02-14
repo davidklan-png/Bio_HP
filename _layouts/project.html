@@ -10,6 +10,7 @@ layout: default
 {% assign executive = p.executive_summary %}
 {% assign use_case = p.use_case %}
 {% assign architecture = p.architecture %}
+{% assign architecture_image = p.architecture_image %}
 {% assign tech_details = p.tech_details %}
 {% assign lessons = p.lessons_learned %}
 {% assign improve_items = p.improve_next %}
@@ -36,6 +37,7 @@ layout: default
 {% assign runnable_note = "Runnable project: follow the steps below." %}
 {% assign non_runnable_note = "Non-runnable public demo: use the walkthrough steps below." %}
 {% assign links_label = "Project Links" %}
+{% assign open_full_label = "Open full size" %}
 
 {% if is_ja %}
   {% if p.name_ja %}{% assign display_name = p.name_ja %}{% endif %}
@@ -70,6 +72,7 @@ layout: default
   {% assign runnable_note = "実行可能なプロジェクトです。以下の手順に従ってください。" %}
   {% assign non_runnable_note = "公開デモ（非実行）です。以下の手順で確認してください。" %}
   {% assign links_label = "関連リンク" %}
+  {% assign open_full_label = "フルサイズで開く" %}
 {% endif %}
 
 <article class="project-detail">
@@ -122,6 +125,25 @@ layout: default
     <p>{{ architecture.overview }}</p>
     <pre class="diagram" aria-label="{{ architecture_aria }}">{% for line in architecture.diagram %}{{ line }}
 {% endfor %}</pre>
+    {% if architecture_image and architecture_image.src %}
+    {% assign architecture_alt = architecture_image.alt %}
+    {% assign architecture_caption = architecture_image.caption %}
+    {% if is_ja %}
+      {% if architecture_image.alt_ja %}{% assign architecture_alt = architecture_image.alt_ja %}{% endif %}
+      {% if architecture_image.caption_ja %}{% assign architecture_caption = architecture_image.caption_ja %}{% endif %}
+    {% endif %}
+    <figure class="shot-card architecture-card">
+      <div class="shot-media-wrap">
+        <img class="shot-media" src="{{ architecture_image.src | relative_url }}" alt="{{ architecture_alt }}" loading="lazy">
+        <a class="shot-overlay-link" href="{{ architecture_image.src | relative_url }}" target="_blank" rel="noreferrer" aria-label="{{ open_full_label }}: {{ architecture_alt }}">
+          <span>{{ open_full_label }}</span>
+        </a>
+      </div>
+      {% if architecture_caption %}
+      <figcaption>{{ architecture_caption }}</figcaption>
+      {% endif %}
+    </figure>
+    {% endif %}
   </section>
 
   <section class="section-block fade-up delay-4">
@@ -169,6 +191,7 @@ layout: default
       {% assign media_type = shot.type %}
       {% assign shot_alt = shot.alt %}
       {% assign shot_caption = shot.caption %}
+      {% assign shot_href = shot.src | relative_url %}
       {% if is_ja %}
         {% if shot.alt_ja %}{% assign shot_alt = shot.alt_ja %}{% endif %}
         {% if shot.caption_ja %}{% assign shot_caption = shot.caption_ja %}{% endif %}
@@ -184,23 +207,28 @@ layout: default
         {% endif %}
       {% endif %}
       <figure class="shot-card">
+        <div class="shot-media-wrap">
         {% if media_type == 'pdf' %}
         <iframe
           class="shot-media shot-frame"
-          src="{{ shot.src | relative_url }}"
+          src="{{ shot_href }}"
           title="{{ shot_alt }}"
           loading="lazy">
         </iframe>
         {% elsif media_type == 'html' %}
         <iframe
           class="shot-media shot-frame"
-          src="{{ shot.src | relative_url }}"
+          src="{{ shot_href }}"
           title="{{ shot_alt }}"
           loading="lazy">
         </iframe>
         {% else %}
-        <img class="shot-media" src="{{ shot.src | relative_url }}" alt="{{ shot_alt }}" loading="lazy">
+        <img class="shot-media" src="{{ shot_href }}" alt="{{ shot_alt }}" loading="lazy">
         {% endif %}
+          <a class="shot-overlay-link" href="{{ shot_href }}" target="_blank" rel="noreferrer" aria-label="{{ open_full_label }}: {{ shot_alt }}">
+            <span>{{ open_full_label }}</span>
+          </a>
+        </div>
         <figcaption>{{ shot_caption }}</figcaption>
       </figure>
       {% endfor %}
