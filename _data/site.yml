@@ -3,12 +3,12 @@ site_title_ja: LLMプロジェクトポートフォリオ - David Klan
 owner_name: David Klan
 owner_role: IT PM + AI/ML Engineer
 owner_role_ja: ITプロジェクトマネージャー + AI/MLエンジニア
-hero_tagline: Portfolio at a glance
-hero_tagline_ja: ポートフォリオ概要
-summary: I'm an IT Project Manager designing practical LLM systems.
-summary_ja: 実用的なLLMシステムを設計するITプロジェクトマネージャー。
-about_short: I utilize multiple agents, prompt engineering, RAG architecture, and automation to deliver measurable AI outcomes.
-about_short_ja: マルチエージェント、プロンプトエンジニアリング、RAGアーキテクチャ、自動化を活用して、測定可能なAI成果を提供します。
+hero_tagline: The interface between human intent and machine intelligence
+hero_tagline_ja: 人間の意志と機械知性の接点
+summary: I build the systems where human judgment meets artificial cognition — practical LLM architectures that know their own limits.
+summary_ja: 人間の判断力と人工知能が交差するシステムを構築 — 自らの限界を知る実用的なLLMアーキテクチャ。
+about_short: Agents, prompts, retrieval architectures, and automation woven together — because the most interesting outcomes emerge at the intersection of structured intent and machine intuition.
+about_short_ja: エージェント、プロンプト、検索アーキテクチャ、自動化を織り合わせて — 構造化された意図と機械の直感が交差する場所から、最も興味深い成果が生まれます。
 contacts:
   github: https://github.com/davidklan-png
   linkedin: https://www.linkedin.com/in/david-klan/
