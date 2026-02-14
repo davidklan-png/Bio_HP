@@ -21,6 +21,17 @@ This repository is a Jekyll-based portfolio site with data-driven project pages.
 3. Confirm screenshot paths exist under `assets/images/`.
 4. Commit only relevant files (avoid bundling unrelated local changes).
 
+## TDD Requirement
+
+For code changes (Worker TS, site JS, workflow Python), use Red -> Green -> Refactor:
+
+1. Add or update a failing test first.
+2. Implement the minimum code to pass.
+3. Refactor while keeping tests green.
+4. Commit source and test updates together.
+
+Enforcement exists via `scripts/tdd_guard.py`, local git hooks in `.githooks/`, and CI workflow `.github/workflows/tdd-quality-gates.yml`.
+
 ## Validation Commands
 
 ```bash
@@ -34,6 +45,12 @@ PY
 
 # Optional: inspect repo state before commit
 git status --short
+
+# TDD guard (branch diff)
+python3 scripts/tdd_guard.py --against origin/main
+
+# Worker checks for code changes
+cd worker && npm run check && npm test
 ```
 
 ## Deployment Notes

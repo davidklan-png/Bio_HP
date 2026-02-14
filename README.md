@@ -7,6 +7,30 @@ Minimal end-to-end JD fit concierge:
 - Grounding: `shared/profile.json`
 - Guardrails: evidence-only strengths, size limits, DO rate limiting
 
+## TDD Workflow
+
+This repo enforces a test-first workflow for code changes.
+
+- Policy: `TDD.md`
+- Guard script: `scripts/tdd_guard.py`
+- Site JS test runner: `scripts/run-site-js-tests.sh`
+- Local hooks: `.githooks/pre-commit`, `.githooks/pre-push`
+- CI gate: `.github/workflows/tdd-quality-gates.yml`
+
+Install hooks once per clone:
+
+```bash
+./scripts/setup-git-hooks.sh
+```
+
+Run guard manually:
+
+```bash
+python3 scripts/tdd_guard.py --against origin/main
+```
+
+To make enforcement strict for all contributors, set GitHub branch protection on `main` and require the `TDD Quality Gates` workflow.
+
 ## Repository Layout
 
 ```text
