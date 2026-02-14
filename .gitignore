@@ -9,3 +9,4 @@ node_modules/
 worker/.wrangler/
 __pycache__/
 *.pyc
+worker/src/*.js

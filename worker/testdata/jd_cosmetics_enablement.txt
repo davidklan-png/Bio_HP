@@ -1,0 +1,38 @@
+Project Summary
+---------------
+
+A cosmetics and beauty company is seeking an AI enablement specialist to lead agentic workflow adoption and change management across their product and marketing teams. This is a part-time advisory role focused on prompt engineering excellence and training delivery.
+
+Key aspects of the engagement:
+- Part-time capacity (2-3 days per week)
+- Hybrid work model with periodic onsite workshops in Tokyo
+
+Responsibilities
+----------------
+- Design and implement agentic workflows for content creation and marketing campaigns
+- Lead change management initiatives to drive AI adoption across non-technical teams
+- Create and deliver training workshops for marketing, product, and creative teams
+- Develop prompt engineering best practices and governance frameworks
+- Facilitate cross-functional collaboration between technical and business teams
+
+Requirements (Must-haves)
+---------------------------
+- 5+ years of experience in change management and enablement roles
+- Strong background in prompt engineering and LLM application architecture
+- Experience designing and delivering workshops for non-technical staff
+- Proven track record in digital transformation or AI adoption programs
+- Python programming skills for integration and automation tasks
+- Experience with agentic workflows and AI orchestration patterns
+- Excellent communication and stakeholder management skills
+
+Nice-to-Have
+-------------
+- Experience in cosmetics, beauty, or CPG industries
+- Background in marketing technology or content management systems
+- Familiarity with evaluation frameworks and AI observability tools
+- Experience with RAG systems and knowledge management
+
+Languages
+----------
+- English: Business level required
+- Japanese: Business level preferred (JLPT N2+)

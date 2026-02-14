@@ -25,11 +25,7 @@ lang: ja
 </section>
 
 <section class="section-block fade-up delay-2">
-  <div class="section-heading">
-    <h2>JD Concierge</h2>
-    <p>求人票を貼り付けると、根拠付きで適合度とギャップを分析します。</p>
-  </div>
-  {% include jd_concierge.html %}
+  {% include jd_concierge_ja.html %}
 </section>
 
 <section class="skills-strip fade-up delay-1" aria-label="実証スキル">

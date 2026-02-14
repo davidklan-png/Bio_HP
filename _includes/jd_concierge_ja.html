@@ -1,32 +1,32 @@
 <section class="jd-concierge" data-jd-concierge data-api-base="{{ site.worker_api_base }}">
   <h2 class="jd-concierge__title">
     <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="" class="jd-concierge__avatar" />
-    <span>JD Concierge</span>
+    <span>JDコンシェルジュ</span>
   </h2>
-  <p class="jd-concierge__subtitle">Paste a job description to get an evidence-grounded fit analysis.</p>
+  <p class="jd-concierge__subtitle">求人票を貼り付けると、根拠に基づいた適合度とギャップの分析が得られます。</p>
 
-  <label class="jd-concierge__label" for="jd-concierge-input">Job description text</label>
+  <label class="jd-concierge__label" for="jd-concierge-input">求人票のテキスト</label>
   <textarea
     id="jd-concierge-input"
     class="jd-concierge__textarea"
     data-jd-input
     rows="12"
     maxlength="15000"
-    placeholder="Paste the full JD text (max 15,000 characters)."
+    placeholder="求人票の全文を貼り付けてください（最大15,000文字）。"
   ></textarea>
   <p class="jd-concierge__counter" data-jd-counter>
     <span>0 / 15000</span>
-    <span>Remaining: 15000</span>
+    <span>残り: 15000</span>
   </p>
 
   <div class="jd-concierge__actions">
     <button type="button" class="jd-concierge__button jd-concierge__button--muted" data-jd-example>
-      Try Example JD
+      サンプルで試す
     </button>
-    <button type="button" class="jd-concierge__button" data-jd-submit>Analyze fit</button>
+    <button type="button" class="jd-concierge__button" data-jd-submit>適合度を分析</button>
     <span class="jd-concierge__loading" data-jd-loading hidden>
       <span class="jd-concierge__spinner" aria-hidden="true"></span>
-      Analyzing...
+      分析中...
     </span>
   </div>
 
@@ -34,7 +34,7 @@
   <div class="jd-concierge__results" data-jd-results hidden></div>
 
   <p class="jd-concierge__disclaimer">
-    Analysis based on provided JD text and publicly documented portfolio evidence.
+    提供された求人票のテキストと公開されているポートフォリオの証拠に基づいて分析を行います。
   </p>
 </section>
 

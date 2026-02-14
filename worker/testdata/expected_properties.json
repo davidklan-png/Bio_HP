@@ -1,0 +1,54 @@
+{
+  "invariants": {
+    "description": "These are the invariants that must hold true for the analyzer to pass",
+    "rules": [
+      {
+        "id": 1,
+        "name": "No JD text as evidence source",
+        "description": "No 'evidence-backed strength' may cite text from the JD as the evidence source. All evidence must come from profile.projects[*].evidence_urls"
+      },
+      {
+        "id": 2,
+        "name": "Capacity is a constraint not a gap",
+        "description": "'Capacity: Part-time' must be treated as a constraint, not a responsibility gap. It should not appear in gaps as 'No evidence found for: Capacity'"
+      },
+      {
+        "id": 3,
+        "name": "Languages must be extracted and validated",
+        "description": "Languages must be extracted from the Languages section and validated against profile.constraints.languages when present"
+      },
+      {
+        "id": 4,
+        "name": "Domain fit not from generic tokens",
+        "description": "Domain fit must not be computed from generic tokens like 'python', 'prompt', 'japanese'. It should only use domain-specific terms like 'cosmetics', 'beauty', 'CPG', 'retail', etc."
+      }
+    ],
+    "language_requirements": {
+      "english": "Business level required",
+      "japanese": "Business level preferred"
+    },
+    "capacity_requirements": {
+      "type": "part_time",
+      "notes": "2-3 days per week"
+    },
+    "key_must_haves": [
+      "change management",
+      "enablement",
+      "prompt engineering",
+      "workshops",
+      "agentic workflows",
+      "python"
+    ],
+    "domain_terms": [
+      "cosmetics",
+      "beauty",
+      "CPG"
+    ],
+    "should_not_see_in_gaps": [
+      "Capacity",
+      "Languages",
+      "English:",
+      "Japanese:"
+    ]
+  }
+}
