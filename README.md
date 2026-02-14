@@ -236,3 +236,42 @@ View logs:
 cd worker
 npx wrangler tail
 ```
+
+## 9) API Documentation
+
+OpenAPI 3.0 specification available at `worker/api-spec.yaml`.
+
+This document describes:
+- All endpoints and HTTP methods
+- Request/response schemas with examples
+- Error response formats
+- Rate limiting behavior
+- CORS requirements
+
+**Usage:**
+- Import into [Swagger UI](https://editor.swagger.io/) for interactive testing
+- Generate client SDKs with `openapi-generator`
+- Validate requests against schemas
+
+
+Runtime logs include:
+
+- `request_id`
+- `timestamp`
+- `jd_text_length`
+- `score`
+- `confidence`
+- `rate_limited`
+
+Optional sampled analytics log (safe by default):
+
+- enabled only when `ANALYTICS_SAMPLE_RATE > 0`
+- logs compact JSON with `request_id`, `score`, `confidence`, `length`, `timestamp`
+- never logs full JD text
+
+View logs:
+
+```bash
+cd worker
+npx wrangler tail
+```

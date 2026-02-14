@@ -1,3 +1,5 @@
+import { parseConfig, type ConfigEnv } from "./config";
+
 export type Confidence = "Low" | "Medium" | "High";
 
 type SectionName =
@@ -104,8 +106,25 @@ export interface RateLimitErrorPayload {
 export const MAX_JD_CHARS = 15_000;
 export const MAX_CONTENT_LENGTH = 30_000;
 
+/** Default thresholds - can be overridden via environment variables */
 const JAPANESE_HARD_CAP = 60;
 const ONSITE_HARD_CAP = 70;
+
+/** Active configuration - set via environment */
+let activeConfig = {
+  japaneseHardCap: JAPANESE_HARD_CAP,
+  onsiteHardCap: ONSITE_HARD_CAP,
+};
+
+/** Initialize configuration from environment variables */
+export function initializeConfig(env: ConfigEnv): void {
+  activeConfig = parseConfig(env);
+}
+
+/** Get current configuration values */
+function getConfig() {
+  return activeConfig;
+}
 
 const SYNONYM_GROUPS: string[][] = [
   ["change management", "adoption", "enablement", "training"],
@@ -309,6 +328,10 @@ export function calculateConfidence(strengths: Strength[]): Confidence {
 }
 
 export function validateAnalyzeBody(body: unknown): string | null {
+  return validateAnalyzeBodyWithLimit(body, MAX_JD_CHARS);
+}
+
+export function validateAnalyzeBodyWithLimit(body: unknown, maxJdChars: number): string | null {
   if (!body || typeof body !== "object") {
     return "JSON body must be an object";
   }
@@ -322,8 +345,8 @@ export function validateAnalyzeBody(body: unknown): string | null {
     return "Field jd_text cannot be empty";
   }
 
-  if (candidate.jd_text.length > MAX_JD_CHARS) {
-    return `Field jd_text exceeds max length of ${MAX_JD_CHARS} characters`;
+  if (candidate.jd_text.length > maxJdChars) {
+    return `Field jd_text exceeds max length of ${maxJdChars} characters`;
   }
 
   return null;
@@ -508,9 +531,10 @@ function evaluateRiskAndConstraints(
   const profilePrefersRemote = /remote|hybrid/.test(normalizedLocation);
 
   if (jdRequiresOnsite && profilePrefersRemote) {
+    const config = getConfig();
     triggerHardGate(
-      `Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at ${ONSITE_HARD_CAP}.`,
-      ONSITE_HARD_CAP
+      `Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at ${config.onsiteHardCap}.`,
+      config.onsiteHardCap
     );
     score -= 2;
   }
@@ -541,16 +565,18 @@ function evaluateRiskAndConstraints(
   const jdMentionsJapanese = /\bjapanese\b/i.test(jdText);
 
   if (jdRequiresJapaneseFluent && !profileHasJapaneseFluent) {
+    const config = getConfig();
     triggerHardGate(
-      `Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at ${JAPANESE_HARD_CAP}.`,
-      JAPANESE_HARD_CAP
+      `Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at ${config.japaneseHardCap}.`,
+      config.japaneseHardCap
     );
     score -= 2;
   }
   if (profileRequiresJapaneseFluent && !jdMentionsJapanese) {
+    const config = getConfig();
     triggerHardGate(
-      `Hard gate: Profile indicates Japanese-fluent requirement, but JD does not include Japanese requirement. Score capped at ${JAPANESE_HARD_CAP}.`,
-      JAPANESE_HARD_CAP
+      `Hard gate: Profile indicates Japanese-fluent requirement, but JD does not include Japanese requirement. Score capped at ${config.japaneseHardCap}.`,
+      config.japaneseHardCap
     );
     score -= 2;
   }
