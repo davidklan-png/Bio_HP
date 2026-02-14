@@ -56,11 +56,13 @@ export interface AnalyzeResponse {
 
 export interface ProfileProject {
   name: string;
-  tags: string[];
+  capability_tags?: string[];  // New: Semantic capability tags
+  tags: string[];          // Legacy: Generic tags (still supported)
   summary: string;
   outcomes: string[];
   stack: string[];
-  evidence_urls: string[];
+  evidence?: Array<{ url: string; label?: string; snippet?: string }>;  // New: Structured evidence
+  evidence_urls?: string[];  // Legacy: Simple URL array (deprecated but still supported)
 }
 
 export interface ProfileConstraints {
@@ -413,7 +415,7 @@ export function analyzeJobDescription(
   // Grounding validation set - all valid evidence URLs from profile
   const validEvidenceUrls = new Set<string>();
   for (const project of profile.projects) {
-    for (const url of project.evidence_urls) {
+    for (const url of getProjectEvidenceUrls(project)) {
       validEvidenceUrls.add(url);
     }
   }
@@ -650,6 +652,34 @@ export function calculateConfidence(input: ConfidenceInput | Strength[]): Confid
  */
 export function assertEvidenceIsFromProfile(evidenceUrl: string, validEvidenceUrls: Set<string>): boolean {
   return validEvidenceUrls.has(evidenceUrl);
+}
+
+/** Get all evidence URLs from a project, supporting both old and new schema */
+function getProjectEvidenceUrls(project: ProfileProject): string[] {
+  // New structured evidence format
+  if (project.evidence && Array.isArray(project.evidence)) {
+    return project.evidence.map((e) => e.url);
+  }
+  // Legacy format
+  if (project.evidence_urls && Array.isArray(project.evidence_urls)) {
+    return project.evidence_urls;
+  }
+  return [];
+}
+
+/** Get the best label/snippet from project evidence, if available */
+function getEvidenceLabel(project: ProfileProject, evidenceUrl: string): { label?: string; snippet?: string } {
+  // New structured evidence format
+  if (project.evidence && Array.isArray(project.evidence)) {
+    const evidenceItem = project.evidence.find((e) => e.url === evidenceUrl);
+    if (evidenceItem && typeof evidenceItem === "object" && evidenceItem !== null) {
+      return {
+        label: evidenceItem.label || undefined,
+        snippet: evidenceItem.snippet || undefined
+      };
+    }
+  }
+  return {};
 }
 
 export function validateAnalyzeBody(body: unknown): string | null {
@@ -1124,7 +1154,9 @@ function findBestEvidenceProject(
   let bestScore = 0;
 
   for (const index of projectIndex) {
-    if (index.project.evidence_urls.length === 0) {
+    const project = index.project;
+    const evidenceUrls = getProjectEvidenceUrls(project);
+    if (evidenceUrls.length === 0) {
       continue;
     }
 
@@ -1137,7 +1169,7 @@ function findBestEvidenceProject(
 
     if (matchScore > bestScore) {
       bestScore = matchScore;
-      bestProject = index.project;
+      bestProject = project;
     }
   }
 
@@ -1252,6 +1284,11 @@ function buildProjectIndex(profile: Profile): ProjectIndex[] {
       ...project.stack,
       ...project.outcomes
     ];
+
+    // Add capability_tags for semantic matching
+    if (project.capability_tags && Array.isArray(project.capability_tags)) {
+      rawTerms.push(...project.capability_tags);
+    }
 
     const termSet = new Set<string>();
 
