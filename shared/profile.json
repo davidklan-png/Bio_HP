@@ -17,9 +17,20 @@
     "Cross-region team leadership",
     "Compliance and risk management"
   ],
+  "capability_tags": [
+    "Prompt engineering",
+    "Agentic workflows",
+    "Change enablement",
+    "Workshops & Training",
+    "LLM foundations",
+    "Python & Integrations",
+    "Stakeholder management",
+    "Governance & Delivery"
+  ],
   "projects": [
     {
       "name": "Japanese Tax Expert System (JTES)",
+      "capability_tags": ["LLM foundations", "RAG"],
       "tags": ["RAG", "Tax domain", "Citation grounding"],
       "summary": "Specialized retrieval-augmented assistant for Japanese tax workflows.",
       "outcomes": [
@@ -27,12 +38,16 @@
         "Improved retrieval relevance using domain-specific chunking"
       ],
       "stack": ["Python", "Vector search", "LLM APIs", "Jekyll"],
-      "evidence_urls": [
-        "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+          "label": "JTES Project Case Study"
+        }
       ]
     },
     {
       "name": "Insurance Reporting & Incident Intelligence",
+      "capability_tags": ["Python & Integrations"],
       "tags": ["Enterprise AI", "Reporting automation", "Incident analysis"],
       "summary": "Workflow automation for insurance reporting and incident intelligence tasks.",
       "outcomes": [
@@ -40,12 +55,16 @@
         "Standardized triage flow for faster analyst handoff"
       ],
       "stack": ["Python", "Automation", "Data pipelines"],
-      "evidence_urls": [
-        "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
+          "label": "Enterprise AI Case Study"
+        }
       ]
     },
     {
       "name": "Receipt Classification and Matching System",
+      "capability_tags": ["Python & Integrations"],
       "tags": ["Document AI", "Classification", "Matching"],
       "summary": "Receipt ingestion pipeline with categorization and matching support.",
       "outcomes": [
@@ -53,12 +72,16 @@
         "Enabled faster financial reconciliation workflows"
       ],
       "stack": ["Python", "OCR", "Rules + ML"],
-      "evidence_urls": [
-        "https://kinokoholic.com/projects/receipt-classification-and-matching-system/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/projects/receipt-classification-and-matching-system/",
+          "label": "Document AI Project"
+        }
       ]
     },
     {
       "name": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
+      "capability_tags": ["Governance & Delivery"],
       "tags": [
         "Data migration",
         "Data governance",
@@ -73,12 +96,17 @@
         "Reduced manual data correction effort through workflow optimization"
       ],
       "stack": ["Data architecture", "Governance", "ETL", "Program management"],
-      "evidence_urls": [
-        "https://kinokoholic.com/work-history/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/work-history/",
+          "label": "Data Migration & Governance",
+          "snippet": "Multi-system data migration with compliance workflows"
+        }
       ]
     },
     {
       "name": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+      "capability_tags": ["Governance & Delivery"],
       "tags": [
         "Infrastructure refresh",
         "Disaster recovery",
@@ -93,12 +121,17 @@
         "Coordinated multi-region delivery teams across Japan, EMEA, and North America"
       ],
       "stack": ["Windows Server", "Client/server", "Project governance", "Vendor management"],
-      "evidence_urls": [
-        "https://kinokoholic.com/work-history/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/work-history/",
+          "label": "Infrastructure Delivery",
+          "snippet": "DR/BCP implementation across Japan, EMEA, and North America"
+        }
       ]
     },
     {
       "name": "GenAI Enablement and Change Leadership",
+      "capability_tags": ["Change enablement", "Workshops & Training", "Stakeholder management"],
       "tags": [
         "Change management",
         "Enablement",
@@ -113,12 +146,17 @@
         "Applied structured communication and adoption plans across multi-team initiatives"
       ],
       "stack": ["Program management", "Governance", "Risk management", "Communication"],
-      "evidence_urls": [
-        "https://kinokoholic.com/work-history/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/work-history/",
+          "label": "Change Enablement",
+          "snippet": "Structured communication and adoption plans across multi-team initiatives"
+        }
       ]
     },
     {
       "name": "Application and Integration Delivery (Education / Depot Systems)",
+      "capability_tags": ["Python & Integrations"],
       "tags": [
         "Web application delivery",
         "System integration",
@@ -138,8 +176,12 @@
         "Database development",
         "Project governance"
       ],
-      "evidence_urls": [
-        "https://kinokoholic.com/work-history/"
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/work-history/",
+          "label": "Application Delivery",
+          "snippet": "Hybrid local/offshore teams, strict launch deadlines"
+        }
       ]
     }
   ],
