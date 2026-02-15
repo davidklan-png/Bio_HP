@@ -17,6 +17,7 @@ export type ConfigEnv = {
   MAX_CONTENT_LENGTH?: string;
   AI_MODEL_ID?: string;
   AI_ENABLED?: string;
+  ANALYZER_API_KEY?: string;
 };
 
 /** Default scoring thresholds */

@@ -10,6 +10,7 @@ ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
 ANALYTICS_SAMPLE_RATE = "0"
 AI_MODEL_ID = "@cf/meta/llama-3.1-8b-instruct"
 AI_ENABLED = "true"
+# ANALYZER_API_KEY should be set as a secret using: wrangler secret put ANALYZER_API_KEY
 
 [[d1_databases]]
 binding = "DB"
@@ -20,9 +21,8 @@ database_id = "01de23ef-843e-4ad2-a508-62b4dbe3c501"
 name = "RATE_LIMITER"
 class_name = "RateLimiterDO"
 
-[[ai]]
+[ai]
 binding = "AI"
 
 [[migrations]]
-tag = "v2"
-new_sqlite_classes = ["RateLimiterDO"]
+tag = "v3"

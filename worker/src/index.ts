@@ -23,6 +23,7 @@ type Env = {
   RATE_LIMITER: DurableObjectNamespace;
   DB: D1Database;
   AI?: unknown;
+  ANALYZER_API_KEY?: string;
 } & ConfigEnv;
 
 interface RateLimitDecision {
@@ -117,6 +118,21 @@ export default {
         rateLimited: false
       });
       return jsonError(405, "Method not allowed", cors.headers, requestId);
+    }
+
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${env.ANALYZER_API_KEY}`) {
+      logRequestLifecycle(env, {
+        requestId,
+        jdLength: 0,
+        score: null,
+        confidence: null,
+        rateLimited: false
+      });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      });
     }
 
     initializeConfig(env);
