@@ -1,0 +1,2700 @@
+{
+  "test_run_id": "e2e-1771244455846",
+  "timestamp": "2026-02-16T12:20:55.846Z",
+  "environment": {
+    "api_url": "https://kinokoholic.com/api/analyze",
+    "profile_version": "2026-02-15",
+    "worker_version": "main"
+  },
+  "summary": {
+    "total_tests": 15,
+    "passed": 1,
+    "failed": 14,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "test_id": "TC001",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": [
+          "JAPANESE_FLUENCY"
+        ],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [
+          "LLM Foundations",
+          "Prompt Engineering",
+          "RAG"
+        ],
+        "required_gap_areas": [
+          "Must-haves"
+        ],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 0,
+            "max_score": 3
+          }
+        },
+        "rationale": "Profile has Japanese at Business level, not Fluent/Native. Hard gate should cap score at 60. Technical skills (Python, RAG, prompt engineering) match profile well, so score before cap should be high (70-80), but after cap should be 60 max. Confidence is Low due to hard gate failure."
+      },
+      "actual": {
+        "request_id": "TC001",
+        "score": 60,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 60/100 (Low confidence). Evidence-backed strengths: 4. Gaps or unknowns: 1. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Lead AI/ML initiatives for enterprise clients\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Strong Python and TypeScript skills\" to Japanese Tax Expert System (JTES) (must-haves)."
+          },
+          {
+            "area": "Agentic Workflows",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Experience with agentic workflows\" to Japanese Tax Expert System (JTES) (nice-to-haves)."
+          },
+          {
+            "area": "Domain fit",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Domain signal: tax domain\" to Japanese Tax Expert System (JTES) (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"5+ years experience with LLM applications\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "3/3 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 10,
+            "weight": 10,
+            "notes": "3/3 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 4,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: tax domain."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 4 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 3,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": [
+              "japanese"
+            ]
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-60",
+          "actual": "60",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "JAPANESE_FLUENCY",
+          "actual": "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60.",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "LLM Foundations, Prompt Engineering, RAG",
+          "actual": "Responsibilities, Python & Integrations, Agentic Workflows, Domain fit",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "Must-haves",
+          "actual": "Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Japanese Fluency Hard Cap (JLPT N1)",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working"
+    },
+    {
+      "test_id": "TC002",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 30,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": [
+          "Responsibilities",
+          "Must-haves"
+        ],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "mustHaves": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 0
+          },
+          "deliveryCredibility": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "Profile is tech/AI-focused, JD is cosmetics/retail. Domain mismatch should prevent overscoring. Generic skills like 'change management' and 'communication' should NOT count when JD context is clearly cosmetics. Expected score is low (< 30). Gaps should mention cosmetics, beauty, retail domain terms."
+      },
+      "actual": {
+        "request_id": "TC002",
+        "score": 40,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 40/100 (Low confidence). Evidence-backed strengths: 3. Gaps or unknowns: 6. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Must-haves",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Strong communication and relationship building skills\" to GenAI Enablement and Change Leadership (must-haves)."
+          },
+          {
+            "area": "Nice-to-haves",
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Experience with inventory management\" to Application and Integration Delivery (Education / Depot Systems) (nice-to-haves)."
+          },
+          {
+            "area": "Change Enablement",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: change management\" to GenAI Enablement and Change Leadership (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Build relationships with customers in the cosmetics department\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Provide beauty consultations and product recommendations\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"2+ years retail experience in cosmetics or beauty industry\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Passion for beauty and skincare products\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Nice-to-haves",
+            "why_it_matters": "No evidence found for: \"Cosmetics certification\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Nice-to-haves",
+            "why_it_matters": "No evidence found for: \"Fashion industry knowledge\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 0,
+            "weight": 30,
+            "notes": "0/5 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 15,
+            "weight": 30,
+            "notes": "2/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 3,
+            "weight": 10,
+            "notes": "1/3 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 7,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 10,
+            "weight": 15,
+            "notes": "Evidence spans 2 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-30",
+          "actual": "40",
+          "status": "FAILED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "none",
+          "actual": "Must-haves, Nice-to-haves, Change Enablement",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "Responsibilities, Must-haves",
+          "actual": "Responsibilities, Responsibilities, Must-haves, Must-haves, Nice-to-haves, Nice-to-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Domain Mismatch - Cosmetics vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring"
+    },
+    {
+      "test_id": "TC003",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": [
+          "JAPANESE_FLUENCY"
+        ],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [
+          "Governance and Delivery",
+          "Stakeholder Management",
+          "Change Enablement"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 0,
+            "max_score": 3
+          }
+        },
+        "rationale": "JD requires 'Native or fluent Japanese' which triggers hard gate at 60. Profile has Business Japanese, not Fluent/Native. Technical/management skills match well (governance, PMO, stakeholder management), so pre-cap score should be ~70-80, but capped at 60. Confidence Low due to hard gate."
+      },
+      "actual": {
+        "request_id": "TC003",
+        "score": 60,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 60/100 (Low confidence). Evidence-backed strengths: 3. Gaps or unknowns: 1. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Manage AI/ML implementation projects\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (responsibilities)."
+          },
+          {
+            "area": "Must-haves",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"5+ years project management experience\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (must-haves)."
+          },
+          {
+            "area": "Stakeholder Management",
+            "evidence_title": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: stakeholder management\" to Enterprise Data Migration and Governance (AIG / Smart Partners) (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Experience with agile methodologies\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "3/3 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 24,
+            "weight": 30,
+            "notes": "4/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: stakeholder management, program governance, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 4 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 3,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": [
+              "japanese"
+            ]
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-60",
+          "actual": "60",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "JAPANESE_FLUENCY",
+          "actual": "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60.",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Governance and Delivery, Stakeholder Management, Change Enablement",
+          "actual": "Responsibilities, Must-haves, Stakeholder Management",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Japanese Fluency - Native or Fluent Pattern",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working"
+    },
+    {
+      "test_id": "TC004",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 70,
+        "confidence": "Low",
+        "required_risk_flags": [
+          "ONSITE_REQUIRED"
+        ],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "LLM Foundations",
+          "Python & Integrations"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 0,
+            "max_score": 3
+          }
+        },
+        "rationale": "JD is fully onsite, profile prefers remote/hybrid. Hard gate caps score at 70. Technical skills match well (Python, RAG, prompt engineering, LLMs), so pre-cap score should be high (80-90). After cap, score should be 70 max. Risk flag ONSITE_REQUIRED must be present. Confidence Low due to hard gate."
+      },
+      "actual": {
+        "request_id": "TC004",
+        "score": 70,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 70/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 2. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Design and implement RAG systems\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"5+ years Python development experience\" to Application and Integration Delivery (Education / Depot Systems) (must-haves)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Work Arrangement:\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"This is a fully onsite role - no remote work available. Must be in office 5 days per week.\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "ONSITE_REQUIRED: Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at 70."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "4/4 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 21,
+            "weight": 30,
+            "notes": "5/7 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 0,
+            "weight": 10,
+            "notes": "No domain-specific overlap found in profile evidence."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 3,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-70",
+          "actual": "70",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "ONSITE_REQUIRED",
+          "actual": "ONSITE_REQUIRED: Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at 70.",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, LLM Foundations, Python & Integrations",
+          "actual": "LLM Foundations, Python & Integrations",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Must-haves, Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Onsite Required Hard Cap (Fully Onsite)",
+      "category": "critical",
+      "known_issue": "Issue 3: Risk flag detection incomplete (ONSITE_REQUIRED)"
+    },
+    {
+      "test_id": "TC005",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": [
+          "JAPANESE_FLUENCY"
+        ],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "Change Enablement",
+          "Stakeholder Management"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 0,
+            "max_score": 3
+          }
+        },
+        "rationale": "JD requires 'Professional Japanese' which should trigger hard gate at 60 (pattern includes 'professional' with Japanese). Profile has Business Japanese, not Professional/Fluent. Skills match well (prompt engineering, change enablement, stakeholder management), so pre-cap score ~70-80, capped at 60. Confidence Low."
+      },
+      "actual": {
+        "request_id": "TC005",
+        "score": 60,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 60/100 (Low confidence). Evidence-backed strengths: 3. Gaps or unknowns: 1. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Provide AI strategy consulting to Japanese enterprises\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Change Enablement",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Experience with change management and enablement\" to GenAI Enablement and Change Leadership (must-haves)."
+          },
+          {
+            "area": "Change Enablement",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: change management\" to GenAI Enablement and Change Leadership (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"7+ years AI/ML consulting experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "4/4 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 7,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 3 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 3,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": [
+              "english",
+              "japanese"
+            ]
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-60",
+          "actual": "60",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "JAPANESE_FLUENCY",
+          "actual": "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at 60.",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, Change Enablement, Stakeholder Management",
+          "actual": "Responsibilities, Change Enablement, Change Enablement",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Japanese Fluency - Professional/Advanced Pattern",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working"
+    },
+    {
+      "test_id": "TC006",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 30,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": [
+          "Responsibilities",
+          "Must-haves"
+        ],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "mustHaves": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 0
+          },
+          "deliveryCredibility": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "Profile is tech-focused, JD is fashion retail. Domain mismatch should prevent overscoring. Even though JD mentions generic skills like 'change management' and 'stakeholder management', these should NOT count when context is fashion/retail. Score should be low (< 30)."
+      },
+      "actual": {
+        "request_id": "TC006",
+        "score": 71,
+        "confidence": "Medium",
+        "fit_summary": "Compatibility score 71/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 3. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Stakeholder Management",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Lead cross-functional teams\" to GenAI Enablement and Change Leadership (responsibilities)."
+          },
+          {
+            "area": "Must-haves",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Strong leadership and communication skills\" to GenAI Enablement and Change Leadership (must-haves)."
+          },
+          {
+            "area": "Stakeholder Management",
+            "evidence_title": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: stakeholder management\" to Enterprise Data Migration and Governance (AIG / Smart Partners) (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Build relationships with fashion clients\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Manage retail store operations\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"3+ years fashion retail experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 12,
+            "weight": 30,
+            "notes": "2/5 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 24,
+            "weight": 30,
+            "notes": "4/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: stakeholder management, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 3 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-30",
+          "actual": "71",
+          "status": "FAILED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Medium",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "none",
+          "actual": "Stakeholder Management, Must-haves, Stakeholder Management",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "Responsibilities, Must-haves",
+          "actual": "Responsibilities, Responsibilities, Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Domain Mismatch - Fashion Retail vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring"
+    },
+    {
+      "test_id": "TC007",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 25,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": [
+          "Responsibilities",
+          "Must-haves"
+        ],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 0,
+            "max_score": 8
+          },
+          "mustHaves": {
+            "min_score": 0,
+            "max_score": 7
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 0
+          },
+          "deliveryCredibility": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "JD is beauty consulting, profile is tech. Even lower score than TC002/TC006 since this is even more domain-specific to beauty. Generic skills should not count. Score should be very low (< 25)."
+      },
+      "actual": {
+        "request_id": "TC007",
+        "score": 36,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 36/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 4. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Communication and leadership in team setting\" to GenAI Enablement and Change Leadership (responsibilities)."
+          },
+          {
+            "area": "Must-haves",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Strong communication and relationship building skills\" to GenAI Enablement and Change Leadership (must-haves)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Provide beauty consultations to customers\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Build customer relationships in beauty department\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"2+ years beauty or skincare industry experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Passion for beauty products\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 6,
+            "weight": 30,
+            "notes": "1/5 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 15,
+            "weight": 30,
+            "notes": "2/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 0,
+            "weight": 10,
+            "notes": "No domain-specific overlap found in profile evidence."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 5,
+            "weight": 15,
+            "notes": "Evidence spans 1 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-25",
+          "actual": "36",
+          "status": "FAILED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "none",
+          "actual": "Responsibilities, Must-haves",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "Responsibilities, Must-haves",
+          "actual": "Responsibilities, Responsibilities, Must-haves, Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Domain Mismatch - Beauty Consulting vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring"
+    },
+    {
+      "test_id": "TC008",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 0,
+        "max_score": 70,
+        "confidence": "Low",
+        "required_risk_flags": [
+          "ONSITE_REQUIRED"
+        ],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "LLM Foundations",
+          "Python & Integrations"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 0,
+            "max_score": 3
+          }
+        },
+        "rationale": "JD requires 5 days onsite, profile prefers remote/hybrid. Hard gate at 70. Technical skills match well. Score before cap ~80-90, after cap max 70. ONSITE_REQUIRED risk flag must be present. Confidence Low."
+      },
+      "actual": {
+        "request_id": "TC008",
+        "score": 70,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 70/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 1. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Build RAG systems\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Python development experience\" to Application and Integration Delivery (Education / Depot Systems) (must-haves)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Develop LLM applications\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "ONSITE_REQUIRED: Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at 70."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 20,
+            "weight": 30,
+            "notes": "2/3 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 30,
+            "weight": 30,
+            "notes": "4/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 0,
+            "weight": 10,
+            "notes": "No domain-specific overlap found in profile evidence."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 4 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 3,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "0-70",
+          "actual": "70",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "ONSITE_REQUIRED",
+          "actual": "ONSITE_REQUIRED: Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at 70.",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, LLM Foundations, Python & Integrations",
+          "actual": "LLM Foundations, Python & Integrations",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Responsibilities",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Onsite Required - 5 Days Onsite Pattern",
+      "category": "moderate",
+      "known_issue": "Issue 3: Risk flag detection incomplete (ONSITE_REQUIRED)"
+    },
+    {
+      "test_id": "TC009",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 80,
+        "max_score": 100,
+        "confidence": "High",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY",
+          "ONSITE_REQUIRED"
+        ],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "LLM Foundations",
+          "Agentic Workflows",
+          "Python & Integrations"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 25,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 25,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "domainFit": {
+            "min_score": 8,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 12,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "This is a near-perfect match for the profile. All technical skills (Python, TypeScript, RAG, LLM, prompt engineering, agentic workflows) align perfectly. Location is remote (no hard gates). Multiple projects provide evidence. Expected score 85-95 with High confidence. No risk flags expected."
+      },
+      "actual": {
+        "request_id": "TC009",
+        "score": 100,
+        "confidence": "High",
+        "fit_summary": "Compatibility score 100/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Design and implement RAG systems for enterprise clients\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"5+ years experience with Python and TypeScript\" to Japanese Tax Expert System (JTES) (must-haves)."
+          },
+          {
+            "area": "Change Enablement",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Change management and enablement experience\" to GenAI Enablement and Change Leadership (nice-to-haves)."
+          },
+          {
+            "area": "Domain fit",
+            "evidence_title": "Insurance Reporting & Incident Intelligence",
+            "evidence_url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
+            "rationale": "Matched \"Domain signal: enterprise ai\" to Insurance Reporting & Incident Intelligence (domain alignment)."
+          }
+        ],
+        "gaps": [],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "5/5 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 30,
+            "weight": 30,
+            "notes": "5/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 10,
+            "weight": 10,
+            "notes": "3/3 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: enterprise ai, stakeholder management, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "80-100",
+          "actual": "100",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "High",
+          "actual": "High",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY, ONSITE_REQUIRED",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, LLM Foundations, Agentic Workflows, Python & Integrations",
+          "actual": "LLM Foundations, Python & Integrations, Change Enablement, Domain fit",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "High Fit - AI/LLM Engineering Role",
+      "category": "regression",
+      "known_issue": ""
+    },
+    {
+      "test_id": "TC010",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 65,
+        "max_score": 85,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY",
+          "ONSITE_REQUIRED"
+        ],
+        "required_strength_areas": [
+          "LLM Foundations",
+          "Change Enablement",
+          "Stakeholder Management"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 18,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "Good match: profile has JTES project (tax domain RAG), change enablement, stakeholder management. JD mentions Japanese as nice-to-have, profile has Business Japanese (not required, so no hard gate). Location is hybrid (matches profile). Expected score 70-80 with Medium confidence (domain is niche)."
+      },
+      "actual": {
+        "request_id": "TC010",
+        "score": 85,
+        "confidence": "Medium",
+        "fit_summary": "Compatibility score 85/100 (Medium confidence). Evidence-backed strengths: 4. Gaps or unknowns: 1. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Design RAG systems for tax and finance workflows\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Experience with RAG and vector search\" to Japanese Tax Expert System (JTES) (must-haves)."
+          },
+          {
+            "area": "Nice-to-haves",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Japanese language skills\" to Japanese Tax Expert System (JTES) (nice-to-haves)."
+          },
+          {
+            "area": "Domain fit",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Domain signal: tax domain\" to Japanese Tax Expert System (JTES) (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Provide AI strategy consulting\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 30,
+            "weight": 30,
+            "notes": "5/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 10,
+            "weight": 10,
+            "notes": "3/3 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: tax domain, citation grounding, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 4 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": [
+              "japanese"
+            ]
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "65-85",
+          "actual": "85",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Medium",
+          "actual": "Medium",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY, ONSITE_REQUIRED",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "LLM Foundations, Change Enablement, Stakeholder Management",
+          "actual": "LLM Foundations, LLM Foundations, Nice-to-haves, Domain fit",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Responsibilities",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Medium Fit - Tax/Finance Domain with RAG",
+      "category": "regression",
+      "known_issue": ""
+    },
+    {
+      "test_id": "TC011",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 20,
+        "max_score": 40,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": [
+          "Responsibilities",
+          "Must-haves"
+        ],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 0,
+            "max_score": 15
+          },
+          "mustHaves": {
+            "min_score": 0,
+            "max_score": 10
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 2
+          },
+          "deliveryCredibility": {
+            "min_score": 5,
+            "max_score": 8
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "JD is pure software engineering (Java, Go, SQL, microservices), profile is AI/LLM-focused. Limited overlap (Python from profile, but JD doesn't mention it). No AI/LLM requirements. Expected low score (25-35) with Low confidence. Gaps should mention Java, Go, SQL, microservices."
+      },
+      "actual": {
+        "request_id": "TC011",
+        "score": 71,
+        "confidence": "Medium",
+        "fit_summary": "Compatibility score 71/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 3. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Implement REST APIs and microservices\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Must-haves",
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Strong SQL and database skills\" to Application and Integration Delivery (Education / Depot Systems) (must-haves)."
+          },
+          {
+            "area": "Nice-to-haves",
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Cloud platform experience (AWS, GCP)\" to Application and Integration Delivery (Education / Depot Systems) (nice-to-haves)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Build and maintain web applications\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"5+ years Java or Go experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Nice-to-haves",
+            "why_it_matters": "No evidence found for: \"Kubernetes and Docker experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "1/2 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 0,
+            "weight": 10,
+            "notes": "No domain-specific overlap found in profile evidence."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "20-40",
+          "actual": "71",
+          "status": "FAILED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Medium",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "none",
+          "actual": "Responsibilities, Must-haves, Nice-to-haves",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "Responsibilities, Must-haves",
+          "actual": "Responsibilities, Must-haves, Nice-to-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Low Fit - Pure Software Engineering (No AI/LLM)",
+      "category": "regression",
+      "known_issue": ""
+    },
+    {
+      "test_id": "TC012",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 60,
+        "max_score": 80,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY",
+          "ONSITE_REQUIRED"
+        ],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "Change Enablement",
+          "LLM Foundations"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 3,
+            "max_score": 5
+          }
+        },
+        "rationale": "Skills match well (RAG, prompt engineering, change management). Profile is 'Open to full-time, consulting, or advisory', so contract-only is acceptable. May have risk flag about contract alignment, but not a hard gate. Expected score 65-75 with Medium confidence."
+      },
+      "actual": {
+        "request_id": "TC012",
+        "score": 79,
+        "confidence": "Medium",
+        "fit_summary": "Compatibility score 79/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 2. 1 risk flag(s) need review before application.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Design RAG systems\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Python and LLM experience\" to Japanese Tax Expert System (JTES) (must-haves)."
+          },
+          {
+            "area": "Change Enablement",
+            "evidence_title": "GenAI Enablement and Change Leadership",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: change management\" to GenAI Enablement and Change Leadership (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Contract Terms:\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Contract only position. 6-month fixed term. No full-time conversion.\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [
+          "CONTRACT_ONLY: Availability may not align (JD appears contract-only)."
+        ],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "3/3 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 18,
+            "weight": 30,
+            "notes": "3/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 7,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 3 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 4,
+            "weight": 5,
+            "notes": "Risk flags identified: 1."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "60-80",
+          "actual": "79",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Medium",
+          "actual": "Medium",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "CONTRACT_ONLY: Availability may not align (JD appears contract-only).",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY, ONSITE_REQUIRED",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, Change Enablement, LLM Foundations",
+          "actual": "LLM Foundations, Python & Integrations, Change Enablement",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Must-haves, Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Contract Only - Availability Mismatch",
+      "category": "moderate",
+      "known_issue": "Issue 3: Risk flag detection incomplete"
+    },
+    {
+      "test_id": "TC013",
+      "status": "PASSED",
+      "expected": {
+        "min_score": 60,
+        "max_score": 100,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY"
+        ],
+        "required_strength_areas": [
+          "Responsibilities",
+          "Must-haves",
+          "Governance and Delivery"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 20,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 15,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 10,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 4,
+            "max_score": 5
+          }
+        },
+        "rationale": "This tests the edge case where profile has 'Japanese (Business)' but JD doesn't mention Japanese at all. The profile having Japanese (Business) is just describing the candidate's capability, NOT stating a requirement for the candidate. No hard cap should be triggered. Expected score 70-90 (good PM skills match, no hard gate). Confidence Medium or High."
+      },
+      "actual": {
+        "request_id": "TC013",
+        "score": 88,
+        "confidence": "Medium",
+        "fit_summary": "Compatibility score 88/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 1. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Responsibilities",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Manage AI/ML implementation projects\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (responsibilities)."
+          },
+          {
+            "area": "Must-haves",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"5+ years project management experience\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (must-haves)."
+          },
+          {
+            "area": "Governance and Delivery",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Domain signal: program governance\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (domain alignment)."
+          }
+        ],
+        "gaps": [
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Experience with agile methodologies\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "4/4 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 23,
+            "weight": 30,
+            "notes": "3/4 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: program governance, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 3 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "60-100",
+          "actual": "88",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Medium",
+          "actual": "Medium",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Responsibilities, Must-haves, Governance and Delivery",
+          "actual": "Responsibilities, Must-haves, Governance and Delivery",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "Must-haves",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Profile Japanese Fluency Gate - JD Doesn't Mention Japanese",
+      "category": "critical",
+      "known_issue": ""
+    },
+    {
+      "test_id": "TC014",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 15,
+        "max_score": 35,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY",
+          "ONSITE_REQUIRED"
+        ],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "LLM Foundations"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "mustHaves": {
+            "min_score": 5,
+            "max_score": 10
+          },
+          "niceToHaves": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "domainFit": {
+            "min_score": 0,
+            "max_score": 5
+          },
+          "deliveryCredibility": {
+            "min_score": 5,
+            "max_score": 8
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "Very minimal JD with only 83 characters. Should match prompt engineering and RAG skills. Limited content means limited scoring potential. Expected score 20-30 with Low confidence (not enough information for High confidence)."
+      },
+      "actual": {
+        "request_id": "TC014",
+        "score": 30,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 30/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "Prompt Engineering",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Looking for AI consultant with prompt engineeri.....\" to Japanese Tax Expert System (JTES) (responsibilities)."
+          },
+          {
+            "area": "Prompt Engineering",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Looking for AI consultant with prompt engineeri.....\" to Japanese Tax Expert System (JTES) (must-haves)."
+          }
+        ],
+        "gaps": [],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "1/1 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 30,
+            "weight": 30,
+            "notes": "1/1 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 5,
+            "weight": 10,
+            "notes": "No explicit nice-to-have section found; assigned neutral midpoint."
+          },
+          {
+            "category": "Domain fit",
+            "score": 0,
+            "weight": 10,
+            "notes": "No domain-specific overlap found in profile evidence."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 5,
+            "weight": 15,
+            "notes": "Evidence spans 1 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": false,
+            "has_requirements": false,
+            "has_nice_to_haves": false,
+            "has_languages": false,
+            "languages_found": []
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "15-35",
+          "actual": "30",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "Low",
+          "actual": "Low",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY, ONSITE_REQUIRED",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, LLM Foundations",
+          "actual": "Prompt Engineering, Prompt Engineering",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Minimal JD - Below 100 Characters",
+      "category": "edge_case",
+      "known_issue": ""
+    },
+    {
+      "test_id": "TC015",
+      "status": "FAILED",
+      "expected": {
+        "min_score": 85,
+        "max_score": 100,
+        "confidence": "High",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [
+          "JAPANESE_FLUENCY",
+          "ONSITE_REQUIRED"
+        ],
+        "required_strength_areas": [
+          "Prompt Engineering",
+          "LLM Foundations",
+          "Agentic Workflows",
+          "Change Enablement",
+          "Stakeholder Management",
+          "Workshops & Training"
+        ],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": {
+            "min_score": 28,
+            "max_score": 30
+          },
+          "mustHaves": {
+            "min_score": 28,
+            "max_score": 30
+          },
+          "niceToHaves": {
+            "min_score": 8,
+            "max_score": 10
+          },
+          "domainFit": {
+            "min_score": 8,
+            "max_score": 10
+          },
+          "deliveryCredibility": {
+            "min_score": 13,
+            "max_score": 15
+          },
+          "riskConstraints": {
+            "min_score": 5,
+            "max_score": 5
+          }
+        },
+        "rationale": "This test case is specifically designed to validate High confidence. It has: 70%+ must-have coverage (all requirements match profile), 3+ unique evidence URLs (multiple projects), domain alignment (AI/enterprise), and parser success. Should score 90-95 with High confidence. If confidence is Medium or Low, it confirms Issue 4."
+      },
+      "actual": {
+        "request_id": "TC015",
+        "score": 85,
+        "confidence": "High",
+        "fit_summary": "Compatibility score 85/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "strengths": [
+          {
+            "area": "LLM Foundations",
+            "evidence_title": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Design and implement RAG systems for enterprise clients\" to Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners) (responsibilities)."
+          },
+          {
+            "area": "Python & Integrations",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"7+ years experience with Python and TypeScript\" to Japanese Tax Expert System (JTES) (must-haves)."
+          },
+          {
+            "area": "Nice-to-haves",
+            "evidence_title": "Japanese Tax Expert System (JTES)",
+            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
+            "rationale": "Matched \"Experience with tax and finance domain\" to Japanese Tax Expert System (JTES) (nice-to-haves)."
+          },
+          {
+            "area": "Domain fit",
+            "evidence_title": "Insurance Reporting & Incident Intelligence",
+            "evidence_url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
+            "rationale": "Matched \"Domain signal: enterprise ai\" to Insurance Reporting & Incident Intelligence (domain alignment)."
+          }
+        ],
+        "gaps": [],
+        "risk_flags": [],
+        "rubric_breakdown": [
+          {
+            "category": "Responsibilities match",
+            "score": 30,
+            "weight": 30,
+            "notes": "5/5 responsibilities items have direct portfolio evidence."
+          },
+          {
+            "category": "Must-haves",
+            "score": 30,
+            "weight": 30,
+            "notes": "5/5 must-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Nice-to-haves",
+            "score": 10,
+            "weight": 10,
+            "notes": "3/3 nice-to-haves items have direct portfolio evidence."
+          },
+          {
+            "category": "Domain fit",
+            "score": 10,
+            "weight": 10,
+            "notes": "Matched domain terms with evidence: enterprise ai, stakeholder management, program governance, change management, enablement."
+          },
+          {
+            "category": "Delivery credibility",
+            "score": 15,
+            "weight": 15,
+            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+          },
+          {
+            "category": "Risk/constraints alignment",
+            "score": 5,
+            "weight": 5,
+            "notes": "No explicit constraint conflicts detected."
+          }
+        ],
+        "ai_metadata": {
+          "ai_used": false,
+          "ai_interpreter_ok": false,
+          "ai_writer_ok": false
+        },
+        "debug": {
+          "discarded_matches": 0,
+          "parsed_jd": {
+            "has_responsibilities": true,
+            "has_requirements": true,
+            "has_nice_to_haves": true,
+            "has_languages": false,
+            "languages_found": [
+              "japanese"
+            ]
+          }
+        }
+      },
+      "assertions": [
+        {
+          "field": "score",
+          "expected": "85-100",
+          "actual": "85",
+          "status": "PASSED"
+        },
+        {
+          "field": "confidence",
+          "expected": "High",
+          "actual": "High",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_risk_flags",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "forbidden_risk_flags",
+          "expected": "JAPANESE_FLUENCY, ONSITE_REQUIRED",
+          "actual": "none",
+          "status": "PASSED"
+        },
+        {
+          "field": "required_strength_areas",
+          "expected": "Prompt Engineering, LLM Foundations, Agentic Workflows, Change Enablement, Stakeholder Management, Workshops & Training",
+          "actual": "LLM Foundations, Python & Integrations, Nice-to-haves, Domain fit",
+          "status": "FAILED"
+        },
+        {
+          "field": "required_gap_areas",
+          "expected": "none",
+          "actual": "none",
+          "status": "PASSED"
+        }
+      ],
+      "test_name": "Confidence Scoring - High Evidence Coverage",
+      "category": "regression",
+      "known_issue": "Issue 4: Confidence scoring systematically low"
+    }
+  ]
+}

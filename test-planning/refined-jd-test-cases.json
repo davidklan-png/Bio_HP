@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "created": "2026-02-16",
+    "refined_by": "Planning Orchestrator (Opus)",
+    "profile_version": "2026-02-15",
+    "api_endpoint": "https://kinokoholic.com/api/analyze",
+    "total_test_cases": 15,
+    "baseline_results": "e2e-test-results.json"
+  },
+  "critical_findings": {
+    "issue_1_partial": "Japanese hard cap works for TC001,003,005 but NOT TC013 - profile gate logic issue",
+    "issue_2_severe": "Domain mismatch overscoring confirmed - TC006 scored 71 instead of <30",
+    "issue_3_confirmed": "Risk flags lack standard prefixes in all cases",
+    "issue_4_minor": "Confidence scoring conservative but mostly correct"
+  },
+  "refined_test_cases": [
+    {
+      "test_id": "TC013",
+      "name": "Profile Japanese Gate Edge Case - PRIORITY FIX",
+      "category": "critical",
+      "baseline_score": 88,
+      "baseline_status": "FAILED",
+      "jd_text": "Position: AI Project Manager\nCompany: Global Tech\nLocation: New York, NY\n\nResponsibilities:\n- Manage AI/ML implementation projects\n- Coordinate stakeholder relationships\n- Lead change management initiatives\n- PMO reporting and governance\n\nRequirements:\n- 5+ years project management experience\n- Experience with agile methodologies\n- Strong communication skills\n- Program governance experience",
+      "refined_expected": {
+        "score_range": "75-95",
+        "confidence": "High",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY"],
+        "rationale": "JD does NOT mention Japanese at all. Profile having 'Japanese (Business)' should NOT trigger hard cap. This is a false positive in the current logic."
+      },
+      "fix_guidance": {
+        "root_cause": "profileRequiresJapaneseFluent incorrectly treats 'Japanese (Business)' as fluency requirement",
+        "solution": "Only trigger hard cap if profile explicitly requires fluent/native Japanese for work, not just having Japanese language skills"
+      }
+    },
+    {
+      "test_id": "TC002",
+      "name": "Domain Mismatch - Cosmetics (40 → <30)",
+      "category": "critical",
+      "baseline_score": 40,
+      "baseline_status": "FAILED",
+      "domain_specific_terms": ["cosmetics", "beauty", "skincare", "makeup"],
+      "generic_terms_to_ignore": ["communication", "change management", "relationship building"],
+      "refined_expected": {
+        "score_range": "0-25",
+        "strengths_should_not_include": ["change management", "communication skills"],
+        "gaps_must_include": ["cosmetics", "beauty industry"]
+      }
+    },
+    {
+      "test_id": "TC006", 
+      "name": "Domain Mismatch - Fashion Retail (71 → <30)",
+      "category": "critical",
+      "baseline_score": 71,
+      "baseline_status": "FAILED - SEVERE OVERSCORING",
+      "domain_specific_terms": ["fashion", "retail", "apparel", "store operations"],
+      "generic_terms_to_ignore": ["leadership", "communication", "stakeholder management"],
+      "refined_expected": {
+        "score_range": "0-25",
+        "max_domain_fit_score": 0,
+        "rationale": "71 is way too high for tech profile vs fashion retail. Generic skills inflating score."
+      }
+    },
+    {
+      "test_id": "TC001",
+      "name": "Japanese Fluency Hard Cap - WORKING CORRECTLY",
+      "category": "regression",
+      "baseline_score": 60,
+      "baseline_status": "PASSED (score capped)",
+      "refined_expected": {
+        "required_risk_flag_format": "JAPANESE_FLUENCY: Hard gate: JD requires Japanese fluency..."
+      }
+    },
+    {
+      "test_id": "TC004",
+      "name": "Onsite Required - Risk Flag Format",
+      "category": "moderate",
+      "baseline_score": 70,
+      "baseline_status": "PASSED (score capped)",
+      "refined_expected": {
+        "required_risk_flag_format": "ONSITE_REQUIRED: Hard gate: JD appears onsite-required..."
+      }
+    },
+    {
+      "test_id": "TC009",
+      "name": "High Fit AI Role - Confidence Should Be HIGH",
+      "category": "minor",
+      "baseline_confidence": "Medium",
+      "expected_confidence": "High",
+      "confidence_inputs_to_verify": {
+        "unique_evidence_urls": "Should be ≥3",
+        "must_have_coverage": "Should be ≥0.7",
+        "domain_certainty": "Should be true (AI domain match)"
+      }
+    }
+  ],
+  "standardized_risk_flags": {
+    "JAPANESE_FLUENCY": "Language requirement not met",
+    "ONSITE_REQUIRED": "Location/remote preference mismatch", 
+    "LANGUAGE_MISMATCH": "Required language not in profile",
+    "CONTRACT_ONLY": "Employment type mismatch",
+    "LOCATION_MISMATCH": "Geographic constraint"
+  },
+  "fix_verification": {
+    "TC013": {
+      "before": "score: 88, risk_flags: ['Hard gate: Profile indicates...']",
+      "after": "score: 80-90, risk_flags: []"
+    },
+    "TC002": {
+      "before": "score: 40, strengths include 'change management'",
+      "after": "score: <25, no generic skill matches"
+    },
+    "TC006": {
+      "before": "score: 71, domain_fit: 10",
+      "after": "score: <25, domain_fit: 0"
+    }
+  }
+}
