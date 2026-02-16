@@ -282,13 +282,16 @@ const GENERIC_SKILLS = [
 
 /** Domain keyword mappings */
 const DOMAIN_KEYWORDS: Record<string, string[]> = {
+  // More specific domains first (checked in order)
+  software_engineering: ["java", "golang", "c++", "rust", ".net", "spring", "nodejs", "backend development", "full stack", "fullstack", "software developer", "software engineer", "web application", "web development", "rest api", "microservices", "ci cd", "cicd", "sql", "database"],
+  ai_llm: ["ai", "artificial intelligence", "llm", "large language model", "rag", "retrieval augmented", "prompt engineering", "prompt design", "vector database", "embedding", "agentic workflow", "machine learning", "ml", "deep learning", "nlp", "natural language processing", "generative ai"],
+  // General domains
   cosmetics: ["cosmetics", "beauty", "skincare", "makeup", "fragrance", "salon"],
   fashion: ["fashion", "apparel", "retail", "clothing", "boutique", "style", "jewelry", "footwear"],
-  tech: ["software", "tech", "IT", "digital", "cloud", "data", "AI", "ML", "LLM", "RAG", "prompt engineering", "machine learning", "deep learning", "generative ai"],
-  ai_llm: ["ai", "artificial intelligence", "llm", "large language model", "rag", "retrieval augmented", "prompt engineering", "prompt design", "vector database", "embedding", "agentic workflow", "machine learning", "ml", "deep learning", "nlp", "natural language processing"],
-  software_engineering: ["java", "golang", "go", "c++", "rust", ".net", "spring", "nodejs", "backend development", "frontend development", "full stack", "fullstack", "software developer", "software engineer", "web application", "web development"],
   finance: ["finance", "banking", "tax", "insurance", "investment"],
-  enterprise: ["enterprise", "corporate", "governance", "program management", "PMO"]
+  enterprise: ["enterprise", "corporate", "governance", "program management", "PMO"],
+  // Broader tech domain (checked last)
+  tech: ["software", "tech", "IT", "digital", "cloud", "data"]
 };
 
 /**
@@ -322,10 +325,10 @@ function domainsCompatible(domain1: string | null, domain2: string | null): bool
 
   // Cross-domain compatibility mappings
   const compatiblePairs: Record<string, string[]> = {
-    finance: ["enterprise", "tech"],
-    tech: ["enterprise", "finance", "ai_llm"],
-    enterprise: ["finance", "tech"],
-    ai_llm: ["tech"]
+    finance: ["enterprise", "tech", "ai_llm"],
+    tech: ["enterprise", "finance", "ai_llm", "software_engineering"],
+    enterprise: ["finance", "tech", "ai_llm"],
+    ai_llm: ["tech", "enterprise", "finance"]
   };
 
   // Explicitly incompatible domain pairs
@@ -591,7 +594,8 @@ export function analyzeJobDescription(
     "Responsibilities",
     projectIndex,
     skillEvidence,
-    jdDomainTerms
+    jdDomainTerms,
+    jdText
   );
   const mustHavesEval = evaluateSection(
     requirementLines,
@@ -599,7 +603,8 @@ export function analyzeJobDescription(
     "Must-haves",
     projectIndex,
     skillEvidence,
-    jdDomainTerms
+    jdDomainTerms,
+    jdText
   );
 
   const niceEval =
@@ -610,7 +615,8 @@ export function analyzeJobDescription(
           "Nice-to-haves",
           projectIndex,
           skillEvidence,
-          jdDomainTerms
+          jdDomainTerms,
+          jdText
         )
       : {
           score: Math.round(RUBRIC_WEIGHTS.niceToHaves * 0.5),
@@ -1052,9 +1058,14 @@ function evaluateSection(
   const detectedJDDomainTerms: string[] = [];
   const normalizedJdText = normalizeText(jdText);
   
+  console.log(`[DEBUG] evaluateSection: label=${label}, jdText.length=${jdText.length}, normalizedJdText.length=${normalizedJdText.length}`);
+  console.log(`[DEBUG] evaluateSection: normalizedJdText="${normalizedJdText.substring(0, 200)}..."`);
+
   for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
+    console.log(`[DEBUG] Checking domain ${domain} with ${keywords.length} keywords`);
     for (const keyword of keywords) {
-      if (normalizedJdText.includes(keyword)) {
+      if (containsTerm(normalizedJdText, keyword)) {
+        console.log(`[DEBUG] Found keyword "${keyword}" for domain ${domain}`);
         if (!detectedJDDomainTerms.includes(domain)) {
           detectedJDDomainTerms.push(domain);
         }
@@ -1065,20 +1076,38 @@ function evaluateSection(
     if (jdDomain) break;
   }
 
+  console.log(`[DEBUG] evaluateSection: jdDomain=${jdDomain}, detectedDomains=[${detectedJDDomainTerms.join(', ')}]`);
+
   // Check if there's any domain overlap between JD and profile
   let hasDomainOverlap = jdDomain === null; // No domain detected = allow all
+  let domainCompatibilityRatio = 1.0; // Default: fully compatible
+
   if (jdDomain !== null) {
     hasDomainOverlap = false;
+    let compatibleProjects = 0;
+    let totalProjects = 0;
+
     // Check if any profile project matches JD's domain
     for (const entry of projectIndex) {
       const projectDomain = extractDomain(
         `${entry.project.name} ${entry.project.summary} ${entry.project.tags.join(" ")}`
       );
-      if (domainsCompatible(jdDomain, projectDomain)) {
-        hasDomainOverlap = true;
-        break;
+      totalProjects++;
+      const isCompatible = domainsCompatible(jdDomain, projectDomain);
+      console.log(`[DEBUG] Project domain check: project="${entry.project.name.substring(0, 30)}", projectDomain=${projectDomain}, compatible=${isCompatible}`);
+      if (isCompatible) {
+        compatibleProjects++;
       }
     }
+
+    // Calculate compatibility ratio
+    domainCompatibilityRatio = totalProjects > 0 ? compatibleProjects / totalProjects : 0;
+
+    // Require at least 25% of projects to be compatible for domain overlap
+    // This prevents a single outlier project from creating false compatibility
+    hasDomainOverlap = domainCompatibilityRatio >= 0.25;
+
+    console.log(`[DEBUG] Domain compatibility: ${compatibleProjects}/${totalProjects} projects compatible (${(domainCompatibilityRatio * 100).toFixed(0)}%), hasDomainOverlap=${hasDomainOverlap}`);
   }
 
   for (const line of sanitizedLines) {
@@ -1092,17 +1121,7 @@ function evaluateSection(
         normalizedLine.includes(skill)
       );
 
-      // If JD has a domain but no domain overlap, reject ALL matches (not just generic skills)
-      // This handles cases like TC011 where JD is software_engineering but profile is ai_llm
-      if (jdDomain !== null && !hasDomainOverlap) {
-        // No domain overlap - don't count as evidence
-        console.log(`[DEBUG] Domain mismatch: JD domain=${jdDomain}, no overlap found. Rejecting match for line: "${line.substring(0, 50)}..."`);
-        matches.push({ line });
-        misses.push(line);
-        continue;
-      }
-
-      // For generic skills, validate domain compatibility
+      // For generic skills, validate domain compatibility at the project level
       if (isGenericSkill && jdDomain) {
         const projectDomain = extractDomain(
           `${evidenceProject.name} ${evidenceProject.summary} ${evidenceProject.tags.join(" ")}`
@@ -1110,6 +1129,7 @@ function evaluateSection(
 
         if (!domainsCompatible(jdDomain, projectDomain)) {
           // Generic skill in incompatible domain - don't count as evidence
+          console.log(`[DEBUG] Domain mismatch for generic skill: JD domain=${jdDomain}, project domain=${projectDomain}. Rejecting match for line: "${line.substring(0, 50)}..."`);
           matches.push({ line });
           misses.push(line);
           continue;
@@ -1137,7 +1157,14 @@ function evaluateSection(
 
   const linesWithEvidence = matches.filter((m) => m.evidenceProject).length;
   const coverage = linesWithEvidence / sanitizedLines.length;
-  const score = clampScore(Math.round(weight * coverage), 0, weight);
+  let score = clampScore(Math.round(weight * coverage), 0, weight);
+
+  // Apply domain compatibility penalty if applicable
+  if (domainCompatibilityRatio < 1.0 && domainCompatibilityRatio > 0) {
+    const penalty = 1.0 - domainCompatibilityRatio;
+    score = Math.round(score * (1.0 - penalty * 0.5)); // Apply up to 50% of the penalty
+    console.log(`[DEBUG] Applied domain compatibility penalty: ratio=${(domainCompatibilityRatio * 100).toFixed(0)}%, originalScore=${Math.round(weight * coverage)}, adjustedScore=${score}`);
+  }
 
   const notes = `${linesWithEvidence}/${sanitizedLines.length} ${label.toLowerCase()} items have direct portfolio evidence.`;
 

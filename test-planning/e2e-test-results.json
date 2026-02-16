@@ -1,6 +1,6 @@
 {
-  "test_run_id": "e2e-1771244455846",
-  "timestamp": "2026-02-16T12:20:55.846Z",
+  "test_run_id": "e2e-1771244988762",
+  "timestamp": "2026-02-16T12:29:48.762Z",
   "environment": {
     "api_url": "https://kinokoholic.com/api/analyze",
     "profile_version": "2026-02-15",
@@ -8,8 +8,8 @@
   },
   "summary": {
     "total_tests": 15,
-    "passed": 1,
-    "failed": 14,
+    "passed": 5,
+    "failed": 10,
     "skipped": 0
   },
   "results": [
@@ -104,19 +104,19 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "3/3 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 23,
+            "score": 21,
             "weight": 30,
             "notes": "3/4 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 10,
+            "score": 9,
             "weight": 10,
             "notes": "3/3 nice-to-haves items have direct portfolio evidence."
           },
@@ -201,7 +201,7 @@
     },
     {
       "test_id": "TC002",
-      "status": "FAILED",
+      "status": "PASSED",
       "expected": {
         "min_score": 0,
         "max_score": 30,
@@ -243,22 +243,10 @@
       },
       "actual": {
         "request_id": "TC002",
-        "score": 40,
+        "score": 12,
         "confidence": "Low",
-        "fit_summary": "Compatibility score 40/100 (Low confidence). Evidence-backed strengths: 3. Gaps or unknowns: 6. No major constraints risk was detected from JD text.",
+        "fit_summary": "Compatibility score 12/100 (Low confidence). Evidence-backed strengths: 1. Gaps or unknowns: 6. No major constraints risk was detected from JD text.",
         "strengths": [
-          {
-            "area": "Must-haves",
-            "evidence_title": "GenAI Enablement and Change Leadership",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Strong communication and relationship building skills\" to GenAI Enablement and Change Leadership (must-haves)."
-          },
-          {
-            "area": "Nice-to-haves",
-            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Experience with inventory management\" to Application and Integration Delivery (Education / Depot Systems) (nice-to-haves)."
-          },
           {
             "area": "Change Enablement",
             "evidence_title": "GenAI Enablement and Change Leadership",
@@ -294,7 +282,7 @@
           },
           {
             "area": "Nice-to-haves",
-            "why_it_matters": "No evidence found for: \"Fashion industry knowledge\".",
+            "why_it_matters": "No evidence found for: \"Experience with inventory management\".",
             "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
           }
         ],
@@ -308,15 +296,15 @@
           },
           {
             "category": "Must-haves",
-            "score": 15,
+            "score": 0,
             "weight": 30,
-            "notes": "2/4 must-haves items have direct portfolio evidence."
+            "notes": "0/4 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 3,
+            "score": 0,
             "weight": 10,
-            "notes": "1/3 nice-to-haves items have direct portfolio evidence."
+            "notes": "0/3 nice-to-haves items have direct portfolio evidence."
           },
           {
             "category": "Domain fit",
@@ -326,9 +314,9 @@
           },
           {
             "category": "Delivery credibility",
-            "score": 10,
+            "score": 0,
             "weight": 15,
-            "notes": "Evidence spans 2 project(s), indicating delivery track record."
+            "notes": "No evidence-linked project matches; delivery credibility is unproven for this JD."
           },
           {
             "category": "Risk/constraints alignment",
@@ -357,8 +345,8 @@
         {
           "field": "score",
           "expected": "0-30",
-          "actual": "40",
-          "status": "FAILED"
+          "actual": "12",
+          "status": "PASSED"
         },
         {
           "field": "confidence",
@@ -381,7 +369,7 @@
         {
           "field": "required_strength_areas",
           "expected": "none",
-          "actual": "Must-haves, Nice-to-haves, Change Enablement",
+          "actual": "Change Enablement",
           "status": "PASSED"
         },
         {
@@ -478,13 +466,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "3/3 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 24,
+            "score": 22,
             "weight": 30,
             "notes": "4/5 must-haves items have direct portfolio evidence."
           },
@@ -655,13 +643,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "4/4 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 21,
+            "score": 20,
             "weight": 30,
             "notes": "5/7 must-haves items have direct portfolio evidence."
           },
@@ -831,13 +819,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "4/4 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 23,
+            "score": 21,
             "weight": 30,
             "notes": "3/4 must-haves items have direct portfolio evidence."
           },
@@ -929,7 +917,7 @@
     },
     {
       "test_id": "TC006",
-      "status": "FAILED",
+      "status": "PASSED",
       "expected": {
         "min_score": 0,
         "max_score": 30,
@@ -971,22 +959,10 @@
       },
       "actual": {
         "request_id": "TC006",
-        "score": 71,
-        "confidence": "Medium",
-        "fit_summary": "Compatibility score 71/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 3. No major constraints risk was detected from JD text.",
+        "score": 20,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 20/100 (Low confidence). Evidence-backed strengths: 1. Gaps or unknowns: 4. No major constraints risk was detected from JD text.",
         "strengths": [
-          {
-            "area": "Stakeholder Management",
-            "evidence_title": "GenAI Enablement and Change Leadership",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Lead cross-functional teams\" to GenAI Enablement and Change Leadership (responsibilities)."
-          },
-          {
-            "area": "Must-haves",
-            "evidence_title": "GenAI Enablement and Change Leadership",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Strong leadership and communication skills\" to GenAI Enablement and Change Leadership (must-haves)."
-          },
           {
             "area": "Stakeholder Management",
             "evidence_title": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
@@ -1009,21 +985,26 @@
             "area": "Must-haves",
             "why_it_matters": "No evidence found for: \"3+ years fashion retail experience\".",
             "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Strong leadership and communication skills\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
           }
         ],
         "risk_flags": [],
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 12,
+            "score": 0,
             "weight": 30,
-            "notes": "2/5 responsibilities items have direct portfolio evidence."
+            "notes": "0/5 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 24,
+            "score": 0,
             "weight": 30,
-            "notes": "4/5 must-haves items have direct portfolio evidence."
+            "notes": "0/5 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
@@ -1039,9 +1020,9 @@
           },
           {
             "category": "Delivery credibility",
-            "score": 15,
+            "score": 0,
             "weight": 15,
-            "notes": "Evidence spans 3 project(s), indicating delivery track record."
+            "notes": "No evidence-linked project matches; delivery credibility is unproven for this JD."
           },
           {
             "category": "Risk/constraints alignment",
@@ -1070,14 +1051,14 @@
         {
           "field": "score",
           "expected": "0-30",
-          "actual": "71",
-          "status": "FAILED"
+          "actual": "20",
+          "status": "PASSED"
         },
         {
           "field": "confidence",
           "expected": "Low",
-          "actual": "Medium",
-          "status": "FAILED"
+          "actual": "Low",
+          "status": "PASSED"
         },
         {
           "field": "required_risk_flags",
@@ -1094,13 +1075,13 @@
         {
           "field": "required_strength_areas",
           "expected": "none",
-          "actual": "Stakeholder Management, Must-haves, Stakeholder Management",
+          "actual": "Stakeholder Management",
           "status": "PASSED"
         },
         {
           "field": "required_gap_areas",
           "expected": "Responsibilities, Must-haves",
-          "actual": "Responsibilities, Responsibilities, Must-haves",
+          "actual": "Responsibilities, Responsibilities, Must-haves, Must-haves",
           "status": "PASSED"
         }
       ],
@@ -1110,7 +1091,7 @@
     },
     {
       "test_id": "TC007",
-      "status": "FAILED",
+      "status": "PASSED",
       "expected": {
         "min_score": 0,
         "max_score": 25,
@@ -1152,24 +1133,16 @@
       },
       "actual": {
         "request_id": "TC007",
-        "score": 36,
+        "score": 10,
         "confidence": "Low",
-        "fit_summary": "Compatibility score 36/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 4. No major constraints risk was detected from JD text.",
-        "strengths": [
-          {
-            "area": "Responsibilities",
-            "evidence_title": "GenAI Enablement and Change Leadership",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Communication and leadership in team setting\" to GenAI Enablement and Change Leadership (responsibilities)."
-          },
-          {
-            "area": "Must-haves",
-            "evidence_title": "GenAI Enablement and Change Leadership",
-            "evidence_url": "https://kinokoholic.com/work-history/",
-            "rationale": "Matched \"Strong communication and relationship building skills\" to GenAI Enablement and Change Leadership (must-haves)."
-          }
-        ],
+        "fit_summary": "Compatibility score 10/100 (Low confidence). Evidence-backed strengths: 0. Gaps or unknowns: 5. No major constraints risk was detected from JD text.",
+        "strengths": [],
         "gaps": [
+          {
+            "area": "Evidence coverage",
+            "why_it_matters": "No portfolio evidence links were matched to the JD text, so fit claims cannot be substantiated.",
+            "mitigation": "Add project evidence URLs in shared/profile.json or provide richer project outcomes/tags."
+          },
           {
             "area": "Responsibilities",
             "why_it_matters": "No evidence found for: \"Provide beauty consultations to customers\".",
@@ -1187,7 +1160,7 @@
           },
           {
             "area": "Must-haves",
-            "why_it_matters": "No evidence found for: \"Passion for beauty products\".",
+            "why_it_matters": "No evidence found for: \"Strong communication and relationship building skills\".",
             "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
           }
         ],
@@ -1195,15 +1168,15 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 6,
+            "score": 0,
             "weight": 30,
-            "notes": "1/5 responsibilities items have direct portfolio evidence."
+            "notes": "0/5 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 15,
+            "score": 0,
             "weight": 30,
-            "notes": "2/4 must-haves items have direct portfolio evidence."
+            "notes": "0/4 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
@@ -1219,9 +1192,9 @@
           },
           {
             "category": "Delivery credibility",
-            "score": 5,
+            "score": 0,
             "weight": 15,
-            "notes": "Evidence spans 1 project(s), indicating delivery track record."
+            "notes": "No evidence-linked project matches; delivery credibility is unproven for this JD."
           },
           {
             "category": "Risk/constraints alignment",
@@ -1250,8 +1223,8 @@
         {
           "field": "score",
           "expected": "0-25",
-          "actual": "36",
-          "status": "FAILED"
+          "actual": "10",
+          "status": "PASSED"
         },
         {
           "field": "confidence",
@@ -1274,13 +1247,13 @@
         {
           "field": "required_strength_areas",
           "expected": "none",
-          "actual": "Responsibilities, Must-haves",
+          "actual": "none",
           "status": "PASSED"
         },
         {
           "field": "required_gap_areas",
           "expected": "Responsibilities, Must-haves",
-          "actual": "Responsibilities, Responsibilities, Must-haves, Must-haves",
+          "actual": "Evidence coverage, Responsibilities, Responsibilities, Must-haves, Must-haves",
           "status": "PASSED"
         }
       ],
@@ -1365,13 +1338,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 20,
+            "score": 19,
             "weight": 30,
             "notes": "2/3 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "4/4 must-haves items have direct portfolio evidence."
           },
@@ -1507,9 +1480,9 @@
       },
       "actual": {
         "request_id": "TC009",
-        "score": 100,
+        "score": 95,
         "confidence": "High",
-        "fit_summary": "Compatibility score 100/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "fit_summary": "Compatibility score 95/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
         "strengths": [
           {
             "area": "LLM Foundations",
@@ -1541,19 +1514,19 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "5/5 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "5/5 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 10,
+            "score": 9,
             "weight": 10,
             "notes": "3/3 nice-to-haves items have direct portfolio evidence."
           },
@@ -1596,7 +1569,7 @@
         {
           "field": "score",
           "expected": "80-100",
-          "actual": "100",
+          "actual": "95",
           "status": "PASSED"
         },
         {
@@ -1722,19 +1695,19 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 23,
+            "score": 21,
             "weight": 30,
             "notes": "3/4 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "5/5 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 10,
+            "score": 9,
             "weight": 10,
             "notes": "3/3 nice-to-haves items have direct portfolio evidence."
           },
@@ -1819,7 +1792,7 @@
     },
     {
       "test_id": "TC011",
-      "status": "FAILED",
+      "status": "PASSED",
       "expected": {
         "min_score": 20,
         "max_score": 40,
@@ -1861,15 +1834,15 @@
       },
       "actual": {
         "request_id": "TC011",
-        "score": 71,
-        "confidence": "Medium",
-        "fit_summary": "Compatibility score 71/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 3. No major constraints risk was detected from JD text.",
+        "score": 32,
+        "confidence": "Low",
+        "fit_summary": "Compatibility score 32/100 (Low confidence). Evidence-backed strengths: 3. Gaps or unknowns: 5. No major constraints risk was detected from JD text.",
         "strengths": [
           {
             "area": "Responsibilities",
-            "evidence_title": "Japanese Tax Expert System (JTES)",
-            "evidence_url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
-            "rationale": "Matched \"Implement REST APIs and microservices\" to Japanese Tax Expert System (JTES) (responsibilities)."
+            "evidence_title": "Application and Integration Delivery (Education / Depot Systems)",
+            "evidence_url": "https://kinokoholic.com/work-history/",
+            "rationale": "Matched \"Optimize database performance\" to Application and Integration Delivery (Education / Depot Systems) (responsibilities)."
           },
           {
             "area": "Must-haves",
@@ -1891,8 +1864,18 @@
             "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
           },
           {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Implement REST APIs and microservices\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
             "area": "Must-haves",
             "why_it_matters": "No evidence found for: \"5+ years Java or Go experience\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          },
+          {
+            "area": "Must-haves",
+            "why_it_matters": "No evidence found for: \"Microservices architecture experience\".",
             "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
           },
           {
@@ -1905,19 +1888,19 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 23,
+            "score": 5,
             "weight": 30,
-            "notes": "3/4 responsibilities items have direct portfolio evidence."
+            "notes": "1/4 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 23,
+            "score": 9,
             "weight": 30,
-            "notes": "3/4 must-haves items have direct portfolio evidence."
+            "notes": "2/4 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 5,
+            "score": 3,
             "weight": 10,
             "notes": "1/2 nice-to-haves items have direct portfolio evidence."
           },
@@ -1929,9 +1912,9 @@
           },
           {
             "category": "Delivery credibility",
-            "score": 15,
+            "score": 10,
             "weight": 15,
-            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+            "notes": "Evidence spans 2 project(s), indicating delivery track record."
           },
           {
             "category": "Risk/constraints alignment",
@@ -1960,14 +1943,14 @@
         {
           "field": "score",
           "expected": "20-40",
-          "actual": "71",
-          "status": "FAILED"
+          "actual": "32",
+          "status": "PASSED"
         },
         {
           "field": "confidence",
           "expected": "Low",
-          "actual": "Medium",
-          "status": "FAILED"
+          "actual": "Low",
+          "status": "PASSED"
         },
         {
           "field": "required_risk_flags",
@@ -1990,7 +1973,7 @@
         {
           "field": "required_gap_areas",
           "expected": "Responsibilities, Must-haves",
-          "actual": "Responsibilities, Must-haves, Nice-to-haves",
+          "actual": "Responsibilities, Responsibilities, Must-haves, Must-haves, Nice-to-haves",
           "status": "PASSED"
         }
       ],
@@ -2046,9 +2029,9 @@
       },
       "actual": {
         "request_id": "TC012",
-        "score": 79,
+        "score": 76,
         "confidence": "Medium",
-        "fit_summary": "Compatibility score 79/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 2. 1 risk flag(s) need review before application.",
+        "fit_summary": "Compatibility score 76/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 2. 1 risk flag(s) need review before application.",
         "strengths": [
           {
             "area": "LLM Foundations",
@@ -2087,13 +2070,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "3/3 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 18,
+            "score": 17,
             "weight": 30,
             "notes": "3/5 must-haves items have direct portfolio evidence."
           },
@@ -2142,7 +2125,7 @@
         {
           "field": "score",
           "expected": "60-80",
-          "actual": "79",
+          "actual": "76",
           "status": "PASSED"
         },
         {
@@ -2227,9 +2210,9 @@
       },
       "actual": {
         "request_id": "TC013",
-        "score": 88,
+        "score": 84,
         "confidence": "Medium",
-        "fit_summary": "Compatibility score 88/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 1. No major constraints risk was detected from JD text.",
+        "fit_summary": "Compatibility score 84/100 (Medium confidence). Evidence-backed strengths: 3. Gaps or unknowns: 1. No major constraints risk was detected from JD text.",
         "strengths": [
           {
             "area": "Responsibilities",
@@ -2261,13 +2244,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "4/4 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 23,
+            "score": 21,
             "weight": 30,
             "notes": "3/4 must-haves items have direct portfolio evidence."
           },
@@ -2316,7 +2299,7 @@
         {
           "field": "score",
           "expected": "60-100",
-          "actual": "88",
+          "actual": "84",
           "status": "PASSED"
         },
         {
@@ -2401,9 +2384,9 @@
       },
       "actual": {
         "request_id": "TC014",
-        "score": 30,
+        "score": 28,
         "confidence": "Low",
-        "fit_summary": "Compatibility score 30/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "fit_summary": "Compatibility score 28/100 (Low confidence). Evidence-backed strengths: 2. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
         "strengths": [
           {
             "area": "Prompt Engineering",
@@ -2423,13 +2406,13 @@
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "1/1 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "1/1 must-haves items have direct portfolio evidence."
           },
@@ -2478,7 +2461,7 @@
         {
           "field": "score",
           "expected": "15-35",
-          "actual": "30",
+          "actual": "28",
           "status": "PASSED"
         },
         {
@@ -2569,7 +2552,7 @@
         "request_id": "TC015",
         "score": 85,
         "confidence": "High",
-        "fit_summary": "Compatibility score 85/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 0. No major constraints risk was detected from JD text.",
+        "fit_summary": "Compatibility score 85/100 (High confidence). Evidence-backed strengths: 4. Gaps or unknowns: 1. No major constraints risk was detected from JD text.",
         "strengths": [
           {
             "area": "LLM Foundations",
@@ -2596,24 +2579,30 @@
             "rationale": "Matched \"Domain signal: enterprise ai\" to Insurance Reporting & Incident Intelligence (domain alignment)."
           }
         ],
-        "gaps": [],
+        "gaps": [
+          {
+            "area": "Responsibilities",
+            "why_it_matters": "No evidence found for: \"Manage stakeholder relationships across teams\".",
+            "mitigation": "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+          }
+        ],
         "risk_flags": [],
         "rubric_breakdown": [
           {
             "category": "Responsibilities match",
-            "score": 30,
+            "score": 22,
             "weight": 30,
-            "notes": "5/5 responsibilities items have direct portfolio evidence."
+            "notes": "4/5 responsibilities items have direct portfolio evidence."
           },
           {
             "category": "Must-haves",
-            "score": 30,
+            "score": 28,
             "weight": 30,
             "notes": "5/5 must-haves items have direct portfolio evidence."
           },
           {
             "category": "Nice-to-haves",
-            "score": 10,
+            "score": 9,
             "weight": 10,
             "notes": "3/3 nice-to-haves items have direct portfolio evidence."
           },
@@ -2627,7 +2616,7 @@
             "category": "Delivery credibility",
             "score": 15,
             "weight": 15,
-            "notes": "Evidence spans 5 project(s), indicating delivery track record."
+            "notes": "Evidence spans 4 project(s), indicating delivery track record."
           },
           {
             "category": "Risk/constraints alignment",
@@ -2688,7 +2677,7 @@
         {
           "field": "required_gap_areas",
           "expected": "none",
-          "actual": "none",
+          "actual": "Responsibilities",
           "status": "PASSED"
         }
       ],
