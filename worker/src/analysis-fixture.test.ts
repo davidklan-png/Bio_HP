@@ -228,12 +228,20 @@ describe("Milestone 0: Regression fixture test", () => {
   it("Japanese hard gate is properly triggered when missing from profile", () => {
     const result = analyzeJobDescription(fixtureJD, noJapaneseProfile, "fixture-test-6");
 
-    // Should have Japanese fluency hard gate
+    // Should have a risk flag for missing Japanese (Business level preferred)
+    const hasJapaneseRisk = result.risk_flags.some(
+      f => f.toLowerCase().includes("japanese")
+    );
+    expect(hasJapaneseRisk).toBe(true);
+
+    // Should NOT have a hard gate since JD only requires "Business level", not "fluent/native"
     const hasJapaneseHardCap = result.risk_flags.some(
       f => f.toLowerCase().includes("japanese") && f.toLowerCase().includes("hard gate")
     );
-    expect(hasJapaneseHardCap).toBe(true);
-    expect(result.score).toBeLessThanOrEqual(60);
+    expect(hasJapaneseHardCap).toBe(false);
+
+    // Score should be penalized but not hard-capped at 60
+    expect(result.score).toBeGreaterThan(60);
   });
 });
 
@@ -280,6 +288,15 @@ describe("Milestone 2: Semantic matching improvements", () => {
 
     expect(englishRisk.length).toBe(0);
     expect(japaneseRisk.length).toBe(0);
+
+    // Log the rubric for debugging
+    if (result.score <= 60) {
+      console.log("DEBUG - Rubric breakdown:");
+      result.rubric_breakdown.forEach(r => console.log(`  ${r.category}: ${r.score}/${r.weight} - ${r.notes}`));
+      console.log("DEBUG - Risk flags:", result.risk_flags);
+      console.log("DEBUG - Hard cap from rubric:", result.rubric_breakdown.find(r => r.category.includes("Risk")));
+    }
+
     expect(result.score).toBeGreaterThan(60); // No hard gate triggered
   });
 

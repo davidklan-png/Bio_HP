@@ -1,0 +1,24 @@
+Position: Technical Project Manager
+Company: Tech Corporation
+Location: Tokyo, Japan
+
+Job Description:
+We are seeking an experienced Technical Project Manager to lead our cross-functional engineering team. This role requires strong Japanese language skills for effective communication with local stakeholders and clients.
+
+Responsibilities:
+- Lead cross-functional teams to deliver software projects on time and within budget
+- Coordinate with Japanese stakeholders to gather requirements and provide updates
+- Manage project risks and dependencies
+- Facilitate communication between technical and non-technical teams
+
+Requirements:
+- 5+ years of project management experience in technology companies
+- Native or fluent Japanese language skills required
+- Experience with agile methodologies and Scrum
+- Strong technical background in software development
+- Experience managing remote and distributed teams
+
+Nice-to-have:
+- PMP certification
+- Experience in enterprise software development
+- Knowledge of cloud platforms (AWS, GCP, Azure)
