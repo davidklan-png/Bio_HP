@@ -128,19 +128,20 @@ export const MAX_JD_CHARS = 15_000;
 export const MAX_CONTENT_LENGTH = 30_000;
 
 /** Standard risk flag types for machine-readable filtering */
-export const RISK_FLAG_TYPES = {
+export const STANDARD_RISK_FLAGS = {
   JAPANESE_FLUENCY: "JAPANESE_FLUENCY",
   ONSITE_REQUIRED: "ONSITE_REQUIRED",
   LANGUAGE_MISMATCH: "LANGUAGE_MISMATCH",
   CONTRACT_ONLY: "CONTRACT_ONLY",
-  LOCATION_MISMATCH: "LOCATION_MISMATCH"
-};
+  LOCATION_MISMATCH: "LOCATION_MISMATCH",
+  CONTRACT_AVAILABILITY: "CONTRACT_AVAILABILITY"
+} as const;
 
-export type RiskFlagType = keyof typeof RISK_FLAG_TYPES;
+export type RiskFlagType = keyof typeof STANDARD_RISK_FLAGS;
 
 /** Helper function to get the value from the type */
 export function getRiskFlagValue(type: RiskFlagType): string {
-  return RISK_FLAG_TYPES[type];
+  return STANDARD_RISK_FLAGS[type];
 }
 
 /** Default thresholds - can be overridden via environment variables */
@@ -283,7 +284,9 @@ const GENERIC_SKILLS = [
 const DOMAIN_KEYWORDS: Record<string, string[]> = {
   cosmetics: ["cosmetics", "beauty", "skincare", "makeup", "fragrance", "salon"],
   fashion: ["fashion", "apparel", "retail", "clothing", "boutique", "style", "jewelry", "footwear"],
-  tech: ["software", "tech", "IT", "digital", "cloud", "data", "AI", "ML", "LLM", "RAG", "prompt engineering"],
+  tech: ["software", "tech", "IT", "digital", "cloud", "data", "AI", "ML", "LLM", "RAG", "prompt engineering", "machine learning", "deep learning", "generative ai"],
+  ai_llm: ["ai", "artificial intelligence", "llm", "large language model", "rag", "retrieval augmented", "prompt engineering", "prompt design", "vector database", "embedding", "agentic workflow", "machine learning", "ml", "deep learning", "nlp", "natural language processing"],
+  software_engineering: ["java", "golang", "go", "c++", "rust", ".net", "spring", "nodejs", "backend development", "frontend development", "full stack", "fullstack", "software developer", "software engineer", "web application", "web development"],
   finance: ["finance", "banking", "tax", "insurance", "investment"],
   enterprise: ["enterprise", "corporate", "governance", "program management", "PMO"]
 };
@@ -320,10 +323,26 @@ function domainsCompatible(domain1: string | null, domain2: string | null): bool
   // Cross-domain compatibility mappings
   const compatiblePairs: Record<string, string[]> = {
     finance: ["enterprise", "tech"],
-    tech: ["enterprise", "finance"],
-    enterprise: ["finance", "tech"]
+    tech: ["enterprise", "finance", "ai_llm"],
+    enterprise: ["finance", "tech"],
+    ai_llm: ["tech"]
   };
 
+  // Explicitly incompatible domain pairs
+  const incompatiblePairs: Record<string, string[]> = {
+    ai_llm: ["software_engineering"],
+    software_engineering: ["ai_llm"]
+  };
+
+  // Check if domains are explicitly incompatible
+  if (
+    (domain1 && incompatiblePairs[domain1]?.includes(domain2)) ||
+    (domain2 && incompatiblePairs[domain2]?.includes(domain1))
+  ) {
+    return false;
+  }
+
+  // Check if domains are compatible
   return !!(
     (domain1 && compatiblePairs[domain1]?.includes(domain2)) ||
     (domain2 && compatiblePairs[domain2]?.includes(domain1))
@@ -1073,9 +1092,11 @@ function evaluateSection(
         normalizedLine.includes(skill)
       );
 
-      // If JD has a domain but no domain overlap, reject all generic skill matches
-      if (jdDomain !== null && !hasDomainOverlap && isGenericSkill) {
-        // Generic skill with no domain overlap - don't count as evidence
+      // If JD has a domain but no domain overlap, reject ALL matches (not just generic skills)
+      // This handles cases like TC011 where JD is software_engineering but profile is ai_llm
+      if (jdDomain !== null && !hasDomainOverlap) {
+        // No domain overlap - don't count as evidence
+        console.log(`[DEBUG] Domain mismatch: JD domain=${jdDomain}, no overlap found. Rejecting match for line: "${line.substring(0, 50)}..."`);
         matches.push({ line });
         misses.push(line);
         continue;
