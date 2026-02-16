@@ -46,6 +46,39 @@ describe("hard gates", () => {
     expect(result.risk_flags.join(" ")).toContain("Score capped at 60");
   });
 
+  it("TC013: AI Project Manager with no Japanese mention should NOT have hard cap", () => {
+    // Profile with Japanese (Business) - should NOT trigger hard cap when JD doesn't mention Japanese
+    const profileWithJapanese: Profile = {
+      ...baseProfile,
+      constraints: {
+        ...baseProfile.constraints,
+        languages: ["English", "Japanese (Business)"]
+      }
+    };
+
+    const jd = [
+      "Position: AI Project Manager",
+      "Company: Global Tech",
+      "Location: New York, NY",
+      "",
+      "Requirements:",
+      "- 5+ years project management experience",
+      "- Program governance and PMO reporting",
+      "- Stakeholder management experience"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, profileWithJapanese, "TC013");
+
+    // Should NOT have hardScoreCap (profile having Japanese is not a requirement)
+    expect((result as any).hardScoreCap).toBeUndefined();
+
+    // Should NOT have JAPANESE_FLUENCY risk flag at all
+    expect(result.risk_flags.some(f => f.includes("JAPANESE_FLUENCY"))).toBe(false);
+
+    // Score should be whatever the natural calculation produces (not artificially capped at 60)
+    // The actual score depends on skill/domain fit, but there should be no Japanese-related hard gate
+  });
+
   it("TC003: caps score at 60 for 'Native or fluent Japanese' pattern", () => {
     const jd = [
       "Position: Technical Project Manager",

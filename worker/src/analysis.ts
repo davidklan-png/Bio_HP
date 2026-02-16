@@ -1,5 +1,7 @@
 import { parseConfig, type ConfigEnv } from "./config";
 
+console.log("[DEBUG] analysis.ts loaded, version 2.0");
+
 export type Confidence = "Low" | "Medium" | "High";
 
 type SectionName =
@@ -125,6 +127,22 @@ export interface RateLimitErrorPayload {
 export const MAX_JD_CHARS = 15_000;
 export const MAX_CONTENT_LENGTH = 30_000;
 
+/** Standard risk flag types for machine-readable filtering */
+export const RISK_FLAG_TYPES = {
+  JAPANESE_FLUENCY: "JAPANESE_FLUENCY",
+  ONSITE_REQUIRED: "ONSITE_REQUIRED",
+  LANGUAGE_MISMATCH: "LANGUAGE_MISMATCH",
+  CONTRACT_ONLY: "CONTRACT_ONLY",
+  LOCATION_MISMATCH: "LOCATION_MISMATCH"
+};
+
+export type RiskFlagType = keyof typeof RISK_FLAG_TYPES;
+
+/** Helper function to get the value from the type */
+export function getRiskFlagValue(type: RiskFlagType): string {
+  return RISK_FLAG_TYPES[type];
+}
+
 /** Default thresholds - can be overridden via environment variables */
 const JAPANESE_HARD_CAP = 60;
 const ONSITE_HARD_CAP = 70;
@@ -222,6 +240,95 @@ const TECH_EXCLUDE_TERMS = new Set([
   "focused",
   "adoption"
 ]);
+
+/** Generic skills that should only match within compatible domains */
+const GENERIC_SKILLS = [
+  "communication",
+  "communication skills",
+  "leadership",
+  "leadership experience",
+  "management",
+  "change management",
+  "stakeholder",
+  "stakeholder management",
+  "relationship",
+  "relationship building",
+  "team",
+  "team leadership",
+  "cross-functional",
+  "coordination",
+  "reporting",
+  // Generic technical skills that need domain validation
+  "api",
+  "rest",
+  "microservices",
+  "database",
+  "sql",
+  "cloud",
+  "aws",
+  "gcp",
+  "docker",
+  "kubernetes",
+  "testing",
+  "qa",
+  "ci/cd",
+  "integration",
+  "delivery",
+  "agile",
+  "scrum",
+  "devops"
+];
+
+/** Domain keyword mappings */
+const DOMAIN_KEYWORDS: Record<string, string[]> = {
+  cosmetics: ["cosmetics", "beauty", "skincare", "makeup", "fragrance", "salon"],
+  fashion: ["fashion", "apparel", "retail", "clothing", "boutique", "style", "jewelry", "footwear"],
+  tech: ["software", "tech", "IT", "digital", "cloud", "data", "AI", "ML", "LLM", "RAG", "prompt engineering"],
+  finance: ["finance", "banking", "tax", "insurance", "investment"],
+  enterprise: ["enterprise", "corporate", "governance", "program management", "PMO"]
+};
+
+/**
+ * Extract domain from text based on keywords
+ */
+function extractDomain(text: string): string | null {
+  const normalized = normalizeText(text);
+
+  for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
+    for (const keyword of keywords) {
+      if (containsTerm(normalized, keyword)) {
+        return domain;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Check if two domains are compatible (same or related)
+ */
+function domainsCompatible(domain1: string | null, domain2: string | null): boolean {
+  if (!domain1 || !domain2) {
+    return true; // If either domain is unknown, allow match
+  }
+
+  // Exact match
+  if (domain1 === domain2) {
+    return true;
+  }
+
+  // Cross-domain compatibility mappings
+  const compatiblePairs: Record<string, string[]> = {
+    finance: ["enterprise", "tech"],
+    tech: ["enterprise", "finance"],
+    enterprise: ["finance", "tech"]
+  };
+
+  return !!(
+    (domain1 && compatiblePairs[domain1]?.includes(domain2)) ||
+    (domain2 && compatiblePairs[domain2]?.includes(domain1))
+  );
+}
 
 /** Initialize configuration from environment variables */
 export function initializeConfig(env: ConfigEnv): void {
@@ -577,8 +684,58 @@ export function analyzeJobDescription(
     0,
     100
   );
-  const score =
-    typeof riskEval.hardScoreCap === "number" ? Math.min(rawScore, riskEval.hardScoreCap) : rawScore;
+
+  console.log(`[DEBUG] rawScore calculation: jdText.length=${jdText.length}, rawScore=${rawScore}`);
+
+  // Apply penalty for very short JDs (under 150 characters)
+  // Very short JDs don't provide enough information for confident scoring
+  let score = rawScore;
+  if (jdText.length < 150) {
+    // Reduce score proportionally to JD length
+    // Minimum of 50 characters gets max 40% of rawScore
+    // 150 characters gets 100% of rawScore
+    const lengthRatio = (jdText.length - 50) / (150 - 50);
+    const clampedRatio = Math.max(0.4, Math.min(1.0, lengthRatio));
+    score = Math.round(rawScore * clampedRatio);
+    console.log(`[DEBUG] Short JD penalty: length=${jdText.length}, rawScore=${rawScore}, ratio=${clampedRatio.toFixed(2)}, adjustedScore=${score}`);
+  }
+
+  // Cap medium-fit roles at 85
+  // A role is "medium fit" if:
+  // - Domain fit is good (>5) but not perfect (<10)
+  // - There are meaningful gaps (not just minor details)
+  // - Must-have coverage is high but not perfect
+  const domainFitScore = rubricBreakdown.find(item => item.category === "Domain fit")?.score || 0;
+  const mustHaveCoverage = mustHavesEval.matches.length > 0
+    ? mustHavesEval.matches.filter(m => m.evidenceProject).length / mustHavesEval.matches.length
+    : 0;
+
+  // Check if this is a medium-fit scenario
+  // Cap score for roles in niche domains (tax, finance, legal, etc.) that are not the primary tech focus
+  const hasSignificantGaps = gaps.some(g => !g.area.includes("Evidence coverage"));
+
+  // Extract domain from JD text
+  const jdLower = jdText.toLowerCase();
+  const hasNicheDomain = /tax|finance|legal|insurance|banking|accounting/.test(jdLower);
+
+  // Cap at 85 for:
+  // - Niche domain matches (tax, finance, etc.)
+  // - Domain fit score is 10 (maxed out)
+  // - Score would otherwise be perfect (100)
+  // This prevents inflated scores for domain-specific matches that aren't the primary focus
+  const shouldCapForNicheDomain = hasNicheDomain && domainFitScore === 10 && score > 85;
+
+  console.log(`[DEBUG] Medium fit check: domainFit=${domainFitScore}, hasNicheDomain=${hasNicheDomain}, shouldCap=${shouldCapForNicheDomain}`);
+
+  if (shouldCapForNicheDomain) {
+    console.log(`[DEBUG] Niche domain cap applied: rawScore=${score}, domainFit=${domainFitScore} -> capped=85`);
+    score = 85;
+  }
+
+  // Apply hard score cap if applicable
+  if (typeof riskEval.hardScoreCap === "number") {
+    score = Math.min(score, riskEval.hardScoreCap);
+  }
 
   // Determine if parser succeeded (has parsed sections)
   const parserSuccess = sections.responsibilities.length > 0 ||
@@ -594,7 +751,8 @@ export function analyzeJobDescription(
     mustHavesEval,
     domainEval,
     hasHardGateFailure,
-    parserSuccess
+    parserSuccess,
+    score
   });
 
   const fitSummary = buildFitSummary(score, confidence, strengths.length, gaps.length, riskEval.riskFlags);
@@ -631,6 +789,7 @@ export interface ConfidenceInput {
   domainEval: SectionEval;
   hasHardGateFailure: boolean;
   parserSuccess: boolean;
+  score?: number;
 }
 
 export function calculateConfidence(input: ConfidenceInput | Strength[]): Confidence {
@@ -647,10 +806,15 @@ export function calculateConfidence(input: ConfidenceInput | Strength[]): Confid
   }
 
   // New signature with full context
-  const { strengths, mustHavesEval, domainEval, hasHardGateFailure, parserSuccess } = input;
+  const { strengths, mustHavesEval, domainEval, hasHardGateFailure, parserSuccess, score } = input;
 
   // If parser failed or hard gate failed, confidence is Low
   if (!parserSuccess || hasHardGateFailure) {
+    return "Low";
+  }
+
+  // Low score (<= 40) indicates poor fit regardless of evidence count
+  if (score !== undefined && score <= 40) {
     return "Low";
   }
 
@@ -848,7 +1012,8 @@ function evaluateSection(
   label: string,
   projectIndex: ProjectIndex[],
   skillEvidence: SkillEvidenceMap,
-  jdDomainTerms: string[] = []
+  jdDomainTerms: string[] = [],
+  jdText: string = ""
 ): SectionEval {
   const sanitizedLines = lines.map((line) => line.trim()).filter(Boolean).slice(0, 24);
   if (sanitizedLines.length === 0) {
@@ -863,15 +1028,75 @@ function evaluateSection(
   const matches: LineMatch[] = [];
   const misses: string[] = [];
 
+  // Extract JD's domain from JD text using DOMAIN_KEYWORDS
+  let jdDomain: string | null = null;
+  const detectedJDDomainTerms: string[] = [];
+  const normalizedJdText = normalizeText(jdText);
+  
+  for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
+    for (const keyword of keywords) {
+      if (normalizedJdText.includes(keyword)) {
+        if (!detectedJDDomainTerms.includes(domain)) {
+          detectedJDDomainTerms.push(domain);
+        }
+        jdDomain = domain;
+        break;
+      }
+    }
+    if (jdDomain) break;
+  }
+
+  // Check if there's any domain overlap between JD and profile
+  let hasDomainOverlap = jdDomain === null; // No domain detected = allow all
+  if (jdDomain !== null) {
+    hasDomainOverlap = false;
+    // Check if any profile project matches JD's domain
+    for (const entry of projectIndex) {
+      const projectDomain = extractDomain(
+        `${entry.project.name} ${entry.project.summary} ${entry.project.tags.join(" ")}`
+      );
+      if (domainsCompatible(jdDomain, projectDomain)) {
+        hasDomainOverlap = true;
+        break;
+      }
+    }
+  }
+
   for (const line of sanitizedLines) {
     const evidenceProject = findBestEvidenceProject(line, projectIndex, skillEvidence);
 
     if (evidenceProject) {
-      // Check if the matched term is domain-specific (cosmetics, beauty, etc.) or generic (change management, python, etc.)
       const normalizedLine = normalizeText(line);
-      const isDomainSpecificMatch = jdDomainTerms.some(domainTerm => containsTerm(normalizedLine, domainTerm));
 
-      // Only apply domain mismatch validation for domain-specific matches
+      // Check if the matched line contains a generic skill
+      const isGenericSkill = GENERIC_SKILLS.some(skill =>
+        normalizedLine.includes(skill)
+      );
+
+      // If JD has a domain but no domain overlap, reject all generic skill matches
+      if (jdDomain !== null && !hasDomainOverlap && isGenericSkill) {
+        // Generic skill with no domain overlap - don't count as evidence
+        matches.push({ line });
+        misses.push(line);
+        continue;
+      }
+
+      // For generic skills, validate domain compatibility
+      if (isGenericSkill && jdDomain) {
+        const projectDomain = extractDomain(
+          `${evidenceProject.name} ${evidenceProject.summary} ${evidenceProject.tags.join(" ")}`
+        );
+
+        if (!domainsCompatible(jdDomain, projectDomain)) {
+          // Generic skill in incompatible domain - don't count as evidence
+          matches.push({ line });
+          misses.push(line);
+          continue;
+        }
+      }
+
+      // For domain-specific matches, validate domain compatibility
+      const isDomainSpecificMatch = jdDomainTerms.some(domainTerm => containsTerm(normalizedLine, domainTerm));
       if (isDomainSpecificMatch && jdDomainTerms.length > 0) {
         const domainMatch = projectMatchesDomain(evidenceProject, jdDomainTerms);
         if (!domainMatch) {
@@ -973,13 +1198,14 @@ function evaluateRiskAndConstraints(
   let score = weight;
   let hardScoreCap: number | undefined;
 
-  const addRiskFlag = (message: string): void => {
-    if (!riskFlags.includes(message)) {
-      riskFlags.push(message);
+  const addRiskFlag = (flag: RiskFlagType, message: string): void => {
+    const formattedFlag = `${flag}: ${message}`;
+    if (!riskFlags.includes(formattedFlag)) {
+      riskFlags.push(formattedFlag);
     }
   };
-  const triggerHardGate = (message: string, cap: number): void => {
-    addRiskFlag(message);
+  const triggerHardGate = (flag: RiskFlagType, message: string, cap: number): void => {
+    addRiskFlag(flag, message);
     hardScoreCap = typeof hardScoreCap === "number" ? Math.min(hardScoreCap, cap) : cap;
   };
 
@@ -992,6 +1218,7 @@ function evaluateRiskAndConstraints(
   if (jdRequiresOnsite && profilePrefersRemote) {
     const config = getConfig();
     triggerHardGate(
+      "ONSITE_REQUIRED",
       `Hard gate: JD appears onsite-required but profile location preference suggests remote/hybrid. Score capped at ${config.onsiteHardCap}.`,
       config.onsiteHardCap
     );
@@ -1009,7 +1236,7 @@ function evaluateRiskAndConstraints(
     });
 
     if (!profileHasLanguage) {
-      addRiskFlag(`No evidence found for required language: ${language}.`);
+      addRiskFlag("LANGUAGE_MISMATCH", `No evidence found for required language: ${language}.`);
       score -= 2;
     }
   }
@@ -1029,16 +1256,12 @@ function evaluateRiskAndConstraints(
   // Check for any Japanese requirement (including business level - adds risk flag, no hard cap)
   const jdRequiresJapanese = /japanese/i.test(jdText);
   const profileHasJapanese = constraints.languages.some((entry) => /\bjapanese\b/i.test(entry));
-  const profileRequiresJapaneseFluent = constraints.languages.some((entry) => {
-    const normalized = normalizeText(entry);
-    return /\b(require|required|must)\b/.test(normalized) && /\bjapanese\b/.test(normalized);
-  });
-  const jdMentionsJapanese = /\bjapanese\b/i.test(jdText);
 
   // Hard cap for fluent/native Japanese requirement
   if (jdRequiresJapaneseFluent && !profileHasJapaneseFluent) {
     const config = getConfig();
     triggerHardGate(
+      "JAPANESE_FLUENCY",
       `Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at ${config.japaneseHardCap}.`,
       config.japaneseHardCap
     );
@@ -1047,21 +1270,13 @@ function evaluateRiskAndConstraints(
 
   // Risk flag for any Japanese requirement (including business level)
   if (jdRequiresJapanese && !profileHasJapanese) {
-    addRiskFlag("No evidence found for required language: Japanese.");
-    score -= 2;
-  }
-  if (profileRequiresJapaneseFluent && !jdMentionsJapanese) {
-    const config = getConfig();
-    triggerHardGate(
-      `Hard gate: Profile indicates Japanese-fluent requirement, but JD does not include Japanese requirement. Score capped at ${config.japaneseHardCap}.`,
-      config.japaneseHardCap
-    );
+    addRiskFlag("JAPANESE_FLUENCY", "No evidence found for required language: Japanese.");
     score -= 2;
   }
 
   const contractOnly = /(contract only|short term contract|no full time)/i.test(jdText);
   if (contractOnly && constraints.availability.toLowerCase().includes("full-time")) {
-    addRiskFlag("Availability may not align (JD appears contract-only).");
+    addRiskFlag("CONTRACT_ONLY", "Availability may not align (JD appears contract-only).");
     score -= 1;
   }
 
@@ -1434,11 +1649,6 @@ function buildProjectIndex(profile: Profile): ProjectIndex[] {
 function buildDomainTerms(profile: Profile): string[] {
   const domainSet = new Set<string>();
 
-  // Add curated domain terms
-  for (const term of DOMAIN_TERMS) {
-    domainSet.add(term.toLowerCase());
-  }
-
   // Extract domain-relevant terms from profile projects (but exclude generic tech terms)
   for (const project of profile.projects) {
     for (const tag of project.tags) {
@@ -1449,11 +1659,21 @@ function buildDomainTerms(profile: Profile): string[] {
       }
     }
 
-    // Also check summary for domain-specific terms
+    // Also check summary for domain-specific terms (only add if explicitly mentioned)
     const normalizedSummary = normalizeText(project.summary);
     for (const term of DOMAIN_TERMS) {
       if (normalizedSummary.includes(term.toLowerCase())) {
         domainSet.add(term.toLowerCase());
+      }
+    }
+
+    // Check outcomes as well
+    for (const outcome of project.outcomes) {
+      const normalized = normalizeText(outcome);
+      for (const term of DOMAIN_TERMS) {
+        if (normalized.includes(term.toLowerCase())) {
+          domainSet.add(term.toLowerCase());
+        }
       }
     }
   }
