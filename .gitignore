@@ -10,3 +10,4 @@ worker/.wrangler/
 __pycache__/
 *.pyc
 worker/src/*.js
+worker/worker-configuration.d.ts
