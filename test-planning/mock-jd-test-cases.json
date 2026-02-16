@@ -1,0 +1,411 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-02-16",
+    "profile_version": "2026-02-15",
+    "api_endpoint": "https://kinokoholic.com/api/analyze",
+    "total_test_cases": 15
+  },
+  "profile_reference": {
+    "skills": [
+      "Python",
+      "TypeScript",
+      "LLM application architecture",
+      "RAG",
+      "Prompt engineering",
+      "Evaluation and observability",
+      "Infrastructure transformation",
+      "Data migration",
+      "Program governance",
+      "Change management",
+      "Enterprise delivery",
+      "Stakeholder management",
+      "DR/BCP delivery",
+      "PMO reporting",
+      "Cross-region team leadership",
+      "Compliance and risk management"
+    ],
+    "constraints": {
+      "location": "United States and Japan (open to remote and hybrid)",
+      "languages": ["English (Native)", "Japanese (Business)"],
+      "availability": "Open to full-time, consulting, or advisory AI/IT delivery roles"
+    }
+  },
+  "test_cases": [
+    {
+      "test_id": "TC001",
+      "name": "Japanese Fluency Hard Cap (JLPT N1)",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working",
+      "jd_text": "Position: AI Technical Lead\nCompany: Tokyo Tech Innovations\nLocation: Tokyo, Japan\n\nResponsibilities:\n- Lead AI/ML initiatives for enterprise clients\n- Design and implement RAG systems\n- Manage cross-functional engineering teams\n\nRequirements:\n- 5+ years experience with LLM applications\n- Strong Python and TypeScript skills\n- Prompt engineering and RAG implementation experience\n- Japanese fluency required (JLPT N1 or equivalent)\n- Experience with prompt optimization and evaluation\n\nNice to have:\n- Experience with agentic workflows\n- Knowledge of Japanese tax domain\n- Cloud infrastructure experience",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": ["JAPANESE_FLUENCY"],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": ["LLM Foundations", "Prompt Engineering", "RAG"],
+        "required_gap_areas": ["Must-haves"],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 15, "max_score": 30 },
+          "mustHaves": { "min_score": 15, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 10 },
+          "domainFit": { "min_score": 0, "max_score": 5 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 0, "max_score": 3 }
+        },
+        "rationale": "Profile has Japanese at Business level, not Fluent/Native. Hard gate should cap score at 60. Technical skills (Python, RAG, prompt engineering) match profile well, so score before cap should be high (70-80), but after cap should be 60 max. Confidence is Low due to hard gate failure."
+      }
+    },
+    {
+      "test_id": "TC002",
+      "name": "Domain Mismatch - Cosmetics vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring",
+      "jd_text": "Position: Retail Cosmetics Sales Associate\nCompany: Luxury Beauty Brand\nLocation: New York, NY\n\nResponsibilities:\n- Build relationships with customers in the cosmetics department\n- Provide beauty consultations and product recommendations\n- Drive sales in the beauty category\n- Maintain product knowledge of skincare and makeup lines\n- Coach junior sales associates\n\nRequirements:\n- 2+ years retail experience in cosmetics or beauty industry\n- Passion for beauty and skincare products\n- Strong communication and relationship building skills\n- Change management skills for store promotions\n\nNice to have:\n- Cosmetics certification\n- Experience with inventory management\n- Fashion industry knowledge",
+      "expected": {
+        "min_score": 0,
+        "max_score": 30,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": ["Responsibilities", "Must-haves"],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 0, "max_score": 10 },
+          "mustHaves": { "min_score": 0, "max_score": 10 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 0 },
+          "deliveryCredibility": { "min_score": 0, "max_score": 5 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "Profile is tech/AI-focused, JD is cosmetics/retail. Domain mismatch should prevent overscoring. Generic skills like 'change management' and 'communication' should NOT count when JD context is clearly cosmetics. Expected score is low (< 30). Gaps should mention cosmetics, beauty, retail domain terms."
+      }
+    },
+    {
+      "test_id": "TC003",
+      "name": "Japanese Fluency - Native or Fluent Pattern",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working",
+      "jd_text": "Position: Technical Project Manager\nCompany: Tech Corporation\nLocation: Tokyo\n\nResponsibilities:\n- Manage AI/ML implementation projects\n- Coordinate with Japanese and international stakeholders\n- oversee prompt engineering initiatives\n\nRequirements:\n- 5+ years project management experience\n- Experience with agile methodologies\n- Program governance and PMO reporting\n- Native or fluent Japanese language skills required\n- Stakeholder management experience\n- Change management and enablement",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": ["JAPANESE_FLUENCY"],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": ["Governance and Delivery", "Stakeholder Management", "Change Enablement"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 15, "max_score": 30 },
+          "mustHaves": { "min_score": 15, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 5 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 0, "max_score": 3 }
+        },
+        "rationale": "JD requires 'Native or fluent Japanese' which triggers hard gate at 60. Profile has Business Japanese, not Fluent/Native. Technical/management skills match well (governance, PMO, stakeholder management), so pre-cap score should be ~70-80, but capped at 60. Confidence Low due to hard gate."
+      }
+    },
+    {
+      "test_id": "TC004",
+      "name": "Onsite Required Hard Cap (Fully Onsite)",
+      "category": "critical",
+      "known_issue": "Issue 3: Risk flag detection incomplete (ONSITE_REQUIRED)",
+      "jd_text": "Position: Senior AI Engineer\nCompany: Enterprise Solutions\nLocation: San Francisco, CA\n\nResponsibilities:\n- Design and implement RAG systems\n- Develop LLM applications with Python\n- Lead prompt engineering initiatives\n- Collaborate with data science team\n\nRequirements:\n- 5+ years Python development experience\n- Strong background in LLM architecture\n- Experience with vector databases and embeddings\n- Prompt engineering and evaluation experience\n- Knowledge of agentic workflows\n\nWork Arrangement:\nThis is a fully onsite role - no remote work available. Must be in office 5 days per week.",
+      "expected": {
+        "min_score": 0,
+        "max_score": 70,
+        "confidence": "Low",
+        "required_risk_flags": ["ONSITE_REQUIRED"],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": ["Prompt Engineering", "LLM Foundations", "Python & Integrations"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 20, "max_score": 30 },
+          "mustHaves": { "min_score": 20, "max_score": 30 },
+          "niceToHaves": { "min_score": 5, "max_score": 10 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 0, "max_score": 3 }
+        },
+        "rationale": "JD is fully onsite, profile prefers remote/hybrid. Hard gate caps score at 70. Technical skills match well (Python, RAG, prompt engineering, LLMs), so pre-cap score should be high (80-90). After cap, score should be 70 max. Risk flag ONSITE_REQUIRED must be present. Confidence Low due to hard gate."
+      }
+    },
+    {
+      "test_id": "TC005",
+      "name": "Japanese Fluency - Professional/Advanced Pattern",
+      "category": "critical",
+      "known_issue": "Issue 1: Japanese fluency hard cap not working",
+      "jd_text": "Position: AI Consultant\nCompany: Global AI Solutions\nLocation: Tokyo\n\nResponsibilities:\n- Provide AI strategy consulting to Japanese enterprises\n- Design RAG workflows for tax and finance domains\n- Conduct training workshops on prompt engineering\n- Manage stakeholder relationships\n\nRequirements:\n- 7+ years AI/ML consulting experience\n- Professional Japanese required (JLPT N1-N2 equivalent)\n- Experience with change management and enablement\n- Strong communication skills in Japanese and English\n- Prompt engineering and LLM architecture expertise",
+      "expected": {
+        "min_score": 0,
+        "max_score": 60,
+        "confidence": "Low",
+        "required_risk_flags": ["JAPANESE_FLUENCY"],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": ["Prompt Engineering", "Change Enablement", "Stakeholder Management"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 15, "max_score": 30 },
+          "mustHaves": { "min_score": 15, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 0, "max_score": 3 }
+        },
+        "rationale": "JD requires 'Professional Japanese' which should trigger hard gate at 60 (pattern includes 'professional' with Japanese). Profile has Business Japanese, not Professional/Fluent. Skills match well (prompt engineering, change enablement, stakeholder management), so pre-cap score ~70-80, capped at 60. Confidence Low."
+      }
+    },
+    {
+      "test_id": "TC006",
+      "name": "Domain Mismatch - Fashion Retail vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring",
+      "jd_text": "Position: Fashion Retail Manager\nCompany: Luxury Apparel Brand\nLocation: Los Angeles, CA\n\nResponsibilities:\n- Build relationships with fashion clients\n- Manage retail store operations\n- Lead cross-functional teams\n- Drive sales in the apparel category\n- Communication with stakeholders\n\nRequirements:\n- 3+ years fashion retail experience\n- Strong leadership and communication skills\n- Experience with change management for seasonal promotions\n- Relationship building with clients\n- Stakeholder management experience",
+      "expected": {
+        "min_score": 0,
+        "max_score": 30,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": ["Responsibilities", "Must-haves"],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 0, "max_score": 10 },
+          "mustHaves": { "min_score": 0, "max_score": 10 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 0 },
+          "deliveryCredibility": { "min_score": 0, "max_score": 5 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "Profile is tech-focused, JD is fashion retail. Domain mismatch should prevent overscoring. Even though JD mentions generic skills like 'change management' and 'stakeholder management', these should NOT count when context is fashion/retail. Score should be low (< 30)."
+      }
+    },
+    {
+      "test_id": "TC007",
+      "name": "Domain Mismatch - Beauty Consulting vs Tech Profile",
+      "category": "critical",
+      "known_issue": "Issue 2: Domain mismatch overscoring",
+      "jd_text": "Position: Beauty Consultant\nCompany: Premium Cosmetics Company\nLocation: New York, NY\n\nResponsibilities:\n- Provide beauty consultations to customers\n- Build customer relationships in beauty department\n- Train staff on product knowledge\n- Communication and leadership in team setting\n- Manage customer experience\n\nRequirements:\n- 2+ years beauty or skincare industry experience\n- Strong communication and relationship building skills\n- Leadership experience\n- Passion for beauty products",
+      "expected": {
+        "min_score": 0,
+        "max_score": 25,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": ["Responsibilities", "Must-haves"],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 0, "max_score": 8 },
+          "mustHaves": { "min_score": 0, "max_score": 7 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 0 },
+          "deliveryCredibility": { "min_score": 0, "max_score": 5 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "JD is beauty consulting, profile is tech. Even lower score than TC002/TC006 since this is even more domain-specific to beauty. Generic skills should not count. Score should be very low (< 25)."
+      }
+    },
+    {
+      "test_id": "TC008",
+      "name": "Onsite Required - 5 Days Onsite Pattern",
+      "category": "moderate",
+      "known_issue": "Issue 3: Risk flag detection incomplete (ONSITE_REQUIRED)",
+      "jd_text": "Position: AI Engineer\nCompany: Tech Startup\nLocation: Austin, TX\n\nResponsibilities:\n- Build RAG systems\n- Develop LLM applications\n- Implement prompt engineering workflows\n\nRequirements:\n- Python development experience\n- Experience with vector databases\n- Prompt engineering knowledge\n\nWork Schedule:\n5 days onsite required. No remote work available.",
+      "expected": {
+        "min_score": 0,
+        "max_score": 70,
+        "confidence": "Low",
+        "required_risk_flags": ["ONSITE_REQUIRED"],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": ["Prompt Engineering", "LLM Foundations", "Python & Integrations"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 20, "max_score": 30 },
+          "mustHaves": { "min_score": 20, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 0, "max_score": 3 }
+        },
+        "rationale": "JD requires 5 days onsite, profile prefers remote/hybrid. Hard gate at 70. Technical skills match well. Score before cap ~80-90, after cap max 70. ONSITE_REQUIRED risk flag must be present. Confidence Low."
+      }
+    },
+    {
+      "test_id": "TC009",
+      "name": "High Fit - AI/LLM Engineering Role",
+      "category": "regression",
+      "known_issue": "",
+      "jd_text": "Position: Senior AI Engineer\nCompany: Enterprise AI Solutions\nLocation: Remote\n\nResponsibilities:\n- Design and implement RAG systems for enterprise clients\n- Develop LLM applications using Python and TypeScript\n- Lead prompt engineering initiatives\n- Build agentic workflows and AI orchestration systems\n- Conduct evaluation and observability for AI systems\n\nRequirements:\n- 5+ years experience with Python and TypeScript\n- Strong background in LLM architecture and RAG\n- Prompt engineering and optimization experience\n- Experience with vector databases and embeddings\n- Knowledge of AI evaluation frameworks\n\nNice to have:\n- Change management and enablement experience\n- Stakeholder management skills\n- Workshop delivery experience",
+      "expected": {
+        "min_score": 80,
+        "max_score": 100,
+        "confidence": "High",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY", "ONSITE_REQUIRED"],
+        "required_strength_areas": ["Prompt Engineering", "LLM Foundations", "Agentic Workflows", "Python & Integrations"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 25, "max_score": 30 },
+          "mustHaves": { "min_score": 25, "max_score": 30 },
+          "niceToHaves": { "min_score": 5, "max_score": 10 },
+          "domainFit": { "min_score": 8, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 12, "max_score": 15 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "This is a near-perfect match for the profile. All technical skills (Python, TypeScript, RAG, LLM, prompt engineering, agentic workflows) align perfectly. Location is remote (no hard gates). Multiple projects provide evidence. Expected score 85-95 with High confidence. No risk flags expected."
+      }
+    },
+    {
+      "test_id": "TC010",
+      "name": "Medium Fit - Tax/Finance Domain with RAG",
+      "category": "regression",
+      "known_issue": "",
+      "jd_text": "Position: AI Consultant - Tax Domain\nCompany: Professional Services Firm\nLocation: Hybrid (Tokyo/New York)\n\nResponsibilities:\n- Design RAG systems for tax and finance workflows\n- Provide AI strategy consulting\n- Manage stakeholder relationships in tax domain\n- Conduct workshops on AI enablement\n\nRequirements:\n- Experience with RAG and vector search\n- Python development skills\n- Background in tax or finance domain\n- Prompt engineering experience\n- Change management and enablement skills\n\nNice to have:\n- Japanese language skills\n- Experience with citation grounding\n- Evaluation and observability knowledge",
+      "expected": {
+        "min_score": 65,
+        "max_score": 85,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY", "ONSITE_REQUIRED"],
+        "required_strength_areas": ["LLM Foundations", "Change Enablement", "Stakeholder Management"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 20, "max_score": 30 },
+          "mustHaves": { "min_score": 18, "max_score": 30 },
+          "niceToHaves": { "min_score": 5, "max_score": 10 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "Good match: profile has JTES project (tax domain RAG), change enablement, stakeholder management. JD mentions Japanese as nice-to-have, profile has Business Japanese (not required, so no hard gate). Location is hybrid (matches profile). Expected score 70-80 with Medium confidence (domain is niche)."
+      }
+    },
+    {
+      "test_id": "TC011",
+      "name": "Low Fit - Pure Software Engineering (No AI/LLM)",
+      "category": "regression",
+      "known_issue": "",
+      "jd_text": "Position: Senior Software Engineer\nCompany: E-commerce Platform\nLocation: Remote\n\nResponsibilities:\n- Build and maintain web applications\n- Implement REST APIs and microservices\n- Optimize database performance\n- Code reviews and technical leadership\n\nRequirements:\n- 5+ years Java or Go experience\n- Strong SQL and database skills\n- Microservices architecture experience\n- CI/CD pipeline knowledge\n\nNice to have:\n- Kubernetes and Docker experience\n- Cloud platform experience (AWS, GCP)",
+      "expected": {
+        "min_score": 20,
+        "max_score": 40,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": [],
+        "required_strength_areas": [],
+        "required_gap_areas": ["Responsibilities", "Must-haves"],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 0, "max_score": 15 },
+          "mustHaves": { "min_score": 0, "max_score": 10 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 2 },
+          "deliveryCredibility": { "min_score": 5, "max_score": 8 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "JD is pure software engineering (Java, Go, SQL, microservices), profile is AI/LLM-focused. Limited overlap (Python from profile, but JD doesn't mention it). No AI/LLM requirements. Expected low score (25-35) with Low confidence. Gaps should mention Java, Go, SQL, microservices."
+      }
+    },
+    {
+      "test_id": "TC012",
+      "name": "Contract Only - Availability Mismatch",
+      "category": "moderate",
+      "known_issue": "Issue 3: Risk flag detection incomplete",
+      "jd_text": "Position: AI Consultant (Contract)\nCompany: Consulting Firm\nLocation: Remote\n\nResponsibilities:\n- Design RAG systems\n- Provide prompt engineering expertise\n- Conduct AI enablement workshops\n\nRequirements:\n- Python and LLM experience\n- Prompt engineering skills\n- Change management experience\n\nContract Terms:\nContract only position. 6-month fixed term. No full-time conversion.",
+      "expected": {
+        "min_score": 60,
+        "max_score": 80,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY", "ONSITE_REQUIRED"],
+        "required_strength_areas": ["Prompt Engineering", "Change Enablement", "LLM Foundations"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 20, "max_score": 30 },
+          "mustHaves": { "min_score": 20, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 3, "max_score": 5 }
+        },
+        "rationale": "Skills match well (RAG, prompt engineering, change management). Profile is 'Open to full-time, consulting, or advisory', so contract-only is acceptable. May have risk flag about contract alignment, but not a hard gate. Expected score 65-75 with Medium confidence."
+      }
+    },
+    {
+      "test_id": "TC013",
+      "name": "Profile Japanese Fluency Gate - JD Doesn't Mention Japanese",
+      "category": "critical",
+      "known_issue": "",
+      "jd_text": "Position: AI Project Manager\nCompany: Global Tech\nLocation: New York, NY\n\nResponsibilities:\n- Manage AI/ML implementation projects\n- Coordinate stakeholder relationships\n- Lead change management initiatives\n- PMO reporting and governance\n\nRequirements:\n- 5+ years project management experience\n- Experience with agile methodologies\n- Strong communication skills\n- Program governance experience",
+      "expected": {
+        "min_score": 60,
+        "max_score": 100,
+        "confidence": "Medium",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY"],
+        "required_strength_areas": ["Responsibilities", "Must-haves", "Governance and Delivery"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 20, "max_score": 30 },
+          "mustHaves": { "min_score": 15, "max_score": 30 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 5, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 10, "max_score": 15 },
+          "riskConstraints": { "min_score": 4, "max_score": 5 }
+        },
+        "rationale": "This tests the edge case where profile has 'Japanese (Business)' but JD doesn't mention Japanese at all. The profile having Japanese (Business) is just describing the candidate's capability, NOT stating a requirement for the candidate. No hard cap should be triggered. Expected score 70-90 (good PM skills match, no hard gate). Confidence Medium or High."
+      }
+    },
+    {
+      "test_id": "TC014",
+      "name": "Minimal JD - Below 100 Characters",
+      "category": "edge_case",
+      "known_issue": "",
+      "jd_text": "Looking for AI consultant with prompt engineering experience and RAG skills.",
+      "expected": {
+        "min_score": 15,
+        "max_score": 35,
+        "confidence": "Low",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY", "ONSITE_REQUIRED"],
+        "required_strength_areas": ["Prompt Engineering", "LLM Foundations"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 5, "max_score": 10 },
+          "mustHaves": { "min_score": 5, "max_score": 10 },
+          "niceToHaves": { "min_score": 0, "max_score": 5 },
+          "domainFit": { "min_score": 0, "max_score": 5 },
+          "deliveryCredibility": { "min_score": 5, "max_score": 8 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "Very minimal JD with only 83 characters. Should match prompt engineering and RAG skills. Limited content means limited scoring potential. Expected score 20-30 with Low confidence (not enough information for High confidence)."
+      }
+    },
+    {
+      "test_id": "TC015",
+      "name": "Confidence Scoring - High Evidence Coverage",
+      "category": "regression",
+      "known_issue": "Issue 4: Confidence scoring systematically low",
+      "jd_text": "Position: AI Technical Lead\nCompany: Enterprise AI Solutions\nLocation: Remote (US/Japan)\n\nResponsibilities:\n- Design and implement RAG systems for enterprise clients\n- Lead prompt engineering initiatives and optimization\n- Build agentic workflows and AI orchestration\n- Conduct workshops and training on AI enablement\n- Manage stakeholder relationships across teams\n\nRequirements:\n- 7+ years experience with Python and TypeScript\n- Strong background in LLM architecture and RAG\n- Prompt engineering and evaluation experience\n- Change management and enablement expertise\n- Stakeholder management and communication skills\n\nNice to have:\n- Experience with tax and finance domain\n- Knowledge of Japanese business culture\n- Program governance and PMO reporting",
+      "expected": {
+        "min_score": 85,
+        "max_score": 100,
+        "confidence": "High",
+        "required_risk_flags": [],
+        "forbidden_risk_flags": ["JAPANESE_FLUENCY", "ONSITE_REQUIRED"],
+        "required_strength_areas": ["Prompt Engineering", "LLM Foundations", "Agentic Workflows", "Change Enablement", "Stakeholder Management", "Workshops & Training"],
+        "required_gap_areas": [],
+        "rubric_expectations": {
+          "responsibilities": { "min_score": 28, "max_score": 30 },
+          "mustHaves": { "min_score": 28, "max_score": 30 },
+          "niceToHaves": { "min_score": 8, "max_score": 10 },
+          "domainFit": { "min_score": 8, "max_score": 10 },
+          "deliveryCredibility": { "min_score": 13, "max_score": 15 },
+          "riskConstraints": { "min_score": 5, "max_score": 5 }
+        },
+        "rationale": "This test case is specifically designed to validate High confidence. It has: 70%+ must-have coverage (all requirements match profile), 3+ unique evidence URLs (multiple projects), domain alignment (AI/enterprise), and parser success. Should score 90-95 with High confidence. If confidence is Medium or Low, it confirms Issue 4."
+      }
+    }
+  ]
+}
