@@ -24,8 +24,17 @@ function formatApiError(status, data) {
     return data && data.error ? data.error : "Unauthorized. Please check your API credentials.";
   }
   if (status === 429 && data && typeof data.retry_after_seconds === "number") {
-    const minutes = Math.ceil(data.retry_after_seconds / 60);
-    return "Rate limit exceeded. Try again in " + minutes + " minute(s).";
+    const minutes = Math.floor(data.retry_after_seconds / 60);
+    const seconds = data.retry_after_seconds % 60;
+    let timeStr;
+    if (minutes > 0 && seconds > 0) {
+      timeStr = minutes + " minute" + (minutes !== 1 ? "s" : "") + " and " + seconds + " second" + (seconds !== 1 ? "s" : "");
+    } else if (minutes > 0) {
+      timeStr = minutes + " minute" + (minutes !== 1 ? "s" : "");
+    } else {
+      timeStr = seconds + " second" + (seconds !== 1 ? "s" : "");
+    }
+    return "Rate limit exceeded: 5 requests per hour allowed. Please try again in " + timeStr + ".";
   }
   if (status === 400) {
     return data && data.error ? data.error : "Invalid input. Please review your JD text.";
@@ -98,13 +107,19 @@ describe('JD Concierge Widget - Utility Functions', () => {
     it('should format rate limit errors (429)', () => {
       const data = { error: 'Rate limit exceeded', retry_after_seconds: 3600 };
       const result = formatApiError(429, data);
-      assert.strictEqual(result, 'Rate limit exceeded. Try again in 60 minute(s).');
+      assert.strictEqual(result, 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 60 minutes.');
     });
 
     it('should handle retry_after_seconds less than 1 minute', () => {
       const data = { error: 'Rate limit exceeded', retry_after_seconds: 30 };
       const result = formatApiError(429, data);
-      assert.strictEqual(result, 'Rate limit exceeded. Try again in 1 minute(s).');
+      assert.strictEqual(result, 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 30 seconds.');
+    });
+
+    it('should handle retry_after_seconds with minutes and seconds', () => {
+      const data = { error: 'Rate limit exceeded', retry_after_seconds: 3665 }; // 61 min 5 sec
+      const result = formatApiError(429, data);
+      assert.strictEqual(result, 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 61 minutes and 5 seconds.');
     });
 
     it('should format 400 errors with custom error message', () => {
@@ -180,13 +195,14 @@ describe('JD Concierge Widget - Utility Functions', () => {
   describe('Rate Limit Edge Cases', () => {
     it('should handle rate limit edge cases', () => {
       const testCases = [
-        // Note: 0 seconds displays as 0 minute(s) - this is actual behavior
-        { seconds: 0, expected: 'Rate limit exceeded. Try again in 0 minute(s).' },
-        { seconds: 1, expected: 'Rate limit exceeded. Try again in 1 minute(s).' },
-        { seconds: 59, expected: 'Rate limit exceeded. Try again in 1 minute(s).' },
-        { seconds: 60, expected: 'Rate limit exceeded. Try again in 1 minute(s).' },
-        { seconds: 61, expected: 'Rate limit exceeded. Try again in 2 minute(s).' },
-        { seconds: 3600, expected: 'Rate limit exceeded. Try again in 60 minute(s).' },
+        { seconds: 1, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 1 second.' },
+        { seconds: 30, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 30 seconds.' },
+        { seconds: 59, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 59 seconds.' },
+        { seconds: 60, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 1 minute.' },
+        { seconds: 61, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 1 minute and 1 second.' },
+        { seconds: 120, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 2 minutes.' },
+        { seconds: 3600, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 60 minutes.' },
+        { seconds: 3661, expected: 'Rate limit exceeded: 5 requests per hour allowed. Please try again in 61 minutes and 1 second.' },
       ];
 
       for (const { seconds, expected } of testCases) {

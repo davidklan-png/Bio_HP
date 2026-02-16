@@ -228,8 +228,17 @@
       return data && data.error ? data.error : "Unauthorized. Please check your API credentials.";
     }
     if (status === 429 && data && typeof data.retry_after_seconds === "number") {
-      const minutes = Math.ceil(data.retry_after_seconds / 60);
-      return "Rate limit exceeded. Try again in " + minutes + " minute(s).";
+      const minutes = Math.floor(data.retry_after_seconds / 60);
+      const seconds = data.retry_after_seconds % 60;
+      let timeStr;
+      if (minutes > 0 && seconds > 0) {
+        timeStr = minutes + " minute" + (minutes !== 1 ? "s" : "") + " and " + seconds + " second" + (seconds !== 1 ? "s" : "");
+      } else if (minutes > 0) {
+        timeStr = minutes + " minute" + (minutes !== 1 ? "s" : "");
+      } else {
+        timeStr = seconds + " second" + (seconds !== 1 ? "s" : "");
+      }
+      return "Rate limit exceeded: 5 requests per hour allowed. Please try again in " + timeStr + ".";
     }
     if (status === 400) {
       return data && data.error ? data.error : "Invalid input. Please review your JD text.";
