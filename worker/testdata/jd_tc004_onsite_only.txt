@@ -1,0 +1,29 @@
+Position: Senior Software Engineer
+Company: InnovateTech
+Location: San Francisco, CA
+
+Job Description:
+We are looking for a talented Senior Software Engineer to join our growing engineering team. This is a fully onsite position focused on building next-generation software solutions.
+
+Work Arrangement:
+This is a fully onsite role - no remote work available. Candidates must be able to work in our San Francisco office 5 days a week.
+
+Responsibilities:
+- Design and implement scalable software solutions
+- Collaborate with cross-functional teams to define requirements
+- Write clean, maintainable code
+- Participate in code reviews and architectural discussions
+- Mentor junior engineers
+
+Requirements:
+- 5+ years of professional software development experience
+- Strong proficiency in Python or JavaScript
+- Experience with cloud platforms (AWS, GCP, or Azure)
+- Knowledge of database systems (SQL and NoSQL)
+- Experience with microservices architecture
+- Excellent problem-solving skills
+
+Nice-to-have:
+- Experience with containerization (Docker, Kubernetes)
+- Knowledge of CI/CD pipelines
+- Experience working in agile development environments

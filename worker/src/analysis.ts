@@ -444,6 +444,15 @@ export function analyzeJobDescription(
   const sections = splitIntoSections(jdText);
   const allLines = extractLines(jdText);
 
+  // Extract domain terms from JD for validation
+  const jdDomainTerms: string[] = [];
+  const normalizedJd = normalizeText(jdText);
+  for (const term of DOMAIN_TERMS) {
+    if (containsTerm(normalizedJd, term)) {
+      jdDomainTerms.push(term);
+    }
+  }
+
   const responsibilityLines = sections.responsibilities.length > 0 ? sections.responsibilities : allLines;
   const requirementLines =
     sections.requirements.length > 0 || sections.languages.length > 0
@@ -455,14 +464,16 @@ export function analyzeJobDescription(
     RUBRIC_WEIGHTS.responsibilities,
     "Responsibilities",
     projectIndex,
-    skillEvidence
+    skillEvidence,
+    jdDomainTerms
   );
   const mustHavesEval = evaluateSection(
     requirementLines,
     RUBRIC_WEIGHTS.mustHaves,
     "Must-haves",
     projectIndex,
-    skillEvidence
+    skillEvidence,
+    jdDomainTerms
   );
 
   const niceEval =
@@ -472,7 +483,8 @@ export function analyzeJobDescription(
           RUBRIC_WEIGHTS.niceToHaves,
           "Nice-to-haves",
           projectIndex,
-          skillEvidence
+          skillEvidence,
+          jdDomainTerms
         )
       : {
           score: Math.round(RUBRIC_WEIGHTS.niceToHaves * 0.5),
@@ -782,12 +794,61 @@ export function parseAndValidateProfile(input: unknown): Profile {
   return profile as Profile;
 }
 
+/**
+ * Detects if the JD contains domain terms that are NOT in the profile's domain terms
+ * This indicates a domain mismatch (e.g., JD is for cosmetics but profile is tech-only)
+ */
+function detectDomainMismatch(jdText: string, profileDomainTerms: string[]): boolean {
+  const normalizedJd = normalizeText(jdText);
+
+  // Check for common non-tech domains that might indicate mismatch
+  const mismatchDomains = ["cosmetics", "beauty", "skincare", "makeup", "fragrance", "fashion", "apparel", "jewelry", "footwear"];
+
+  for (const domain of mismatchDomains) {
+    if (containsTerm(normalizedJd, domain)) {
+      // If JD mentions this domain but profile doesn't have it, it's a mismatch
+      const profileHasDomain = profileDomainTerms.some(term => containsTerm(term, domain));
+      if (!profileHasDomain) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if a project matches the JD's domain context
+ * Returns false if the project is clearly from a different domain than the JD
+ */
+function projectMatchesDomain(project: ProfileProject, jdDomainTerms: string[]): boolean {
+  // If JD has no clear domain terms, any project is acceptable
+  if (jdDomainTerms.length === 0) {
+    return true;
+  }
+
+  const projectText = normalizeText(
+    `${project.name} ${project.summary} ${project.tags.join(" ")} ${project.outcomes.join(" ")}`
+  );
+
+  // Check if project has any matching domain terms
+  for (const domainTerm of jdDomainTerms) {
+    if (containsTerm(projectText, domainTerm)) {
+      return true;
+    }
+  }
+
+  // If project has no domain overlap with JD, it's a mismatch
+  return false;
+}
+
 function evaluateSection(
   lines: string[],
   weight: number,
   label: string,
   projectIndex: ProjectIndex[],
-  skillEvidence: SkillEvidenceMap
+  skillEvidence: SkillEvidenceMap,
+  jdDomainTerms: string[] = []
 ): SectionEval {
   const sanitizedLines = lines.map((line) => line.trim()).filter(Boolean).slice(0, 24);
   if (sanitizedLines.length === 0) {
@@ -804,7 +865,23 @@ function evaluateSection(
 
   for (const line of sanitizedLines) {
     const evidenceProject = findBestEvidenceProject(line, projectIndex, skillEvidence);
+
     if (evidenceProject) {
+      // Check if the matched term is domain-specific (cosmetics, beauty, etc.) or generic (change management, python, etc.)
+      const normalizedLine = normalizeText(line);
+      const isDomainSpecificMatch = jdDomainTerms.some(domainTerm => containsTerm(normalizedLine, domainTerm));
+
+      // Only apply domain mismatch validation for domain-specific matches
+      if (isDomainSpecificMatch && jdDomainTerms.length > 0) {
+        const domainMatch = projectMatchesDomain(evidenceProject, jdDomainTerms);
+        if (!domainMatch) {
+          // Project doesn't match JD's domain - don't count as evidence
+          matches.push({ line });
+          misses.push(line);
+          continue;
+        }
+      }
+
       matches.push({ line, evidenceProject });
     } else {
       matches.push({ line });
@@ -907,7 +984,7 @@ function evaluateRiskAndConstraints(
   };
 
   const jdRequiresOnsite =
-    /(onsite only|on site only|must be located|relocat(e|ion) required|in office five days|5 days onsite|5 days on site|in-office)/i.test(
+    /(onsite only|on site only|must be located|relocat(e|ion) required|in office five days|5 days onsite|5 days on site|in-office|fully onsite|onsite - no remote)/i.test(
       jdText
     );
   const profilePrefersRemote = /remote|hybrid/.test(normalizedLocation);
@@ -937,28 +1014,40 @@ function evaluateRiskAndConstraints(
     }
   }
 
+  // Check for fluent/native Japanese requirements (hard gate at 60)
   const jdRequiresJapaneseFluent =
-    /((fluent|fluency|business|native|professional|advanced).{0,24}japanese|japanese.{0,24}(fluent|fluency|business|native|professional|advanced|required)|jlpt\s*n1|japanese\s*n1)/i.test(
+    /((native or fluent|fluent or native|fluent|fluency|native|professional|advanced).{0,24}japanese|japanese.{0,24}(native or fluent|fluent or native|fluent|fluency|native|professional|advanced)|jlpt\s*n1|japanese\s*n1)/i.test(
       jdText
     );
   const profileHasJapaneseFluent = constraints.languages.some((entry) => {
     const normalized = normalizeText(entry);
     const mentionsJapanese = /\bjapanese\b/.test(normalized);
-    const fluentSignal = /\b(fluent|fluency|business|native|professional|advanced|n1)\b/.test(normalized);
+    const fluentSignal = /\b(fluent|fluency|native|professional|advanced|n1)\b/.test(normalized);
     return mentionsJapanese && fluentSignal;
   });
+
+  // Check for any Japanese requirement (including business level - adds risk flag, no hard cap)
+  const jdRequiresJapanese = /japanese/i.test(jdText);
+  const profileHasJapanese = constraints.languages.some((entry) => /\bjapanese\b/i.test(entry));
   const profileRequiresJapaneseFluent = constraints.languages.some((entry) => {
     const normalized = normalizeText(entry);
     return /\b(require|required|must)\b/.test(normalized) && /\bjapanese\b/.test(normalized);
   });
   const jdMentionsJapanese = /\bjapanese\b/i.test(jdText);
 
+  // Hard cap for fluent/native Japanese requirement
   if (jdRequiresJapaneseFluent && !profileHasJapaneseFluent) {
     const config = getConfig();
     triggerHardGate(
       `Hard gate: JD requires Japanese fluency, but profile does not explicitly show fluent Japanese evidence. Score capped at ${config.japaneseHardCap}.`,
       config.japaneseHardCap
     );
+    score -= 2;
+  }
+
+  // Risk flag for any Japanese requirement (including business level)
+  if (jdRequiresJapanese && !profileHasJapanese) {
+    addRiskFlag("No evidence found for required language: Japanese.");
     score -= 2;
   }
   if (profileRequiresJapaneseFluent && !jdMentionsJapanese) {
