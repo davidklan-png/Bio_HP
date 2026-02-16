@@ -28,6 +28,21 @@ Nice to have:
 - Kubernetes and Docker experience
 - Cloud platform experience (AWS, GCP)`;
 
+// Debug: print normalized text
+function normalizeText(input: string): string {
+  return input.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+console.log('=== Debug: Normalized JD text ===');
+console.log(normalizeText(jd));
+console.log('=== Debug: Checking for software_engineering keywords ===');
+const keywords = ["java", "golang", "go", "c++", "rust", ".net", "spring", "nodejs", "backend development", "full stack", "fullstack", "software developer", "software engineer", "web application", "web development"];
+const normJd = normalizeText(jd);
+keywords.forEach(kw => {
+  console.log(`  "${kw}": ${normJd.includes(kw) ? 'FOUND' : 'NOT FOUND'}`);
+});
+console.log('');
+
 console.log('Testing TC011: Pure Software Engineering');
 const result = analyzeJobDescription(jd, profile, 'TC011_DEBUG');
 console.log('Score:', result.score, '(Expected: 20-40)');

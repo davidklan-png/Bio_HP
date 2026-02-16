@@ -46,4 +46,66 @@ describe("Risk Flag Standardization", () => {
 
     expect(result.risk_flags.some(f => f.startsWith("ONSITE_REQUIRED:"))).toBe(true);
   });
+
+  it("Japanese hard gate only triggers for fluent/native requirements, not business level", () => {
+    const fluentProfile = {
+      ...baseProfile,
+      constraints: {
+        ...baseProfile.constraints,
+        languages: ["English", "Japanese (Business)"]
+      }
+    };
+
+    const noJapaneseProfile = {
+      ...baseProfile,
+      constraints: {
+        ...baseProfile.constraints,
+        languages: ["English"]
+      }
+    };
+
+    // Business level Japanese with profile that has business Japanese - should NOT have risk flag
+    // Use a longer JD to avoid short JD penalty
+    const jdBusiness = `Job Title: Senior AI Engineer
+Requirements:
+- Business level Japanese preferred for client communication
+- 5+ years Python experience
+- Experience with LLM integration and RAG systems
+- Strong prompt engineering skills
+- Ability to work in cross-functional teams`;
+
+    const resultBusiness = analyzeJobDescription(jdBusiness, fluentProfile, "jp-business-test");
+
+    // With "Japanese (Business)" in profile and "business level" in JD, no risk flag should be added
+    const hasJapaneseFlag = resultBusiness.risk_flags.some(f => f.startsWith("JAPANESE_FLUENCY:"));
+    expect(hasJapaneseFlag).toBe(false);
+    // Business level should NOT trigger hard gate (score is not artificially capped at 60)
+    // The score might be lower due to other factors, but it's not the Japanese hard gate
+
+    // Fluent/native Japanese with business-level profile - should trigger hard cap at 60
+    const jdFluent = `Job Title: Senior AI Engineer
+Requirements:
+- Native or fluent Japanese required for client meetings
+- 5+ years Python experience
+- Experience with LLM integration and RAG systems
+- Strong prompt engineering skills
+- Ability to work in cross-functional teams`;
+
+    const resultFluent = analyzeJobDescription(jdFluent, fluentProfile, "jp-fluent-test");
+
+    expect(resultFluent.risk_flags.some(f => /hard gate/i.test(f) && f.startsWith("JAPANESE_FLUENCY:"))).toBe(true);
+    // Fluent requirement with only business-level Japanese should be capped at 60
+    expect(resultFluent.score).toBeLessThanOrEqual(60);
+
+    // Any Japanese requirement with no Japanese in profile - adds risk flag
+    const jdAny = `Job Title: Senior AI Engineer
+Requirements:
+- Japanese language skills required
+- 5+ years Python experience
+- Experience with LLM integration`;
+
+    const resultAny = analyzeJobDescription(jdAny, noJapaneseProfile, "jp-any-test");
+
+    expect(resultAny.risk_flags.some(f => f.startsWith("JAPANESE_FLUENCY:") && f.includes("No evidence"))).toBe(true);
+  });
 });
