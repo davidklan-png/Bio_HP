@@ -58,6 +58,7 @@
   function submitAnalysis(root, input, counter, analyzeButton, exampleButton, loading, errorBox, results, scrollToResults) {
     const jdText = input.value.trim();
     const apiBase = (root.getAttribute("data-api-base") || "").trim();
+    const apiKey = (root.getAttribute("data-api-key") || "").trim();
     const rawLength = input.value.length;
 
     clearError(errorBox);
@@ -82,11 +83,18 @@
 
     const endpoint = apiBase.replace(/\/$/, "") + "/analyze";
 
+    const headers = {
+      "Content-Type": "application/json"
+    };
+
+    // Add Authorization header if API key is configured
+    if (apiKey) {
+      headers["Authorization"] = "Bearer " + apiKey;
+    }
+
     fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: headers,
       body: JSON.stringify({ jd_text: jdText })
     })
       .then(function (response) {
@@ -216,6 +224,9 @@
   }
 
   function formatApiError(status, data) {
+    if (status === 401) {
+      return data && data.error ? data.error : "Unauthorized. Please check your API credentials.";
+    }
     if (status === 429 && data && typeof data.retry_after_seconds === "number") {
       const minutes = Math.ceil(data.retry_after_seconds / 60);
       return "Rate limit exceeded. Try again in " + minutes + " minute(s).";

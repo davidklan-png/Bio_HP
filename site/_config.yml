@@ -1,2 +1,3 @@
 # Jekyll config for /site (GitHub Pages compatible)
 worker_api_base: "https://kinokoholic.com/api"
+worker_api_key: "jd-concierge-api-key-2025"
