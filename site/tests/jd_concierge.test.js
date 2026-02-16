@@ -20,6 +20,9 @@ function escapeHtml(value) {
 }
 
 function formatApiError(status, data) {
+  if (status === 401) {
+    return data && data.error ? data.error : "Unauthorized. Please check your API credentials.";
+  }
   if (status === 429 && data && typeof data.retry_after_seconds === "number") {
     const minutes = Math.ceil(data.retry_after_seconds / 60);
     return "Rate limit exceeded. Try again in " + minutes + " minute(s).";
@@ -82,6 +85,16 @@ describe('JD Concierge Widget - Utility Functions', () => {
   });
 
   describe('formatApiError', () => {
+    it('should format 401 unauthorized errors', () => {
+      const result = formatApiError(401, { error: 'Unauthorized' });
+      assert.strictEqual(result, 'Unauthorized');
+    });
+
+    it('should format 401 errors without custom message', () => {
+      const result = formatApiError(401, null);
+      assert.strictEqual(result, 'Unauthorized. Please check your API credentials.');
+    });
+
     it('should format rate limit errors (429)', () => {
       const data = { error: 'Rate limit exceeded', retry_after_seconds: 3600 };
       const result = formatApiError(429, data);
