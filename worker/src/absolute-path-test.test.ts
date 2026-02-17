@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 describe("Absolute Path Test", () => {
   it("should load analysis from absolute path", async () => {
-    const analysis = await import('/home/teabagger/dev/projects/Bio_HP/worker/src/analysis.ts');
+    const analysis = await import('./analysis');
     const testProfile = {
       skills: ["Python"],
       projects: [{
