@@ -3,6 +3,7 @@ description: LLM Project Portfolio - David Klan. Senior AI/ML Engineer showcasin
 baseurl: ""
 url: "https://kinokoholic.com"
 worker_api_base: "https://kinokoholic.com/api"
+worker_api_key: "jd-concierge-api-key-2025"
 markdown: kramdown
 permalink: pretty
 exclude:
