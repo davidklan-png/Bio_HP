@@ -125,6 +125,15 @@ export default {
 
     // Dual auth: Cloudflare Access JWT for .workers.dev, Bearer token for custom domain
     const isWorkersDev = url.hostname.endsWith(".workers.dev");
+    if (isWorkersDev && (!env.CF_ACCESS_AUD || !env.CF_ACCESS_TEAM_DOMAIN)) {
+      console.warn(
+        JSON.stringify({
+          warning: "workers_dev_access_misconfigured",
+          request_id: requestId,
+          message: "CF_ACCESS_AUD or CF_ACCESS_TEAM_DOMAIN not set; falling back to Bearer token auth on .workers.dev"
+        })
+      );
+    }
     if (isWorkersDev && env.CF_ACCESS_AUD && env.CF_ACCESS_TEAM_DOMAIN) {
       const jwtError = await validateAccessJWT(request, env.CF_ACCESS_AUD, env.CF_ACCESS_TEAM_DOMAIN);
       if (jwtError) {

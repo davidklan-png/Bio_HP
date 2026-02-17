@@ -72,6 +72,11 @@ export async function validateAccessJWT(
     return "Malformed JWT: missing kid or alg in header";
   }
 
+  // Cloudflare Access uses RS256; reject anything else
+  if (header.alg !== "RS256") {
+    return "Unsupported JWT algorithm: " + header.alg + " (expected RS256)";
+  }
+
   // Verify audience
   if (!Array.isArray(payload.aud) || !payload.aud.includes(expectedAud)) {
     return "JWT audience mismatch";
@@ -83,9 +88,10 @@ export async function validateAccessJWT(
     return "JWT issuer mismatch";
   }
 
-  // Verify expiration
+  // Verify expiration (30s clock skew tolerance)
   const now = Math.floor(Date.now() / 1000);
-  if (typeof payload.exp !== "number" || payload.exp < now) {
+  const CLOCK_SKEW_SECONDS = 30;
+  if (typeof payload.exp !== "number" || payload.exp + CLOCK_SKEW_SECONDS < now) {
     return "JWT has expired";
   }
 
