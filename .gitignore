@@ -1,13 +1,23 @@
-.DS_Store
-.env
-.bundle/
-vendor/
+# Build outputs
 _site/
+site/_site/
 .jekyll-cache/
 .jekyll-metadata
+
+# Dependencies
 node_modules/
-worker/.wrangler/
+vendor/
+.bundle/
+
+# Environment
+.env
+.DS_Store
+
+# Python
 __pycache__/
 *.pyc
+
+# Worker build artifacts
+worker/.wrangler/
 worker/src/*.js
 worker/worker-configuration.d.ts

@@ -16,6 +16,7 @@ import {
   insertValidationError,
   sha256Hex
 } from "./storage";
+import { validateAccessJWT } from "./access";
 
 type Env = {
   ALLOWED_ORIGINS?: string;
@@ -24,6 +25,8 @@ type Env = {
   DB: D1Database;
   AI?: unknown;
   ANALYZER_API_KEY?: string;
+  CF_ACCESS_AUD?: string;
+  CF_ACCESS_TEAM_DOMAIN?: string;
 } & ConfigEnv;
 
 interface RateLimitDecision {
@@ -120,19 +123,44 @@ export default {
       return jsonError(405, "Method not allowed", cors.headers, requestId);
     }
 
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || authHeader !== `Bearer ${env.ANALYZER_API_KEY}`) {
-      logRequestLifecycle(env, {
-        requestId,
-        jdLength: 0,
-        score: null,
-        confidence: null,
-        rateLimited: false
-      });
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
+    // Dual auth: Cloudflare Access JWT for .workers.dev, Bearer token for custom domain
+    const isWorkersDev = url.hostname.endsWith(".workers.dev");
+    if (isWorkersDev && (!env.CF_ACCESS_AUD || !env.CF_ACCESS_TEAM_DOMAIN)) {
+      console.warn(
+        JSON.stringify({
+          warning: "workers_dev_access_misconfigured",
+          request_id: requestId,
+          message: "CF_ACCESS_AUD or CF_ACCESS_TEAM_DOMAIN not set; falling back to Bearer token auth on .workers.dev"
+        })
+      );
+    }
+    if (isWorkersDev && env.CF_ACCESS_AUD && env.CF_ACCESS_TEAM_DOMAIN) {
+      const jwtError = await validateAccessJWT(request, env.CF_ACCESS_AUD, env.CF_ACCESS_TEAM_DOMAIN);
+      if (jwtError) {
+        logRequestLifecycle(env, {
+          requestId,
+          jdLength: 0,
+          score: null,
+          confidence: null,
+          rateLimited: false
+        });
+        return jsonError(403, "Access denied: " + jwtError, cors.headers, requestId);
+      }
+    } else {
+      const authHeader = request.headers.get("Authorization");
+      if (!authHeader || authHeader !== `Bearer ${env.ANALYZER_API_KEY}`) {
+        logRequestLifecycle(env, {
+          requestId,
+          jdLength: 0,
+          score: null,
+          confidence: null,
+          rateLimited: false
+        });
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
     }
 
     initializeConfig(env);
