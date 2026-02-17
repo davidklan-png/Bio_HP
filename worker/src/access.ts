@@ -57,12 +57,13 @@ export async function validateAccessJWT(
   if (parts.length !== 3) {
     return "Malformed JWT: expected 3 parts";
   }
+  const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
 
   let header: JWTHeader;
   let payload: JWTPayload;
   try {
-    header = JSON.parse(base64UrlDecode(parts[0])) as JWTHeader;
-    payload = JSON.parse(base64UrlDecode(parts[1])) as JWTPayload;
+    header = JSON.parse(base64UrlDecode(headerB64)) as JWTHeader;
+    payload = JSON.parse(base64UrlDecode(payloadB64)) as JWTPayload;
   } catch {
     return "Malformed JWT: failed to decode header or payload";
   }
@@ -103,10 +104,10 @@ export async function validateAccessJWT(
     if (!retryKey) {
       return "No matching JWK found for kid: " + header.kid;
     }
-    return verifySignature(jwt, parts, retryKey);
+    return verifySignature(headerB64, payloadB64, signatureB64, retryKey);
   }
 
-  return verifySignature(jwt, parts, matchingKey);
+  return verifySignature(headerB64, payloadB64, signatureB64, matchingKey);
 }
 
 async function fetchJWKs(teamDomain: string): Promise<JWK[] | null> {
@@ -133,8 +134,9 @@ async function fetchJWKs(teamDomain: string): Promise<JWK[] | null> {
 }
 
 async function verifySignature(
-  jwt: string,
-  parts: string[],
+  headerB64: string,
+  payloadB64: string,
+  signatureB64: string,
   jwk: JWK
 ): Promise<string | null> {
   try {
@@ -146,8 +148,8 @@ async function verifySignature(
       ["verify"]
     );
 
-    const signedContent = new TextEncoder().encode(parts[0] + "." + parts[1]);
-    const signature = base64UrlToArrayBuffer(parts[2]);
+    const signedContent = new TextEncoder().encode(headerB64 + "." + payloadB64);
+    const signature = base64UrlToArrayBuffer(signatureB64);
 
     const valid = await crypto.subtle.verify(
       "RSASSA-PKCS1-v1_5",

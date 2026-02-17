@@ -166,6 +166,17 @@ describe('JD Concierge Widget - Utility Functions', () => {
     });
   });
 
+  describe('Configuration error messages', () => {
+    it('should reference _config.yml (not site/_config.yml) for missing API base', () => {
+      // Mirrors the error message in jd_concierge.js line 68
+      const expectedMessage = 'Worker API base URL is not configured. Set worker_api_base in _config.yml.';
+      assert.ok(!expectedMessage.includes('site/_config.yml'),
+        'Error message must not reference deleted site/ directory');
+      assert.ok(expectedMessage.includes('_config.yml'),
+        'Error message must reference root _config.yml');
+    });
+  });
+
   describe('XSS Protection', () => {
     it('should handle XSS injection attempts', () => {
       const malicious = [

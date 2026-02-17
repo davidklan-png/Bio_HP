@@ -81,8 +81,5 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
 
-      - name: Build root Jekyll site
+      - name: Build Jekyll site
         run: bundle exec jekyll build
-
-      - name: Build /site Jekyll site
-        run: bundle exec jekyll build --source site --destination site/_site
