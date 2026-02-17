@@ -422,7 +422,7 @@ function resolveCors(origin: string | null, allowedOriginsRaw?: string): {
   const headers: HeadersInit = {
     ...(allowOriginHeader ? { "Access-Control-Allow-Origin": allowOriginHeader } : {}),
     "Access-Control-Allow-Methods": "POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin"
   };
