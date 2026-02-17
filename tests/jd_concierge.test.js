@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Unit tests for JD Concierge Widget
- * Run with: node --test site/tests/jd_concierge.test.js
+ * Run with: node --test tests/jd_concierge.test.js
  */
 
 import { describe, it } from 'node:test';
