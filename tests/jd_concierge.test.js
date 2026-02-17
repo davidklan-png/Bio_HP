@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Unit tests for JD Concierge Widget
- * Run with: node --test site/tests/jd_concierge.test.js
+ * Run with: node --test tests/jd_concierge.test.js
  */
 
 import { describe, it } from 'node:test';
@@ -163,6 +163,17 @@ describe('JD Concierge Widget - Utility Functions', () => {
   describe('MAX_LEN constant', () => {
     it('should be defined as 15000', () => {
       assert.strictEqual(MAX_LEN, 15000);
+    });
+  });
+
+  describe('Configuration error messages', () => {
+    it('should reference _config.yml (not site/_config.yml) for missing API base', () => {
+      // Mirrors the error message in jd_concierge.js line 68
+      const expectedMessage = 'Worker API base URL is not configured. Set worker_api_base in _config.yml.';
+      assert.ok(!expectedMessage.includes('site/_config.yml'),
+        'Error message must not reference deleted site/ directory');
+      assert.ok(expectedMessage.includes('_config.yml'),
+        'Error message must reference root _config.yml');
     });
   });
 

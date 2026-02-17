@@ -10,6 +10,9 @@ ALLOWED_ORIGINS = "http://localhost:4000,https://kinokoholic.com"
 ANALYTICS_SAMPLE_RATE = "0"
 AI_MODEL_ID = "@cf/meta/llama-3.1-8b-instruct"
 AI_ENABLED = "true"
+# Cloudflare Access public identifiers (embedded in JWTs, not secrets)
+CF_ACCESS_AUD = "dd3901a59004f912b65429dc74e78170a5ae69ce5a05ed59c5c3a7bf90d9e97b"
+CF_ACCESS_TEAM_DOMAIN = "kinokoholic1"
 # ANALYZER_API_KEY should be set as a secret using: wrangler secret put ANALYZER_API_KEY
 
 [[d1_databases]]

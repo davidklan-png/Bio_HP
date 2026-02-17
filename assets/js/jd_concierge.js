@@ -65,7 +65,7 @@
     results.hidden = true;
 
     if (!apiBase) {
-      showError(errorBox, "Worker API base URL is not configured. Set site.worker_api_base in /site/_config.yml.");
+      showError(errorBox, "Worker API base URL is not configured. Set worker_api_base in _config.yml.");
       return;
     }
 
