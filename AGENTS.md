@@ -1,18 +1,46 @@
 # Agent Handover Guide
 
-Last updated: 2026-02-13
+Last updated: 2026-02-17
 
 ## Purpose
 
 This repository is a Jekyll-based portfolio site with data-driven project pages. Most edits should happen in YAML data files and Markdown content, not in layout logic.
+
+## Directory Structure (Canonical — Root-First)
+
+All source files live at the repository root. There is **no `site/` subdirectory**. The old `site/` directory was a duplicate that caused file-drift bugs and has been removed.
+
+```
+Bio_HP/
+├── _config.yml          ← Single Jekyll config
+├── _includes/           ← All Jekyll includes
+├── _layouts/            ← All Jekyll layouts
+├── _data/               ← All data (projects, site config)
+├── assets/              ← All assets (js, css, images)
+├── projects/            ← Project pages (markdown)
+├── tests/               ← JS unit tests
+├── worker/              ← Cloudflare Worker (API backend)
+├── scripts/             ← Build/CI helper scripts
+├── .githooks/           ← Local git hooks (TDD guard, pre-push)
+└── .github/             ← CI workflows
+```
 
 ## High-Impact Paths
 
 - `_data/projects/*.yml`: project content source of truth
 - `projects/*.md`: per-project page routing/front matter
 - `_layouts/project.html`: project page renderer
+- `_includes/jd_concierge.html`: JD Concierge widget include
+- `assets/js/jd_concierge.js`: JD Concierge client-side logic
+- `assets/css/jd_concierge.css`: JD Concierge styling
 - `assets/css/styles.css`: shared styling
 - `assets/images/`: static image assets used by project screenshots
+
+## Critical Rule: No Duplicate Source Trees
+
+**NEVER create a parallel directory structure** (e.g., `site/assets/`, `site/_includes/`). All source files must live in the root-level directories. The `site/` directory was previously a source of bugs where updates were made in one location but not the other.
+
+If you need to test something in isolation, use a separate git branch — not a subdirectory copy.
 
 ## Safe Working Flow
 
@@ -30,6 +58,8 @@ For code changes (Worker TS, site JS, workflow Python), use Red -> Green -> Refa
 3. Refactor while keeping tests green.
 4. Commit source and test updates together.
 
+Tests live in `tests/` (site JS) and `worker/` (Worker TS).
+
 Enforcement exists via `scripts/tdd_guard.py`, local git hooks in `.githooks/`, and CI workflow `.github/workflows/tdd-quality-gates.yml`.
 
 ## Validation Commands
@@ -42,6 +72,9 @@ for path in glob.glob('_data/**/*.yml', recursive=True):
     yaml.safe_load(open(path, encoding='utf-8'))
 print('ALL_YAML_OK')
 PY
+
+# Run JS tests
+node --test tests/jd_concierge.test.js
 
 # Optional: inspect repo state before commit
 git status --short
@@ -76,6 +109,7 @@ gh pr create --base main --head fix/short-description --title "PR title" --body 
 ## Deployment Notes
 
 - Deployment target: GitHub Pages from `main` branch, root folder.
+- Build artifacts (`_site/`) are gitignored and should never be committed.
 - If the website shows stale pages:
   - verify latest commit is on `origin/main`
   - verify YAML parses cleanly

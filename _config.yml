@@ -11,4 +11,15 @@ exclude:
   - agentic-workflows/
   - prompt-engineering-demos/
   - use-case-notebooks/
-# Last updated: 2026-02-17T03:53:59Z
+  - worker/
+  - scripts/
+  - tests/
+  - test-planning/
+  - shared/
+  - .githooks/
+  - .github/
+  - CODEBASE_REVIEW_2026-02-17.md
+  - AGENTS.md
+  - README.md
+  - REVISION_PLAYBOOK.md
+  - TDD.md
