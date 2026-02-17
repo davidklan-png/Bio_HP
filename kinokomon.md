@@ -3,6 +3,7 @@ layout: default
 title: Kinokomon
 permalink: /kinokomon/
 ---
+<link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
   <div class="kinokomon-section__intro">
     <div class="kinokomon-section__avatar">
