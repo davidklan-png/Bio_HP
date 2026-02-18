@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+  
+  
+  
+  
+  
+  
+  
+  
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home | LLM Project Portfolio - David Klan</title>
+    <meta name="description" content="LLM Project Portfolio - David Klan. Senior AI/ML Engineer showcasing practical AI systems with agentic workflows, RAG architecture, and enterprise automation.">
+    <link rel="alternate" hreflang="en" href="https://kinokoholic.com/">
+    <link rel="alternate" hreflang="ja" href="https://kinokoholic.com/ja/">
+    <link rel="alternate" hreflang="x-default" href="https://kinokoholic.com/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+      // Language persistence and page-specific switching
+      (function() {
+        const baseUrl = "";
+        const stripBaseUrl = (pathname) => {
+          if (baseUrl && pathname.indexOf(baseUrl + '/') === 0) {
+            return pathname.slice(baseUrl.length);
+          }
+          if (baseUrl && pathname === baseUrl) {
+            return '/';
+          }
+          return pathname;
+        };
+
+        const currentPath = stripBaseUrl(window.location.pathname);
+        const isJaPage = currentPath === '/ja' || currentPath.indexOf('/ja/') === 0;
+        const currentLang = isJaPage ? 'ja' : 'en';
+        const storedLang = localStorage.getItem('site-lang');
+        const effectiveLang = storedLang || currentLang;
+
+        // Redirect only if stored preference differs from current page language
+        if ((effectiveLang === 'ja' && !isJaPage) || (effectiveLang === 'en' && isJaPage)) {
+          // Let the navigation handle the redirect via data-lang-switch links
+        }
+
+        // Update lang toggle active states
+        document.addEventListener('DOMContentLoaded', function() {
+          const pagePath = stripBaseUrl(window.location.pathname);
+          const isJa = pagePath === '/ja' || pagePath.indexOf('/ja/') === 0;
+          const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
+          const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
+          if (enLink) enLink.classList.toggle('active', !isJa);
+          if (jaLink) jaLink.classList.toggle('active', isJa);
+        });
+
+        // Store language choice when toggle is clicked
+        document.addEventListener('click', function(e) {
+          const target = e.target.closest('.lang-toggle a');
+          if (target) {
+            const lang = target.getAttribute('data-lang-switch');
+            localStorage.setItem('site-lang', lang);
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="site-bg" aria-hidden="true"></div>
+    
+
+
+
+
+
+
+
+
+
+
+
+<header class="top-nav">
+  <div class="container nav-inner">
+    
+      <a class="brand" href="/">LLM Project Portfolio - David Klan</a>
+    
+    <nav class="nav-links" aria-label="Primary">
+      
+        <a class="nav-link is-active" href="/">Home</a>
+        <a class="nav-link " href="/about/">About / Contact</a>
+        <a class="nav-link " href="/kinokomon/">Kinokomon</a>
+      
+    </nav>
+    <div class="lang-toggle">
+      
+        <span class="current">EN</span>
+        <span class="divider">|</span>
+        <a href="/ja/" data-lang-switch="ja">日本語</a>
+      
+    </div>
+  </div>
+</header>
+
+    <main class="container"><section class="hero fade-up">
+  <div class="hero-header">
+    <div class="hero-text">
+      <p class="eyebrow">IT PM + AI/ML Engineer</p>
+      <h1>The interface between human intent and machine intelligence</h1>
+      <p class="hero-summary">I build the systems where human judgment meets artificial cognition — practical LLM architectures that know their own limits.</p>
+    </div>
+    <img src="/assets/images/DK_Avatar.jpeg" alt="David Klan" class="hero-avatar" />
+  </div>
+  <div class="audience-grid">
+    <article class="audience-card">
+      <h2>For Decision Makers</h2>
+      <p>The signal beneath the noise — value, impact, and what it means for your next move. Two minutes.</p>
+    </article>
+    <article class="audience-card">
+      <h2>For Those Who Look Deeper</h2>
+      <p>Descend into the architecture — constraints, tradeoffs, and the implementation patterns where novelty crystallizes into working systems.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section-block fade-up delay-2">
+  <section class="jd-concierge" data-jd-concierge="" data-api-base="https://kinokoholic.com/api" data-api-key="jd-concierge-api-key-2025">
+  <h2 class="jd-concierge__title">
+    <img src="/assets/images/Kinokomon_512x512.png" alt="" class="jd-concierge__avatar" />
+    <span>JD Concierge</span>
+  </h2>
+  <p class="jd-concierge__subtitle">Paste a job description to get an evidence-grounded fit analysis.</p>
+
+  <label class="jd-concierge__label" for="jd-concierge-input">Job description text</label>
+  <textarea id="jd-concierge-input" class="jd-concierge__textarea" data-jd-input="" rows="12" maxlength="15000" placeholder="Paste the full JD text (max 15,000 characters)."></textarea>
+  <p class="jd-concierge__counter" data-jd-counter="">
+    <span>0 / 15000</span>
+    <span>Remaining: 15000</span>
+  </p>
+
+  <div class="jd-concierge__actions">
+    <button type="button" class="jd-concierge__button jd-concierge__button--muted" data-jd-example="">
+      Try Example JD
+    </button>
+    <button type="button" class="jd-concierge__button" data-jd-submit="">Analyze fit</button>
+    <span class="jd-concierge__loading" data-jd-loading="" hidden="">
+      <span class="jd-concierge__spinner" aria-hidden="true"></span>
+      Analyzing...
+    </span>
+  </div>
+
+  <p class="jd-concierge__error" data-jd-error="" hidden=""></p>
+  <div class="jd-concierge__results" data-jd-results="" hidden=""></div>
+
+  <p class="jd-concierge__disclaimer">
+    Analysis based on provided JD text and publicly documented portfolio evidence.
+  </p>
+</section>
+
+<link rel="stylesheet" href="/assets/css/jd_concierge.css" />
+<script src="/assets/js/jd_concierge.js" defer=""></script>
+
+</section>
+
+<section class="skills-strip fade-up delay-1" aria-label="Skills demonstrated">
+  <h2>Skills Demonstrated</h2>
+  <div class="skills-grid">
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M4 6h16v10H8l-4 4V6z"></path>
+</svg>
+
+</span>
+      <span>Prompt Engineering</span>
+    </div>
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="8"></circle>
+  <path d="M12 7v10M7 12h10"></path>
+</svg>
+
+</span>
+      <span>RAG</span>
+    </div>
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <circle cx="6" cy="6" r="2"></circle>
+  <circle cx="18" cy="6" r="2"></circle>
+  <circle cx="12" cy="18" r="2"></circle>
+  <path d="M8 6h8M7.2 7.5l3.6 8M16.8 7.5l-3.6 8"></path>
+</svg>
+
+</span>
+      <span>Agentic Workflows</span>
+    </div>
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M4 12a8 8 0 0 1 13.7-5.7"></path>
+  <path d="M20 4v6h-6"></path>
+  <path d="M20 12a8 8 0 0 1-13.7 5.7"></path>
+  <path d="M4 20v-6h6"></path>
+</svg>
+
+</span>
+      <span>Change Enablement</span>
+    </div>
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M8 4h5a3 3 0 0 1 3 3v3H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"></path>
+  <circle cx="10" cy="6.5" r="0.9"></circle>
+  <path d="M16 20h-5a3 3 0 0 1-3-3v-3h8a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3z"></path>
+  <circle cx="14" cy="17.5" r="0.9"></circle>
+</svg>
+
+</span>
+      <span>Python/Automation</span>
+    </div>
+    
+    <div class="skill-pill">
+      <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M4 20h16"></path>
+  <rect x="6" y="10" width="2.5" height="6"></rect>
+  <rect x="10.75" y="7" width="2.5" height="9"></rect>
+  <rect x="15.5" y="5" width="2.5" height="11"></rect>
+</svg>
+
+</span>
+      <span>Evaluation</span>
+    </div>
+    
+  </div>
+</section>
+
+<section class="section-block fade-up delay-2">
+  <div class="section-heading">
+    <h2>Four Investigations</h2>
+    <p>Each project maps a different territory where language models meet the resistance of the real world.</p>
+  </div>
+
+  <div class="card-grid">
+    
+    
+    <article class="project-card fade-up delay-1">
+      <div class="card-top">
+        <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect x="6" y="3.5" width="12" height="17" rx="2" ry="2"></rect>
+  <path d="M9 8h6M9 12h6M9 16h4"></path>
+</svg>
+
+</span>
+        <h3><a href="/projects/receipt-classification-and-matching-system/">Receipt Classification &amp; Matching System</a></h3>
+      </div>
+      <p class="value-line">Automated statement-to-receipt reconciliation for faster, cleaner tax submission workflows.</p>
+      <ul class="tag-list">
+        
+        <li>Document AI</li>
+        
+        <li>Expense Operations</li>
+        
+        <li>Classification</li>
+        
+      </ul>
+      <ul class="bullet-list compact">
+        
+        <li>Reduced manual receipt matching and exception triage effort.</li>
+        
+        <li>Improved categorization consistency for tax-ready reporting.</li>
+        
+        <li>Added ambiguity handling for difficult vendor names.</li>
+        
+      </ul>
+      <a class="inline-link" href="/projects/receipt-classification-and-matching-system/">Open full case study</a>
+    </article>
+    
+    
+    <article class="project-card fade-up delay-2">
+      <div class="card-top">
+        <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="8"></circle>
+  <path d="M12 7v10M7 12h10"></path>
+</svg>
+
+</span>
+        <h3><a href="/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/">Japanese Tax Expert System (JTES) – Specialized RAG for Professionals</a></h3>
+      </div>
+      <p class="value-line">AI-powered Japanese tax analysis built on official NTA and e-Gov sources, with verifiable citations for every answer.</p>
+      <ul class="tag-list">
+        
+        <li>Japanese Tax Law</li>
+        
+        <li>Citation-Backed AI</li>
+        
+        <li>Official Data Sources</li>
+        
+        <li>Professional Workflow</li>
+        
+      </ul>
+      <ul class="bullet-list compact">
+        
+        <li>Trusted answers for Japanese tax law based on official government data.</li>
+        
+        <li>{"Four integrated solutions"=&gt;"Tax AI Advisor, Regulatory Monitoring, Legal Research and Comparison, and Multi-Tenant Platform."}</li>
+        
+        <li>Citation-first response design focused on verifiability over AI guesswork.</li>
+        
+      </ul>
+      <a class="inline-link" href="/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/">Open full case study</a>
+    </article>
+    
+    
+    <article class="project-card fade-up delay-3">
+      <div class="card-top">
+        <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M4 6h7a3 3 0 0 1 3 3v9H7a3 3 0 0 0-3 3V6z"></path>
+  <path d="M20 6h-7a3 3 0 0 0-3 3v9h7a3 3 0 0 1 3 3V6z"></path>
+</svg>
+
+</span>
+        <h3><a href="/projects/bilingual-ceremony-script-generator-notebooklm-collaboration/">Bilingual Ceremony Script Generator (NotebookLM Collaboration)</a></h3>
+      </div>
+      <p class="value-line">Produced grounded Japanese/English ceremony scripts with strong style control and iterative refinement.</p>
+      <ul class="tag-list">
+        
+        <li>Grounded Generation</li>
+        
+        <li>Human-in-the-Loop</li>
+        
+        <li>Style Control</li>
+        
+      </ul>
+      <ul class="bullet-list compact">
+        
+        <li>Used 10 prior scripts as grounding corpus for consistent quality.</li>
+        
+        <li>Generated theme-faithful bilingual output for an Ancient Grecian concept.</li>
+        
+        <li>Reduced rewriting time with collaborative iteration cycles.</li>
+        
+      </ul>
+      <a class="inline-link" href="/projects/bilingual-ceremony-script-generator-notebooklm-collaboration/">Open full case study</a>
+    </article>
+    
+    
+    <article class="project-card fade-up delay-4">
+      <div class="card-top">
+        <span class="icon-badge">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M12 3l8 4v5c0 5-3.5 7.8-8 9-4.5-1.2-8-4-8-9V7l8-4z"></path>
+  <path d="M9 12l2 2 4-4"></path>
+</svg>
+
+</span>
+        <h3><a href="/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/">Enterprise AI Enablement in Insurance – Reporting &amp; Incident Intelligence</a></h3>
+      </div>
+      <p class="value-line">Automated reporting and incident intelligence to improve executive visibility and decision making.</p>
+      <ul class="tag-list">
+        
+        <li>Enterprise Automation</li>
+        
+        <li>Incident Intelligence</li>
+        
+        <li>Executive Reporting</li>
+        
+      </ul>
+      <ul class="bullet-list compact">
+        
+        <li>Automated PM reporting and executive dashboard workflows.</li>
+        
+        <li>Unified insights across Confluence, Jira, SharePoint, Power Automate, and Power BI.</li>
+        
+        <li>Added coding-agent parsers for hundreds of MB of incident data trend analysis.</li>
+        
+      </ul>
+      <a class="inline-link" href="/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/">Open full case study</a>
+    </article>
+    
+  </div>
+</section>
+
+<section class="now-next fade-up delay-3">
+  <h2>Now / Next</h2>
+  <div class="now-next-grid">
+    <article class="panel">
+      <h3>Now</h3>
+      <ul class="bullet-list">
+        
+        <li>Deepening JTES domain coverage for Japanese tax workflows.</li>
+        
+        <li>Upgrade development infrastructure to build out services</li>
+        
+      </ul>
+    </article>
+    <article class="panel">
+      <h3>Next</h3>
+      <ul class="bullet-list">
+        
+        <li>JTES beta with tax professionals and structured feedback cycles.</li>
+        
+        <li>Implement OCR for automated receipt processing.</li>
+        
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="section-block fade-up delay-4">
+  <h2>About / Contact</h2>
+  <p>Agents, prompts, retrieval architectures, and automation woven together — because the most interesting outcomes emerge at the intersection of structured intent and machine intuition.</p>
+  <div class="contact-links">
+    <a href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noreferrer">LinkedIn</a>
+    <a href="" target="_blank" rel="noreferrer">Website</a>
+    <a href="mailto:admin@dazbeez.com">Email</a>
+  </div>
+</section>
+</main>
+    <footer class="site-footer">
+  <div class="container footer-inner">
+    <p>David Klan | IT PM + AI/ML Engineer</p>
+    <div class="footer-links">
+      <a href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noreferrer">LinkedIn</a>
+      <a href="" target="_blank" rel="noreferrer">Website</a>
+      <a href="mailto:admin@dazbeez.com">Email</a>
+    </div>
+  </div>
+</footer>
+
+  </body>
+</html>
