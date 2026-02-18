@@ -6,14 +6,13 @@ permalink: /about/
 <section class="section-block fade-up about-section" data-about-section="">
   <div class="about-section__intro">
     <div class="about-section__avatar">
-      <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="David Klan" class="about-section__avatar-img" />
+      <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="Kinokomon" class="about-section__avatar-img" />
     </div>
     <div class="about-section__intro-text">
       <h1 class="about-section__title">Hello, I'm David</h1>
       <p>I'm curious about how AI can help people do meaningful work. I don't believe in replacing humans with technology — I believe in building things that respect human expertise while making it easier to do what matters.</p>
       <p>For 15+ years, I've been working at the intersection of technology, people, and change. I've led enterprise transformation programs, built AI tools that help experts do their jobs better, and learned that the most rewarding work happens when you truly understand what someone needs.</p>
     </div>
-  </div>
 
   <div class="about-section__grid">
     <div class="about-section__card">
@@ -64,4 +63,4 @@ permalink: /about/
 </section>
 
 <link rel="stylesheet" href="{{ '/assets/css/about.css' | relative_url }}" />
-<script src="{{ '/assets/js/about.js' | relative_url }}" defer=""></script>
+<script src="{{ '/assets/js/about.js' }}" defer=""></script>
