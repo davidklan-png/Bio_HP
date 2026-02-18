@@ -6,7 +6,7 @@ permalink: /about/
 <section class="section-block fade-up about-section" data-about-section="">
   <div class="about-section__intro">
     <div class="about-section__avatar">
-      <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="David Klan" class="about-section__avatar-img" />
+      <img src="{{ '/assets/images/DK_Avatar2.jpg' | relative_url }}" alt="David Klan" class="about-section__avatar-img" />
     </div>
     <div class="about-section__intro-text">
       <h1 class="about-section__title">Hello, I'm David</h1>
