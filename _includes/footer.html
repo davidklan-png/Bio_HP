@@ -1,11 +1,21 @@
+{% assign current_url = page.url | default: "/" %}
+{% assign current_slice = current_url | slice: 0, 4 %}
+{% assign footer_is_ja = false %}
+{% if page.lang == 'ja' or current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
+  {% assign footer_is_ja = true %}
+{% endif %}
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p>{{ site.data.site.owner_name }} | {{ site.data.site.owner_role }}</p>
+    {% if footer_is_ja %}
+      <p>{{ site.data.site.owner_name }} | {{ site.data.site.owner_role_ja }}</p>
+    {% else %}
+      <p>{{ site.data.site.owner_name }} | {{ site.data.site.owner_role }}</p>
+    {% endif %}
     <div class="footer-links">
       <a href="{{ site.data.site.contacts.github }}" target="_blank" rel="noreferrer">GitHub</a>
       <a href="{{ site.data.site.contacts.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>
       <a href="{{ site.data.site.contacts.website }}" target="_blank" rel="noreferrer">Website</a>
-      <a href="mailto:{{ site.data.site.contacts.email }}">Email</a>
+      <a href="mailto:{{ site.data.site.contacts.email }}">{% if footer_is_ja %}メール{% else %}Email{% endif %}</a>
     </div>
   </div>
 </footer>
