@@ -1,7 +1,11 @@
 (function () {
   "use strict";
 
-  const MAX_LEN = 15000;
+  const MAX_LEN = 10000;
+
+  // Session-scoped result cache: jdText → API response payload.
+  // Avoids duplicate API calls for identical input (important given the 5 req/hr rate limit).
+  const resultCache = new Map();
   const EXAMPLE_JD = [
     "Role: GenAI Enablement Consultant",
     "",
@@ -43,11 +47,11 @@
       submitAnalysis(root, input, counter, analyzeButton, exampleButton, loading, errorBox, results, true);
     });
 
+    // Populate textarea with example text only — user clicks "Analyze Fit" to run.
     exampleButton.addEventListener("click", function () {
       input.value = EXAMPLE_JD;
       syncCounterAndButton(input, counter, analyzeButton);
       clearError(errorBox);
-      submitAnalysis(root, input, counter, analyzeButton, exampleButton, loading, errorBox, results, true);
     });
 
     input.addEventListener("input", function () {
@@ -75,7 +79,17 @@
     }
 
     if (jdText.length > MAX_LEN) {
-      showError(errorBox, "Job description is too long. Maximum is 15,000 characters.");
+      showError(errorBox, "Job description is too long. Maximum is 10,000 characters.");
+      return;
+    }
+
+    // Return cached result immediately — no spinner, no API call.
+    if (resultCache.has(jdText)) {
+      renderResults(results, resultCache.get(jdText));
+      results.hidden = false;
+      if (scrollToResults) {
+        results.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       return;
     }
 
@@ -111,6 +125,7 @@
           });
       })
       .then(function (payload) {
+        resultCache.set(jdText, payload);
         renderResults(results, payload);
         results.hidden = false;
         if (scrollToResults) {
