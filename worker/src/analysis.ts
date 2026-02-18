@@ -134,7 +134,8 @@ export const STANDARD_RISK_FLAGS = {
   LANGUAGE_MISMATCH: "LANGUAGE_MISMATCH",
   CONTRACT_ONLY: "CONTRACT_ONLY",
   LOCATION_MISMATCH: "LOCATION_MISMATCH",
-  CONTRACT_AVAILABILITY: "CONTRACT_AVAILABILITY"
+  CONTRACT_AVAILABILITY: "CONTRACT_AVAILABILITY",
+  AVAILABILITY_MISMATCH: "AVAILABILITY_MISMATCH"
 } as const;
 
 export type RiskFlagType = keyof typeof STANDARD_RISK_FLAGS;
@@ -1326,57 +1327,29 @@ function evaluateRiskAndConstraints(
   const jdWorkTypePattern = /^Capacity:\s*(part-time|full-time|contract)(\s*%?\s*allocation)?\s*$/i;
   const jdRequiresAvailability = /Availability:\s*(remote|hybrid|part-time|full-time|contract)/i.test(jdText);
   const profileAvailability = constraints.availability.toLowerCase();
-  
+  const jdRequiresPartTime = /part-?time/i.test(jdText);
+  const contractOnly = /(contract only|short term contract|no full time)/i.test(jdText);
+
   if (jdRequiresPartTime) {
-    // Check what type of work arrangement JD requires
     const jdMatch = jdText.match(jdWorkTypePattern);
-    const jdWorkType = jdMatch ? jdMatch[1] : ""; // Extract "part-time", "full-time", or "contract"
-    
-    // Check if this matches profile availability
-    const isAvailabilityMismatch = !profileAvailability.includes(jdWorkType);
-    
+    const jdWorkType = jdMatch?.[1] ?? "";
+
+    const isAvailabilityMismatch = jdWorkType !== "" && !profileAvailability.includes(jdWorkType);
+
     if (isAvailabilityMismatch) {
-      const constraintType = jdWorkType === "part-time" ? "AVAILABILITY_MISMATCH" 
-        : jdWorkType === "contract" ? "CONTRACT_AVAILABILITY" 
+      const constraintType: RiskFlagType = jdWorkType === "contract"
+        ? "CONTRACT_AVAILABILITY"
         : "AVAILABILITY_MISMATCH";
-      
-      addRiskFlag(constraintType, 
-        `JD requires ${jdWorkType === "part-time" ? "part-time" : jdWorkType} availability ` +
-        `but profile availability is "${profileAvailability}". ` +
-        (jdWorkType === "part-time" ? "Not aligned with role type." : "")
+
+      addRiskFlag(
+        constraintType,
+        `JD requires ${jdWorkType} availability ` +
+        `but profile availability is "${profileAvailability}".` +
+        (jdWorkType === "part-time" ? " Not aligned with role type." : "")
       );
     }
   }
 
-  const contractOnly = /(contract only|short term contract|no full time)/i.test(jdText);
-  
-  // Detect capacity/availability/contract requirements and treat as constraints, not gaps
-  const jdWorkTypePattern = /^Capacity:\s*(part-time|full-time|contract)(\s*%?\s*allocation)?\s*$/i;
-  const jdRequiresAvailability = /Availability:\s*(remote|hybrid|part-time|full-time|contract)/i.test(jdText);
-  const profileAvailability = constraints.availability.toLowerCase();
-  
-  if (jdRequiresPartTime) {
-    // Check what type of work arrangement JD requires
-    const jdMatch = jdText.match(/Capacity:\s*(part-time|full-time|contract)(\s*%?\s*allocation)?\s*$/i);
-    const jdWorkType = jdMatch ? jdMatch[1] : ""; // Extract "part-time", "full-time", or "contract"
-    
-    // Check if this matches profile availability
-    const isAvailabilityMismatch = !profileAvailability.includes(jdWorkType);
-    
-    if (isAvailabilityMismatch) {
-      const constraintType = jdWorkType === "part-time" ? "AVAILABILITY_MISMATCH" 
-        : jdWorkType === "contract" ? "CONTRACT_AVAILABILITY" 
-        : "AVAILABILITY_MISMATCH";
-      
-      addRiskFlag(constraintType, 
-        `JD requires ${jdWorkType === "part-time" ? "part-time" : jdWorkType} availability ` +
-        `but profile availability is "${profileAvailability}". ` +
-        (jdWorkType === "part-time" ? "Not aligned with role type." : "")
-      );
-    }
-  }
-  
-  const contractOnly = /(contract only|short term contract|no full time)/i.test(jdText);
   if (contractOnly && constraints.availability.toLowerCase().includes("full-time")) {
     addRiskFlag("CONTRACT_ONLY", "Availability may not align (JD appears contract-only).");
     score -= 1;
