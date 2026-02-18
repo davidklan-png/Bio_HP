@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        body {
+            font-family: 'Arial', 'Meiryo', sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .metadata {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .metadata p {
+            margin: 5px 0;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+        .amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .attendee-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .attendee-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        .attendee-card .id {
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        .attendee-card .name {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .attendee-card .details {
+            font-size: 12px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>会議費・接待費 処理レポート</h1>
+
+        <div class="metadata">
+            <p><strong>入力ファイル:</strong> 202510_sample.csv</p>
+            <p><strong>トランザクション数:</strong> 4</p>
+            <p><strong>合計金額:</strong> ¥60,000</p>
+            <p><strong>出席者総数:</strong> 8</p>
+        </div>
+
+        <h2>トランザクション詳細</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>利用日</th>
+                    <th>店名・商品名</th>
+                    <th>利用金額</th>
+                    <th>備考</th>
+                    <th>出席者</th>
+                    <th>ID1</th>
+                    <th>ID2</th>
+                    <th>ID3</th>
+                    <th>ID4</th>
+                    <th>ID5</th>
+                    <th>ID6</th>
+                    <th>ID7</th>
+                    <th>ID8</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>2025-10-01</td>
+                    <td>東京レストラン</td>
+                    <td class="amount">¥15,000</td>
+                    <td>会議費</td>
+                    <td>4</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>5</td>
+                    <td>8</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <td>2025-10-05</td>
+                    <td>新宿カフェ</td>
+                    <td class="amount">¥8,000</td>
+                    <td>接待費</td>
+                    <td>5</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>8</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <td>2025-10-12</td>
+                    <td>渋谷居酒屋</td>
+                    <td class="amount">¥12,000</td>
+                    <td>会議費</td>
+                    <td>5</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>6</td>
+                    <td>7</td>
+                    <td>8</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <td>2025-10-20</td>
+                    <td>品川ホテル会議室</td>
+                    <td class="amount">¥25,000</td>
+                    <td>会議費</td>
+                    <td>5</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>6</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+            </tbody>
+        </table>
+        
+
+        <h2>選択された出席者</h2>
+        
+        <div class="attendee-list">
+            
+            <div class="attendee-card">
+                <div class="id">ID: 1</div>
+                <div class="name">山田太郎</div>
+                <div class="details">
+                    部長<br>
+                    ABC株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 2</div>
+                <div class="name">佐藤花子</div>
+                <div class="details">
+                    課長<br>
+                    XYZ株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 3</div>
+                <div class="name">鈴木一郎</div>
+                <div class="details">
+                    主任<br>
+                    DEF株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 4</div>
+                <div class="name">田中美咲</div>
+                <div class="details">
+                    係長<br>
+                    GHI株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 5</div>
+                <div class="name">高橋健太</div>
+                <div class="details">
+                    社員<br>
+                    JKL株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 6</div>
+                <div class="name">伊藤誠</div>
+                <div class="details">
+                    社員<br>
+                    MNO株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 7</div>
+                <div class="name">渡辺真理</div>
+                <div class="details">
+                    主任<br>
+                    PQR株式会社
+                </div>
+            </div>
+            
+            <div class="attendee-card">
+                <div class="id">ID: 8</div>
+                <div class="name">中村由美</div>
+                <div class="details">
+                    課長<br>
+                    STU株式会社
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+</body>
+</html>

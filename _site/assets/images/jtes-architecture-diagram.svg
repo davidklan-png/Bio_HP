@@ -1,0 +1,488 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" font-family="'Segoe UI', Arial, Helvetica, sans-serif">
+  <defs>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a237e"/>
+      <stop offset="100%" style="stop-color:#283593"/>
+    </linearGradient>
+    <linearGradient id="frontendGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e3f2fd"/>
+      <stop offset="100%" style="stop-color:#bbdefb"/>
+    </linearGradient>
+    <linearGradient id="apiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8f5e9"/>
+      <stop offset="100%" style="stop-color:#c8e6c9"/>
+    </linearGradient>
+    <linearGradient id="orchestratorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff3e0"/>
+      <stop offset="100%" style="stop-color:#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="retrievalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fce4ec"/>
+      <stop offset="100%" style="stop-color:#f8bbd0"/>
+    </linearGradient>
+    <linearGradient id="llmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f3e5f5"/>
+      <stop offset="100%" style="stop-color:#e1bee7"/>
+    </linearGradient>
+    <linearGradient id="dataGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f2f1"/>
+      <stop offset="100%" style="stop-color:#b2dfdb"/>
+    </linearGradient>
+    <linearGradient id="securityGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffebee"/>
+      <stop offset="100%" style="stop-color:#ffcdd2"/>
+    </linearGradient>
+    <linearGradient id="monitorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8eaf6"/>
+      <stop offset="100%" style="stop-color:#c5cae9"/>
+    </linearGradient>
+    <linearGradient id="infraGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#efebe9"/>
+      <stop offset="100%" style="stop-color:#d7ccc8"/>
+    </linearGradient>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#546e7a"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0"/>
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e65100"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1600" fill="#fafafa" rx="0"/>
+
+  <!-- Title Bar -->
+  <rect x="0" y="0" width="1200" height="70" fill="url(#headerGrad)"/>
+  <text x="600" y="35" text-anchor="middle" fill="white" font-size="24" font-weight="bold">Japanese Tax Expert System (JTES) — System Architecture</text>
+  <text x="600" y="56" text-anchor="middle" fill="#b0bec5" font-size="13">RAG-Powered Tax Law Question Answering System  |  MVP Complete — Beta Ready</text>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 1: USER / FRONTEND                           -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <!-- User Icon -->
+  <g transform="translate(560,90)">
+    <circle cx="40" cy="18" r="16" fill="#546e7a" stroke="#37474f" stroke-width="1.5"/>
+    <path d="M10,58 Q10,38 40,38 Q70,38 70,58" fill="#546e7a" stroke="#37474f" stroke-width="1.5"/>
+    <text x="40" y="75" text-anchor="middle" font-size="12" fill="#37474f" font-weight="600">Users</text>
+    <text x="40" y="88" text-anchor="middle" font-size="10" fill="#78909c">Business Owners / Tax Consultants</text>
+  </g>
+
+  <!-- Arrow: User to Frontend -->
+  <line x1="600" y1="182" x2="600" y2="205" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="620" y="197" font-size="10" fill="#78909c">HTTPS</text>
+
+  <!-- Frontend Box -->
+  <rect x="80" y="210" width="1040" height="135" rx="12" fill="url(#frontendGrad)" stroke="#1565c0" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="210" width="1040" height="30" rx="12" fill="#1565c0"/>
+  <rect x="80" y="228" width="1040" height="12" fill="#1565c0"/>
+  <text x="600" y="231" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Presentation Layer — React 19 + TypeScript + Vite + Material UI</text>
+  <text x="110" y="247" font-size="10" fill="#1565c0">Port 3000</text>
+
+  <!-- Frontend sub-components -->
+  <rect x="110" y="258" width="185" height="72" rx="6" fill="white" stroke="#64b5f6" stroke-width="1"/>
+  <text x="202" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">Query Interface</text>
+  <text x="202" y="292" text-anchor="middle" font-size="9" fill="#546e7a">QueryComposer</text>
+  <text x="202" y="304" text-anchor="middle" font-size="9" fill="#546e7a">AnswerPanel + CitationPanel</text>
+  <text x="202" y="316" text-anchor="middle" font-size="9" fill="#546e7a">ProvenanceDrawer</text>
+
+  <rect x="315" y="258" width="185" height="72" rx="6" fill="white" stroke="#64b5f6" stroke-width="1"/>
+  <text x="407" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">Document Browser</text>
+  <text x="407" y="292" text-anchor="middle" font-size="9" fill="#546e7a">PdfViewer / XmlViewer</text>
+  <text x="407" y="304" text-anchor="middle" font-size="9" fill="#546e7a">DocumentsPage</text>
+  <text x="407" y="316" text-anchor="middle" font-size="9" fill="#546e7a">EnhancedDocumentViewer</text>
+
+  <rect x="520" y="258" width="185" height="72" rx="6" fill="white" stroke="#64b5f6" stroke-width="1"/>
+  <text x="612" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">Admin Dashboard</text>
+  <text x="612" y="292" text-anchor="middle" font-size="9" fill="#546e7a">Ingestion / Vectorstore Mgmt</text>
+  <text x="612" y="304" text-anchor="middle" font-size="9" fill="#546e7a">LLM Config / System Health</text>
+  <text x="612" y="316" text-anchor="middle" font-size="9" fill="#546e7a">Audit Logs / Metrics</text>
+
+  <rect x="725" y="258" width="185" height="72" rx="6" fill="white" stroke="#64b5f6" stroke-width="1"/>
+  <text x="817" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">State Management</text>
+  <text x="817" y="292" text-anchor="middle" font-size="9" fill="#546e7a">Zustand (client state)</text>
+  <text x="817" y="304" text-anchor="middle" font-size="9" fill="#546e7a">TanStack Query (server state)</text>
+  <text x="817" y="316" text-anchor="middle" font-size="9" fill="#546e7a">React Router v7</text>
+
+  <rect x="930" y="258" width="165" height="72" rx="6" fill="white" stroke="#64b5f6" stroke-width="1"/>
+  <text x="1012" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">Bilingual UI</text>
+  <text x="1012" y="292" text-anchor="middle" font-size="9" fill="#546e7a">Japanese / English</text>
+  <text x="1012" y="304" text-anchor="middle" font-size="9" fill="#546e7a">Language Context</text>
+  <text x="1012" y="316" text-anchor="middle" font-size="9" fill="#546e7a">Accessibility (a11y)</text>
+
+  <!-- Arrow: Frontend to API -->
+  <line x1="600" y1="345" x2="600" y2="375" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="620" y="365" font-size="10" fill="#78909c">REST / JSON</text>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 2: API GATEWAY + SECURITY                    -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="80" y="380" width="1040" height="120" rx="12" fill="url(#apiGrad)" stroke="#2e7d32" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="380" width="1040" height="30" rx="12" fill="#2e7d32"/>
+  <rect x="80" y="398" width="1040" height="12" fill="#2e7d32"/>
+  <text x="600" y="401" text-anchor="middle" fill="white" font-size="14" font-weight="bold">API Gateway — FastAPI + Uvicorn (ASGI)</text>
+  <text x="110" y="417" font-size="10" fill="#2e7d32">Port 8001</text>
+
+  <!-- API sub-components -->
+  <rect x="110" y="425" width="155" height="60" rx="6" fill="white" stroke="#81c784" stroke-width="1"/>
+  <text x="187" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">REST Endpoints</text>
+  <text x="187" y="457" text-anchor="middle" font-size="9" fill="#546e7a">POST /query</text>
+  <text x="187" y="469" text-anchor="middle" font-size="9" fill="#546e7a">GET /documents, /health</text>
+
+  <rect x="285" y="425" width="155" height="60" rx="6" fill="white" stroke="#81c784" stroke-width="1"/>
+  <text x="362" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">Admin Router</text>
+  <text x="362" y="457" text-anchor="middle" font-size="9" fill="#546e7a">Document management</text>
+  <text x="362" y="469" text-anchor="middle" font-size="9" fill="#546e7a">System config</text>
+
+  <rect x="460" y="425" width="155" height="60" rx="6" fill="white" stroke="#81c784" stroke-width="1"/>
+  <text x="537" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">Auth Router</text>
+  <text x="537" y="457" text-anchor="middle" font-size="9" fill="#546e7a">OIDC / API Key</text>
+  <text x="537" y="469" text-anchor="middle" font-size="9" fill="#546e7a">JWT Sessions / RBAC</text>
+
+  <!-- Security inset -->
+  <rect x="635" y="425" width="230" height="60" rx="6" fill="#ffebee" stroke="#ef5350" stroke-width="1.2"/>
+  <text x="750" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#c62828">Security Layer</text>
+  <text x="750" y="457" text-anchor="middle" font-size="9" fill="#546e7a">Rate Limiting (token bucket) | CORS</text>
+  <text x="750" y="469" text-anchor="middle" font-size="9" fill="#546e7a">Input Validation | XXE Protection</text>
+
+  <rect x="885" y="425" width="210" height="60" rx="6" fill="white" stroke="#81c784" stroke-width="1"/>
+  <text x="990" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">Middleware</text>
+  <text x="990" y="457" text-anchor="middle" font-size="9" fill="#546e7a">Correlation IDs</text>
+  <text x="990" y="469" text-anchor="middle" font-size="9" fill="#546e7a">Request Logging | CORS</text>
+
+  <!-- Arrow: API to Orchestrator -->
+  <line x1="600" y1="500" x2="600" y2="530" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 3: ORCHESTRATOR (Control Plane)              -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="80" y="535" width="1040" height="145" rx="12" fill="url(#orchestratorGrad)" stroke="#e65100" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="535" width="1040" height="30" rx="12" fill="#e65100"/>
+  <rect x="80" y="553" width="1040" height="12" fill="#e65100"/>
+  <text x="600" y="556" text-anchor="middle" fill="white" font-size="14" font-weight="bold">RAG Orchestrator — Control Plane (answer_query)</text>
+  <text x="110" y="572" font-size="10" fill="#e65100">Single Entry Point | Fail-Closed in PILOT Mode</text>
+
+  <!-- Pipeline stages -->
+  <g>
+    <rect x="110" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="175" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">1. Preprocess</text>
+    <text x="175" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Query normalization</text>
+    <text x="175" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Language detection</text>
+    <text x="175" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Domain classification</text>
+    <text x="175" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">Injection prevention</text>
+  </g>
+
+  <text x="247" y="620" font-size="16" fill="#e65100">&#x25B6;</text>
+
+  <g>
+    <rect x="262" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="327" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">2. Retrieve</text>
+    <text x="327" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Semantic / Hybrid</text>
+    <text x="327" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Category-enforced</text>
+    <text x="327" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Top-k optimization</text>
+    <text x="327" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">ChromaDB search</text>
+  </g>
+
+  <text x="399" y="620" font-size="16" fill="#e65100">&#x25B6;</text>
+
+  <g>
+    <rect x="414" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="479" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">3. Evidence Gate</text>
+    <text x="479" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Quality validation</text>
+    <text x="479" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Relevance scoring</text>
+    <text x="479" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Diversity check</text>
+    <text x="479" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">Abstain if poor</text>
+  </g>
+
+  <text x="551" y="620" font-size="16" fill="#e65100">&#x25B6;</text>
+
+  <g>
+    <rect x="566" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="631" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">4. Assemble</text>
+    <text x="631" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Token budgeting</text>
+    <text x="631" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Context building</text>
+    <text x="631" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Metadata enrichment</text>
+    <text x="631" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">Prompt rendering</text>
+  </g>
+
+  <text x="703" y="620" font-size="16" fill="#e65100">&#x25B6;</text>
+
+  <g>
+    <rect x="718" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="783" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">5. LLM Invoke</text>
+    <text x="783" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Provider selection</text>
+    <text x="783" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Citation prompting</text>
+    <text x="783" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Streaming support</text>
+    <text x="783" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">Failover handling</text>
+  </g>
+
+  <text x="855" y="620" font-size="16" fill="#e65100">&#x25B6;</text>
+
+  <g>
+    <rect x="870" y="583" width="130" height="80" rx="6" fill="white" stroke="#ffb74d" stroke-width="1"/>
+    <text x="935" y="600" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">6. Validate</text>
+    <text x="935" y="614" text-anchor="middle" font-size="8.5" fill="#546e7a">Citation verification</text>
+    <text x="935" y="626" text-anchor="middle" font-size="8.5" fill="#546e7a">Hallucination check</text>
+    <text x="935" y="638" text-anchor="middle" font-size="8.5" fill="#546e7a">Format validation</text>
+    <text x="935" y="650" text-anchor="middle" font-size="8.5" fill="#546e7a">Provenance recording</text>
+  </g>
+
+  <!-- Arrows from Orchestrator down to Retrieval and LLM -->
+  <line x1="400" y1="680" x2="330" y2="730" stroke="#c62828" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="800" y1="680" x2="870" y2="730" stroke="#6a1b9a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 4: RETRIEVAL PIPELINE + LLM LAYER            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <!-- Retrieval Pipeline -->
+  <rect x="80" y="735" width="500" height="155" rx="12" fill="url(#retrievalGrad)" stroke="#c62828" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="735" width="500" height="28" rx="12" fill="#c62828"/>
+  <rect x="80" y="751" width="500" height="12" fill="#c62828"/>
+  <text x="330" y="755" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Retrieval Pipeline</text>
+
+  <rect x="100" y="775" width="140" height="100" rx="6" fill="white" stroke="#ef9a9a" stroke-width="1"/>
+  <text x="170" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#c62828">Query Engine</text>
+  <text x="170" y="808" text-anchor="middle" font-size="8.5" fill="#546e7a">Semantic search</text>
+  <text x="170" y="820" text-anchor="middle" font-size="8.5" fill="#546e7a">Keyword (BM25)</text>
+  <text x="170" y="832" text-anchor="middle" font-size="8.5" fill="#546e7a">Hybrid fusion</text>
+  <text x="170" y="844" text-anchor="middle" font-size="8.5" fill="#546e7a">Category-enforced</text>
+  <text x="170" y="862" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">ChromaDB adapter</text>
+
+  <rect x="255" y="775" width="145" height="100" rx="6" fill="white" stroke="#ef9a9a" stroke-width="1"/>
+  <text x="327" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#c62828">Embeddings</text>
+  <text x="327" y="810" text-anchor="middle" font-size="8.5" fill="#546e7a">Ruri-v3 310M</text>
+  <text x="327" y="822" text-anchor="middle" font-size="8.5" fill="#78909c">(Japanese-optimized)</text>
+  <text x="327" y="838" text-anchor="middle" font-size="8.5" fill="#546e7a">Sarashina v2 1B</text>
+  <text x="327" y="850" text-anchor="middle" font-size="8.5" fill="#78909c">(research only)</text>
+  <text x="327" y="865" text-anchor="middle" font-size="8.5" fill="#546e7a">768d / 1792d</text>
+
+  <rect x="415" y="775" width="145" height="100" rx="6" fill="white" stroke="#ef9a9a" stroke-width="1"/>
+  <text x="487" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#c62828">Domain Routing</text>
+  <text x="487" y="808" text-anchor="middle" font-size="8.5" fill="#546e7a">Domain classifier</text>
+  <text x="487" y="820" text-anchor="middle" font-size="8.5" fill="#546e7a">VAT / Income Tax</text>
+  <text x="487" y="832" text-anchor="middle" font-size="8.5" fill="#546e7a">Corporate / Local</text>
+  <text x="487" y="844" text-anchor="middle" font-size="8.5" fill="#546e7a">Inheritance / Gift</text>
+  <text x="487" y="862" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Query optimizer</text>
+
+  <!-- LLM Layer -->
+  <rect x="620" y="735" width="500" height="155" rx="12" fill="url(#llmGrad)" stroke="#6a1b9a" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="620" y="735" width="500" height="28" rx="12" fill="#6a1b9a"/>
+  <rect x="620" y="751" width="500" height="12" fill="#6a1b9a"/>
+  <text x="870" y="755" text-anchor="middle" fill="white" font-size="13" font-weight="bold">LLM Integration Layer</text>
+
+  <rect x="640" y="775" width="115" height="100" rx="6" fill="white" stroke="#ce93d8" stroke-width="1"/>
+  <text x="697" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#6a1b9a">Anthropic</text>
+  <text x="697" y="810" text-anchor="middle" font-size="9" fill="#546e7a">Claude 3 Opus</text>
+  <text x="697" y="824" text-anchor="middle" font-size="9" fill="#546e7a">Claude 3 Sonnet</text>
+  <text x="697" y="842" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Primary</text>
+
+  <rect x="770" y="775" width="105" height="100" rx="6" fill="white" stroke="#ce93d8" stroke-width="1"/>
+  <text x="822" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#6a1b9a">OpenAI</text>
+  <text x="822" y="810" text-anchor="middle" font-size="9" fill="#546e7a">GPT-4 / GPT-4T</text>
+  <text x="822" y="824" text-anchor="middle" font-size="9" fill="#546e7a">GPT-3.5 Turbo</text>
+  <text x="822" y="842" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Fallback</text>
+
+  <rect x="890" y="775" width="105" height="100" rx="6" fill="white" stroke="#ce93d8" stroke-width="1"/>
+  <text x="942" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#6a1b9a">Ollama</text>
+  <text x="942" y="810" text-anchor="middle" font-size="9" fill="#546e7a">Llama / Mistral</text>
+  <text x="942" y="824" text-anchor="middle" font-size="9" fill="#546e7a">Local inference</text>
+  <text x="942" y="842" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Self-hosted</text>
+
+  <rect x="1005" y="775" width="100" height="100" rx="6" fill="white" stroke="#ce93d8" stroke-width="1"/>
+  <text x="1055" y="793" text-anchor="middle" font-size="10" font-weight="bold" fill="#6a1b9a">Failover</text>
+  <text x="1055" y="810" text-anchor="middle" font-size="9" fill="#546e7a">Auto-switching</text>
+  <text x="1055" y="824" text-anchor="middle" font-size="9" fill="#546e7a">Retry logic</text>
+  <text x="1055" y="840" text-anchor="middle" font-size="9" fill="#546e7a">Provider factory</text>
+
+  <!-- Arrows down from Retrieval to Data Layer -->
+  <line x1="330" y1="890" x2="330" y2="935" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 5: DATA & STORAGE                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="80" y="940" width="700" height="150" rx="12" fill="url(#dataGrad)" stroke="#00695c" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="940" width="700" height="28" rx="12" fill="#00695c"/>
+  <rect x="80" y="956" width="700" height="12" fill="#00695c"/>
+  <text x="430" y="960" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Data &amp; Storage Layer</text>
+
+  <!-- ChromaDB -->
+  <rect x="100" y="978" width="195" height="98" rx="6" fill="white" stroke="#80cbc4" stroke-width="1"/>
+  <text x="197" y="996" text-anchor="middle" font-size="11" font-weight="bold" fill="#00695c">ChromaDB</text>
+  <text x="197" y="1010" text-anchor="middle" font-size="9" fill="#546e7a">Vector database</text>
+  <text x="197" y="1024" text-anchor="middle" font-size="9" fill="#546e7a">Singleton pattern (thread-safe)</text>
+  <text x="197" y="1038" text-anchor="middle" font-size="9" fill="#546e7a">Embedded or Server mode</text>
+  <text x="197" y="1052" text-anchor="middle" font-size="9" fill="#546e7a">Backup / Restore / Orphan detect</text>
+  <text x="197" y="1068" text-anchor="middle" font-size="8" fill="#78909c">Port 8100 (server mode)</text>
+
+  <!-- Document Registry -->
+  <rect x="310" y="978" width="195" height="98" rx="6" fill="white" stroke="#80cbc4" stroke-width="1"/>
+  <text x="407" y="996" text-anchor="middle" font-size="11" font-weight="bold" fill="#00695c">Document Registry</text>
+  <text x="407" y="1010" text-anchor="middle" font-size="9" fill="#546e7a">SQLite backend</text>
+  <text x="407" y="1024" text-anchor="middle" font-size="9" fill="#546e7a">Fingerprint tracking</text>
+  <text x="407" y="1038" text-anchor="middle" font-size="9" fill="#546e7a">Version management</text>
+  <text x="407" y="1052" text-anchor="middle" font-size="9" fill="#546e7a">Provenance storage</text>
+  <text x="407" y="1068" text-anchor="middle" font-size="8" fill="#78909c">data/indexes/</text>
+
+  <!-- File System -->
+  <rect x="520" y="978" width="240" height="98" rx="6" fill="white" stroke="#80cbc4" stroke-width="1"/>
+  <text x="640" y="996" text-anchor="middle" font-size="11" font-weight="bold" fill="#00695c">File System Storage</text>
+  <text x="640" y="1010" text-anchor="middle" font-size="9" fill="#546e7a">data/corpus/ — Document files</text>
+  <text x="640" y="1024" text-anchor="middle" font-size="9" fill="#546e7a">data/indexes/ — ChromaDB persistence</text>
+  <text x="640" y="1038" text-anchor="middle" font-size="9" fill="#546e7a">data/logs/ — Structured logs</text>
+  <text x="640" y="1052" text-anchor="middle" font-size="9" fill="#546e7a">Checkpoints / Snapshots</text>
+  <text x="640" y="1068" text-anchor="middle" font-size="8" fill="#78909c">Local persistent storage</text>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 5b: INGESTION PIPELINE (right side)           -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="810" y="940" width="310" height="150" rx="12" fill="url(#securityGrad)" stroke="#bf360c" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="810" y="940" width="310" height="28" rx="12" fill="#bf360c"/>
+  <rect x="810" y="956" width="310" height="12" fill="#bf360c"/>
+  <text x="965" y="960" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Document Ingestion Engine</text>
+
+  <rect x="825" y="978" width="135" height="98" rx="6" fill="white" stroke="#ffab91" stroke-width="1"/>
+  <text x="892" y="996" text-anchor="middle" font-size="10" font-weight="bold" fill="#bf360c">Parsers</text>
+  <text x="892" y="1010" text-anchor="middle" font-size="8.5" fill="#546e7a">PDF (pdfplumber)</text>
+  <text x="892" y="1022" text-anchor="middle" font-size="8.5" fill="#546e7a">XML (defusedxml)</text>
+  <text x="892" y="1034" text-anchor="middle" font-size="8.5" fill="#546e7a">HTML (BeautifulSoup)</text>
+  <text x="892" y="1046" text-anchor="middle" font-size="8.5" fill="#546e7a">OCR (Tesseract)</text>
+  <text x="892" y="1062" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Multi-format</text>
+
+  <rect x="970" y="978" width="135" height="98" rx="6" fill="white" stroke="#ffab91" stroke-width="1"/>
+  <text x="1037" y="996" text-anchor="middle" font-size="10" font-weight="bold" fill="#bf360c">Processing</text>
+  <text x="1037" y="1010" text-anchor="middle" font-size="8.5" fill="#546e7a">Legal chunking (条/項)</text>
+  <text x="1037" y="1022" text-anchor="middle" font-size="8.5" fill="#546e7a">SHA-256 fingerprinting</text>
+  <text x="1037" y="1034" text-anchor="middle" font-size="8.5" fill="#546e7a">Deduplication</text>
+  <text x="1037" y="1046" text-anchor="middle" font-size="8.5" fill="#546e7a">Classification</text>
+  <text x="1037" y="1062" text-anchor="middle" font-size="8" fill="#78909c" font-style="italic">Parallel + batched</text>
+
+  <!-- Arrow: Ingestion to ChromaDB -->
+  <path d="M 810,1040 L 780,1040 L 780,1040 L 760,1040" fill="none" stroke="#546e7a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 6: CROSS-CUTTING — MONITORING + INFRA        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <!-- Monitoring -->
+  <rect x="80" y="1120" width="540" height="130" rx="12" fill="url(#monitorGrad)" stroke="#283593" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="80" y="1120" width="540" height="28" rx="12" fill="#283593"/>
+  <rect x="80" y="1136" width="540" height="12" fill="#283593"/>
+  <text x="350" y="1140" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Monitoring &amp; Observability</text>
+
+  <rect x="100" y="1158" width="155" height="78" rx="6" fill="white" stroke="#9fa8da" stroke-width="1"/>
+  <text x="177" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Metrics</text>
+  <text x="177" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">Prometheus client</text>
+  <text x="177" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">Request counters</text>
+  <text x="177" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">Latency histograms</text>
+  <text x="177" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">SLO tracking</text>
+
+  <rect x="270" y="1158" width="155" height="78" rx="6" fill="white" stroke="#9fa8da" stroke-width="1"/>
+  <text x="347" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Logging</text>
+  <text x="347" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">Structured JSON</text>
+  <text x="347" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">Correlation IDs</text>
+  <text x="347" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">Audit trails</text>
+  <text x="347" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">Request tracing</text>
+
+  <rect x="440" y="1158" width="160" height="78" rx="6" fill="white" stroke="#9fa8da" stroke-width="1"/>
+  <text x="520" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Health Checks</text>
+  <text x="520" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">/health (liveness)</text>
+  <text x="520" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">/ready (readiness)</text>
+  <text x="520" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">ChromaDB deep check</text>
+  <text x="520" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">Dependency health</text>
+
+  <!-- Infrastructure -->
+  <rect x="660" y="1120" width="460" height="130" rx="12" fill="url(#infraGrad)" stroke="#4e342e" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="660" y="1120" width="460" height="28" rx="12" fill="#4e342e"/>
+  <rect x="660" y="1136" width="460" height="12" fill="#4e342e"/>
+  <text x="890" y="1140" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Infrastructure &amp; Deployment</text>
+
+  <rect x="680" y="1158" width="130" height="78" rx="6" fill="white" stroke="#bcaaa4" stroke-width="1"/>
+  <text x="745" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#4e342e">Docker</text>
+  <text x="745" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">Compose v3.8</text>
+  <text x="745" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">Multi-stage builds</text>
+  <text x="745" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">Health checks</text>
+  <text x="745" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">Volume persistence</text>
+
+  <rect x="825" y="1158" width="130" height="78" rx="6" fill="white" stroke="#bcaaa4" stroke-width="1"/>
+  <text x="890" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#4e342e">CI/CD</text>
+  <text x="890" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">GitHub Actions</text>
+  <text x="890" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">Quality gates</text>
+  <text x="890" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">Canary deploys</text>
+  <text x="890" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">Rollback support</text>
+
+  <rect x="970" y="1158" width="130" height="78" rx="6" fill="white" stroke="#bcaaa4" stroke-width="1"/>
+  <text x="1035" y="1176" text-anchor="middle" font-size="10" font-weight="bold" fill="#4e342e">Configuration</text>
+  <text x="1035" y="1190" text-anchor="middle" font-size="8.5" fill="#546e7a">Pydantic v2</text>
+  <text x="1035" y="1202" text-anchor="middle" font-size="8.5" fill="#546e7a">Environment vars</text>
+  <text x="1035" y="1214" text-anchor="middle" font-size="8.5" fill="#546e7a">Policy profiles</text>
+  <text x="1035" y="1226" text-anchor="middle" font-size="8.5" fill="#546e7a">YAML overrides</text>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- EXTERNAL SERVICES (bottom)                         -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="80" y="1280" width="1040" height="65" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="600" y="1300" text-anchor="middle" font-size="13" font-weight="bold" fill="#546e7a">External Services &amp; Data Sources</text>
+
+  <text x="180" y="1328" text-anchor="middle" font-size="11" fill="#37474f">Anthropic API</text>
+  <text x="340" y="1328" text-anchor="middle" font-size="11" fill="#37474f">OpenAI API</text>
+  <text x="500" y="1328" text-anchor="middle" font-size="11" fill="#37474f">Ollama (Local)</text>
+  <text x="680" y="1328" text-anchor="middle" font-size="11" fill="#37474f">e-Gov / NTA Sources</text>
+  <text x="900" y="1328" text-anchor="middle" font-size="11" fill="#37474f">OIDC / OAuth Providers</text>
+  <text x="1060" y="1328" text-anchor="middle" font-size="11" fill="#37474f">Zhipu GLM</text>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LEGEND                                              -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <rect x="80" y="1370" width="1040" height="90" rx="8" fill="white" stroke="#bdbdbd" stroke-width="1"/>
+  <text x="600" y="1392" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">Legend</text>
+
+  <rect x="110" y="1405" width="20" height="14" rx="3" fill="url(#frontendGrad)" stroke="#1565c0" stroke-width="0.8"/>
+  <text x="140" y="1416" font-size="10" fill="#37474f">Presentation</text>
+
+  <rect x="230" y="1405" width="20" height="14" rx="3" fill="url(#apiGrad)" stroke="#2e7d32" stroke-width="0.8"/>
+  <text x="260" y="1416" font-size="10" fill="#37474f">API Gateway</text>
+
+  <rect x="345" y="1405" width="20" height="14" rx="3" fill="url(#orchestratorGrad)" stroke="#e65100" stroke-width="0.8"/>
+  <text x="375" y="1416" font-size="10" fill="#37474f">Orchestrator</text>
+
+  <rect x="465" y="1405" width="20" height="14" rx="3" fill="url(#retrievalGrad)" stroke="#c62828" stroke-width="0.8"/>
+  <text x="495" y="1416" font-size="10" fill="#37474f">Retrieval</text>
+
+  <rect x="560" y="1405" width="20" height="14" rx="3" fill="url(#llmGrad)" stroke="#6a1b9a" stroke-width="0.8"/>
+  <text x="590" y="1416" font-size="10" fill="#37474f">LLM Layer</text>
+
+  <rect x="660" y="1405" width="20" height="14" rx="3" fill="url(#dataGrad)" stroke="#00695c" stroke-width="0.8"/>
+  <text x="690" y="1416" font-size="10" fill="#37474f">Data/Storage</text>
+
+  <rect x="775" y="1405" width="20" height="14" rx="3" fill="url(#monitorGrad)" stroke="#283593" stroke-width="0.8"/>
+  <text x="805" y="1416" font-size="10" fill="#37474f">Monitoring</text>
+
+  <rect x="890" y="1405" width="20" height="14" rx="3" fill="url(#infraGrad)" stroke="#4e342e" stroke-width="0.8"/>
+  <text x="920" y="1416" font-size="10" fill="#37474f">Infrastructure</text>
+
+  <rect x="1010" y="1405" width="20" height="14" rx="3" fill="#ffebee" stroke="#ef5350" stroke-width="0.8"/>
+  <text x="1040" y="1416" font-size="10" fill="#37474f">Security</text>
+
+  <line x1="110" y1="1435" x2="160" y2="1435" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="172" y="1440" font-size="10" fill="#37474f">Data flow</text>
+
+  <line x1="270" y1="1435" x2="320" y2="1435" stroke="#546e7a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+  <text x="332" y="1440" font-size="10" fill="#37474f">Internal connection</text>
+
+  <!-- Footer -->
+  <text x="600" y="1490" text-anchor="middle" font-size="11" fill="#90a4ae">Japanese Tax Expert System (JTES) v1.0 — Architecture Diagram — February 2026</text>
+  <text x="600" y="1508" text-anchor="middle" font-size="10" fill="#b0bec5">RAG-powered tax law Q&amp;A for business owners and consultants</text>
+</svg>

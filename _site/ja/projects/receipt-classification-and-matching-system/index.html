@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ja">
+  
+  
+  
+  
+  
+  
+  
+  
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>レシート分類・マッチングシステム | LLM Project Portfolio - David Klan</title>
+    <meta name="description" content="LLM Project Portfolio - David Klan. Senior AI/ML Engineer showcasing practical AI systems with agentic workflows, RAG architecture, and enterprise automation.">
+    <link rel="alternate" hreflang="en" href="https://kinokoholic.com/projects/receipt-classification-and-matching-system/">
+    <link rel="alternate" hreflang="ja" href="https://kinokoholic.com/ja/projects/receipt-classification-and-matching-system/">
+    <link rel="alternate" hreflang="x-default" href="https://kinokoholic.com/projects/receipt-classification-and-matching-system/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+      // Language persistence and page-specific switching
+      (function() {
+        const baseUrl = "";
+        const stripBaseUrl = (pathname) => {
+          if (baseUrl && pathname.indexOf(baseUrl + '/') === 0) {
+            return pathname.slice(baseUrl.length);
+          }
+          if (baseUrl && pathname === baseUrl) {
+            return '/';
+          }
+          return pathname;
+        };
+
+        const currentPath = stripBaseUrl(window.location.pathname);
+        const isJaPage = currentPath === '/ja' || currentPath.indexOf('/ja/') === 0;
+        const currentLang = isJaPage ? 'ja' : 'en';
+        const storedLang = localStorage.getItem('site-lang');
+        const effectiveLang = storedLang || currentLang;
+
+        // Redirect only if stored preference differs from current page language
+        if ((effectiveLang === 'ja' && !isJaPage) || (effectiveLang === 'en' && isJaPage)) {
+          // Let the navigation handle the redirect via data-lang-switch links
+        }
+
+        // Update lang toggle active states
+        document.addEventListener('DOMContentLoaded', function() {
+          const pagePath = stripBaseUrl(window.location.pathname);
+          const isJa = pagePath === '/ja' || pagePath.indexOf('/ja/') === 0;
+          const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
+          const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
+          if (enLink) enLink.classList.toggle('active', !isJa);
+          if (jaLink) jaLink.classList.toggle('active', isJa);
+        });
+
+        // Store language choice when toggle is clicked
+        document.addEventListener('click', function(e) {
+          const target = e.target.closest('.lang-toggle a');
+          if (target) {
+            const lang = target.getAttribute('data-lang-switch');
+            localStorage.setItem('site-lang', lang);
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="site-bg" aria-hidden="true"></div>
+    
+
+
+
+
+
+
+
+
+
+
+
+<header class="top-nav">
+  <div class="container nav-inner">
+    
+      <a class="brand" href="/ja/">LLMプロジェクトポートフォリオ - David Klan</a>
+    
+    <nav class="nav-links" aria-label="Primary">
+      
+        <a class="nav-link " href="/ja/">ホーム</a>
+        <a class="nav-link " href="/ja/about/">概要 / 連絡先</a>
+        <a class="nav-link " href="/ja/kinokomon/">きのこもん</a>
+      
+    </nav>
+    <div class="lang-toggle">
+      
+        <a href="/projects/receipt-classification-and-matching-system/" data-lang-switch="en" class="active">EN</a>
+        <span class="divider">|</span>
+        <span class="current">日本語</span>
+      
+    </div>
+  </div>
+</header>
+
+    <main class="container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article class="project-detail">
+  <header class="project-header fade-up">
+    <div class="title-wrap">
+      <span class="icon-badge large">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect x="6" y="3.5" width="12" height="17" rx="2" ry="2"></rect>
+  <path d="M9 8h6M9 12h6M9 16h4"></path>
+</svg>
+
+</span>
+      <div>
+        <p class="eyebrow">プロジェクト詳細</p>
+        <h1>レシート分類・マッチングシステム</h1>
+      </div>
+    </div>
+    <p class="project-value">明細書とレシートの自動照合による、より迅速で正確な税務申請ワークフロー。</p>
+    <ul class="tag-list">
+      
+      <li>ドキュメントAI</li>
+      
+      <li>経費業務</li>
+      
+      <li>分類</li>
+      
+    </ul>
+  </header>
+
+  <section class="section-block fade-up delay-1">
+    <h2>エグゼクティブサマリー</h2>
+    <div class="summary-grid">
+      <div>
+        <h3>課題</h3>
+        <p>クレジットカード明細とレシートの照合を手作業で行っていたため、会社の税務申告前に遅延と分類の不一致が発生していました。</p>
+      </div>
+      <div>
+        <h3>解決策</h3>
+        <p>無料LLMを使うGemini Colabワークフローを構築し、明細行とレシートを照合した上で、曖昧性を考慮したベンダー処理で取引分類を行いました。</p>
+      </div>
+      <div>
+        <h3>成果</h3>
+        <p>照合を高速化し、税務向けの経費分類品質を高める再現可能なレビュー工程を実現しました。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-2">
+    <h2>ユースケース・関係者</h2>
+    <p>財務・業務チームは、手動レビュー時間を増やさずに、月次取引の信頼できる照合と分類を必要としていました。</p>
+    <ul class="bullet-list">
+      
+      <li>財務オペレーションアナリスト</li>
+      
+      <li>経理担当および税務準備担当</li>
+      
+      <li>経費申請を行う事業部マネージャー</li>
+      
+    </ul>
+  </section>
+
+  <section class="section-block fade-up delay-3">
+    <h2>アーキテクチャ</h2>
+    <p>明細行とレシートテキストを正規化し、候補マッチをスコアリングした後、曖昧なベンダーをLLM支援分類に回して最終レビューに接続します。</p>
+    <pre class="diagram" aria-label="アーキテクチャ図（擬似図）">[クレジットカード明細 CSV/PDF]
+           |
+   OCR + 正規化
+           |
+  候補マッチのスコアリング
+           |
+ベンダーが曖昧? -> LLM分類器
+           |
+  人手レビューキュー + エクスポート
+</pre>
+    
+  </section>
+
+  <section class="section-block fade-up delay-4">
+    <h2>技術詳細</h2>
+    <div class="tech-grid">
+      <div>
+        <h3>RAG / プロンプト設計</h3>
+        <ul class="bullet-list">
+          
+          <li>ベンダー名と加盟店コンテキストのヒントを使った曖昧性解消プロンプト。</li>
+          
+          <li>カテゴリラベルと信頼度を返す構造化出力テンプレート。</li>
+          
+          <li>モデル信頼度が低下した場合の軽量フォールバックルール。</li>
+          
+        </ul>
+      </div>
+      <div>
+        <h3>使用ツール</h3>
+        <ul class="bullet-list">
+          
+          <li>Gemini Colabノートブック実行環境</li>
+          
+          <li>Pythonによるデータクレンジングと照合ロジック</li>
+          
+          <li>分類支援のための無料LLMエンドポイント</li>
+          
+        </ul>
+      </div>
+      <div>
+        <h3>制約</h3>
+        <ul class="bullet-list">
+          
+          <li>レシート品質のばらつきとOCRノイズ。</li>
+          
+          <li>加盟店別名や明細説明の省略表記。</li>
+          
+          <li>モデル/API利用予算の制約。</li>
+          
+        </ul>
+      </div>
+      <div>
+        <h3>トレードオフ</h3>
+        <ul class="bullet-list">
+          
+          <li>再現率を高める照合は、境界ケースで誤検出を増やす可能性がある。</li>
+          
+          <li>分類自動化を強めるほど手作業は減るが、監査チェックを厳密にする必要がある。</li>
+          
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-5">
+    <h2>スクリーンショットギャラリー</h2>
+    <div class="gallery-grid">
+      
+      
+      
+      
+      
+      
+      
+      <figure class="shot-card">
+        <div class="shot-media-wrap">
+        
+        <iframe
+          class="shot-media shot-frame"
+          src="/assets/images/receipt_img.pdf"
+          title="レシートのサンプルPDF"
+          loading="lazy">
+        </iframe>
+        
+          <a class="shot-overlay-link" href="/assets/images/receipt_img.pdf" target="_blank" rel="noreferrer" aria-label="フルサイズで開く: レシートのサンプルPDF">
+            <span>フルサイズで開く</span>
+          </a>
+        </div>
+        <figcaption>OCR抽出と明細行照合チェックに使用したPDFレシートサンプル。</figcaption>
+      </figure>
+      
+      
+      
+      
+      
+      
+      
+      <figure class="shot-card">
+        <div class="shot-media-wrap">
+        
+        <iframe
+          class="shot-media shot-frame"
+          src="/assets/images/recceipt_sample.html"
+          title="レシートのサンプルHTML出力"
+          loading="lazy">
+        </iframe>
+        
+          <a class="shot-overlay-link" href="/assets/images/recceipt_sample.html" target="_blank" rel="noreferrer" aria-label="フルサイズで開く: レシートのサンプルHTML出力">
+            <span>フルサイズで開く</span>
+          </a>
+        </div>
+        <figcaption>パーサーと構造化抽出挙動を検証するためのHTMLレシート表現。</figcaption>
+      </figure>
+      
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-6">
+    <h2>学びと次の改善点</h2>
+    <div class="improve-grid">
+      <div>
+        <h3>学び</h3>
+        <ul class="bullet-list">
+          
+          <li>信頼度しきい値とレビューキューは、財務業務での信頼確保に不可欠。</li>
+          
+          <li>加盟店別名辞書は初期照合品質を大幅に改善する。</li>
+          
+          <li>プロンプトスキーマの厳格化は後段の解析不具合を防ぐ。</li>
+          
+        </ul>
+      </div>
+      <div>
+        <h3>次に改善したい点</h3>
+        <ul class="bullet-list">
+          
+          <li>レビュー修正を取り込むアクティブラーニングループを追加する。</li>
+          
+          <li>レシート欠落を検知する文書レベル異常検知を追加する。</li>
+          
+          <li>カテゴリ別・ベンダー種別の月次品質スコアカードを追加する。</li>
+          
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block fade-up delay-7">
+    <h2>再現メモ / デモ手順</h2>
+    <p class="status-note">
+      
+      公開デモ（非実行）です。以下の手順で確認してください。
+      
+    </p>
+    <ol class="number-list">
+      
+      <li>ノートブックフローを開き、明細／レシートのサンプル入力を確認する。</li>
+      
+      <li>マッチングスコアロジックと曖昧性分類プロンプトを確認する。</li>
+      
+      <li>例外ルーティング結果と最終分類エクスポート形式を確認する。</li>
+      
+    </ol>
+  </section>
+
+  
+</article>
+
+</main>
+    <footer class="site-footer">
+  <div class="container footer-inner">
+    <p>David Klan | IT PM + AI/ML Engineer</p>
+    <div class="footer-links">
+      <a href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noreferrer">LinkedIn</a>
+      <a href="" target="_blank" rel="noreferrer">Website</a>
+      <a href="mailto:admin@dazbeez.com">Email</a>
+    </div>
+  </div>
+</footer>
+
+  </body>
+</html>
