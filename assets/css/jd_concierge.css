@@ -34,7 +34,7 @@
 
 .jd-concierge__textarea {
   width: 100%;
-  min-height: 220px;
+  min-height: 160px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0.75rem;
@@ -76,6 +76,11 @@
 .jd-concierge__button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* Ensure [hidden] is respected even when display is set explicitly. */
+.jd-concierge__loading[hidden] {
+  display: none;
 }
 
 .jd-concierge__loading {

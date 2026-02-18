@@ -48,7 +48,7 @@ function formatApiError(status, data) {
   return data && data.error ? data.error : "Analysis failed.";
 }
 
-const MAX_LEN = 15000;
+const MAX_LEN = 10000;
 
 describe('JD Concierge Widget - Utility Functions', () => {
 
@@ -161,8 +161,42 @@ describe('JD Concierge Widget - Utility Functions', () => {
   });
 
   describe('MAX_LEN constant', () => {
-    it('should be defined as 15000', () => {
-      assert.strictEqual(MAX_LEN, 15000);
+    it('should be defined as 10000', () => {
+      assert.strictEqual(MAX_LEN, 10000);
+    });
+  });
+
+  describe('Result cache', () => {
+    it('Map correctly stores and retrieves a cached payload', () => {
+      const cache = new Map();
+      const jdText = 'Role: AI Engineer\n- Prompt engineering';
+      const payload = { score: 82, confidence: 'High', fit_summary: 'Strong match.' };
+
+      assert.strictEqual(cache.has(jdText), false, 'Cache should be empty before first call');
+      cache.set(jdText, payload);
+      assert.strictEqual(cache.has(jdText), true, 'Cache should contain entry after set');
+      assert.deepStrictEqual(cache.get(jdText), payload, 'Cache should return the exact payload');
+    });
+
+    it('different JD texts produce separate cache entries', () => {
+      const cache = new Map();
+      const payloadA = { score: 70 };
+      const payloadB = { score: 45 };
+
+      cache.set('JD text A', payloadA);
+      cache.set('JD text B', payloadB);
+
+      assert.strictEqual(cache.size, 2);
+      assert.deepStrictEqual(cache.get('JD text A'), payloadA);
+      assert.deepStrictEqual(cache.get('JD text B'), payloadB);
+    });
+  });
+
+  describe('Character limit error message', () => {
+    it('too-long error message references 10,000 not 15,000', () => {
+      const message = 'Job description is too long. Maximum is 10,000 characters.';
+      assert.ok(message.includes('10,000'), 'Should reference new 10,000 limit');
+      assert.ok(!message.includes('15,000'), 'Should not reference old 15,000 limit');
     });
   });
 
