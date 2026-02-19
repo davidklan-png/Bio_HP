@@ -516,6 +516,8 @@ Last Updated: [Timestamp]
 - [MEMORY.md](../../.openclaw/workspace/MEMORY.md) - Orchestrator lessons
 - [EVANGELIST.md](../../.openclaw/workspace/EVANGELIST.md) - Recruiter strategy
 - [AGENTS.md](../AGENTS.md) - Agent handover guide
+- [JAPAN_BOT_COMMUNITY_STRATEGY.md](../../.openclaw/workspace/JAPAN_BOT_COMMUNITY_STRATEGY.md) - Japan bot community building strategy
+- [japan-bot-dashboard.md](japan-bot-dashboard.md) - Japan bot community metrics dashboard
 ```
 
 ---
