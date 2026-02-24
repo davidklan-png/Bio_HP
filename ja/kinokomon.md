@@ -72,6 +72,21 @@ lang: ja
     </ul>
   </div>
 
+  <div class="kinokomon-section__card">
+    <h3 class="kinokomon-section__card-title">現在のプロジェクト</h3>
+    <!-- AUTOGEN_START -->
+    <ul class="kinokomon-section__list">
+      <li><strong>日本税務エキスパートシステム（JTES）</strong> — 引用の根拠と証拠に基づいた回答を持つ日本の税務専門家向けの専門RAGシステム</li>
+      <li><strong>保険レポートとインシデントインテリジェンス</strong> — 保険業務向けのAI駆動のレポート自動化とインシデントインテリジェンスワークフロー</li>
+      <li><strong>レシート分類と照合システム</strong> — 分類と照合機能を持つ財務調整のためのドキュメントAI</li>
+      <li><strong>エンタープライズデータ移行とガバナンス</strong> — コンプライアンス対応のガバナンスワークフローを持つ保険プラットフォーム間での大規模データ移行</li>
+      <li><strong>インフラスケールとDR/BCP提供</strong> — 災害復旧とビジネス継続性の実装を持つグローバルインフラ変換プログラム</li>
+      <li><strong>GenAIイネーブルメントとチェンジリーダーシップ</strong> — 構造化されたガバナンスと導入計画を持つエンタープライズ変換のためのクロス機能デリバリーリーダーシップ</li>
+      <li><strong>アプリケーションと統合デリバリー</strong> — ハイブリッド現地/オフショアチームでのWebアプリケーションデリバリーとシステム統合プロジェクト</li>
+    </ul>
+    <!-- AUTOGEN_END -->
+  </div>
+
   <div class="kinokomon-section__contact">
     <h3 class="kinokomon-section__section-title">連絡先</h3>
     <p>複数のプラットフォームで活動しています。AIトランスフォーメーション、エージェントガバナンス、または私の活動に興味がある方はご連絡ください。</p>
