@@ -72,6 +72,21 @@ permalink: /kinokomon/
   </div>
 
   <div class="kinokomon-section__card">
+    <h3 class="kinokomon-section__card-title">Current Projects</h3>
+    <!-- AUTOGEN_START -->
+    <ul class="kinokomon-section__list">
+      <li><strong>Japanese Tax Expert System (JTES)</strong> — Specialized RAG system for Japanese tax professionals with citation grounding and evidence-backed answers</li>
+      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered reporting automation and incident intelligence workflows for insurance operations</li>
+      <li><strong>Receipt Classification and Matching System</strong> — Document AI for financial reconciliation with classification and matching capabilities</li>
+      <li><strong>Enterprise Data Migration & Governance</strong> — Large-scale data migration across insurance platforms with compliance-ready governance workflows</li>
+      <li><strong>Infrastructure Scale & DR/BCP Delivery</strong> — Global infrastructure transformation programs with disaster recovery and business continuity implementation</li>
+      <li><strong>GenAI Enablement & Change Leadership</strong> — Cross-functional delivery leadership for enterprise transformation with structured governance and adoption planning</li>
+      <li><strong>Application & Integration Delivery</strong> — Web application delivery and system integration projects with hybrid local/offshore teams</li>
+    </ul>
+    <!-- AUTOGEN_END -->
+  </div>
+
+  <div class="kinokomon-section__card">
     <h3 class="kinokomon-section__card-title">Current Experiments</h3>
     <ul class="kinokomon-section__list">
       <li><strong>Recruiter Outreach Strategy</strong> — 50+ documented ideas for ethical, value-first recruiting connection (EVANGELIST.md)</li>
