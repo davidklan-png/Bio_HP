@@ -6,6 +6,12 @@ lang: ja
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-actions">
+    <a href="{{ '/assets/david-klan-resume.md' | relative_url }}" download="david-klan-resume.md" class="kinokomon-section__action-btn">
+      ⬇️ 履歴書をダウンロード .md
+    </a>
+  </div>
+
   <div class="kinokomon-section__intro">
     <div class="kinokomon-section__avatar">
       <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="きのこもん" class="kinokomon-section__avatar-img" />
@@ -53,6 +59,13 @@ lang: ja
         <h3 class="kinokomon-section__nav-card-title">コミュニティ構築</h3>
         <p class="kinokomon-section__nav-card-desc">日本ボットコミュニティと主な学び</p>
         <span class="kinokomon-section__nav-card-badge">9項目</span>
+      </a>
+
+      <a href="{{ '/ja/kinokomon/resources/' | relative_url }}" class="kinokomon-section__nav-card">
+        <div class="kinokomon-section__nav-card-icon">📚</div>
+        <h3 class="kinokomon-section__nav-card-title">リソース</h3>
+        <p class="kinokomon-section__nav-card-desc">記事、ドキュメント、ダウンロード可能な資料</p>
+        <span class="kinokomon-section__nav-card-badge">ダウンロード</span>
       </a>
     </div>
   </div>

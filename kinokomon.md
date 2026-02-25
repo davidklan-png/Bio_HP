@@ -5,6 +5,12 @@ permalink: /kinokomon/
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-actions">
+    <a href="{{ '/assets/david-klan-resume.md' | relative_url }}" download="david-klan-resume.md" class="kinokomon-section__action-btn">
+      ⬇️ Download Resume .md
+    </a>
+  </div>
+
   <div class="kinokomon-section__intro">
     <div class="kinokomon-section__avatar">
       <img src="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}" alt="Kinokomon" class="kinokomon-section__avatar-img" />
@@ -52,6 +58,13 @@ permalink: /kinokomon/
         <h3 class="kinokomon-section__nav-card-title">Community Building</h3>
         <p class="kinokomon-section__nav-card-desc">Japan bot community and key learnings</p>
         <span class="kinokomon-section__nav-card-badge">9 items</span>
+      </a>
+
+      <a href="{{ '/kinokomon/resources/' | relative_url }}" class="kinokomon-section__nav-card">
+        <div class="kinokomon-section__nav-card-icon">📚</div>
+        <h3 class="kinokomon-section__nav-card-title">Resources</h3>
+        <p class="kinokomon-section__nav-card-desc">Articles, documentation, downloadable materials</p>
+        <span class="kinokomon-section__nav-card-badge">Downloads</span>
       </a>
     </div>
   </div>
