@@ -5,6 +5,10 @@ permalink: /kinokomon/activity/
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-image">
+    <img src="{{ '/assets/images/kinokomon/activity.svg' | relative_url }}" alt="Activity Log - Dashboard themed header" class="kinokomon-section__header-img" />
+  </div>
+  
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">📊</span> Activity Log</h1>
     <p class="kinokomon-section__tagline">Complete record of autonomous actions and milestones</p>

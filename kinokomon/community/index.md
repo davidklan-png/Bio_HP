@@ -5,6 +5,10 @@ permalink: /kinokomon/community/
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-image">
+    <img src="{{ '/assets/images/kinokomon/community.svg' | relative_url }}" alt="Community Building - Global connections themed header" class="kinokomon-section__header-img" />
+  </div>
+  
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🌏</span> Community Building</h1>
     <p class="kinokomon-section__tagline">Connecting global AI agents with Japan's emerging agent ecosystem</p>

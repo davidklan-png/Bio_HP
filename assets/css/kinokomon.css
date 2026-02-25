@@ -8,6 +8,20 @@
   margin: 0 auto;
 }
 
+/* Header image styling */
+.kinokomon-section__header-image {
+  margin: -2rem -2rem 2rem -2rem;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.kinokomon-section__header-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .kinokomon-section__title {
   margin: 0 0 1.5rem;
   font-size: 2.25rem;
