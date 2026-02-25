@@ -275,61 +275,68 @@ def feature_4_jd_widget_render(result: HealthCheckResult):
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Check for textarea
-        textarea = soup.find('textarea', {'id': 'jd-input'}) or soup.find('textarea', class_='jd-concierge__input')
+        # Check for textarea (actual selectors: id="jd-concierge-input", class="jd-concierge__textarea", data-jd-input)
+        textarea = (
+            soup.find('textarea', {'id': 'jd-concierge-input'}) or
+            soup.find('textarea', class_='jd-concierge__textarea') or
+            soup.find('textarea', attrs={'data-jd-input': True})
+        )
         if not textarea:
             result.add_failure(Failure(
                 feature="Feature 4: JD Widget",
                 url=full_url,
-                expected='Textarea with id="jd-input" or class="jd-concierge__input"',
+                expected='Textarea with id="jd-concierge-input" or data-jd-input',
                 actual="No input textarea found",
                 severity=Severity.CRITICAL,
                 root_cause="Missing JD input widget"
             ))
         
-        # Check for Analyze button
-        analyze_btn = soup.find('button', string=re.compile(r'Analyze Fit', re.I)) or soup.find('button', class_='jd-concierge__submit')
+        # Check for Analyze button (actual: data-jd-submit, text="Analyze fit")
+        analyze_btn = (
+            soup.find('button', attrs={'data-jd-submit': True}) or
+            soup.find('button', string=re.compile(r'Analyze fit', re.I))
+        )
         if not analyze_btn:
             result.add_failure(Failure(
                 feature="Feature 4: JD Widget",
                 url=full_url,
-                expected='Button with text "Analyze Fit"',
+                expected='Button with data-jd-submit or text "Analyze fit"',
                 actual="No analyze button found",
                 severity=Severity.CRITICAL,
                 root_cause="Missing submit button"
             ))
         
-        # Check for Example button
-        example_btn = soup.find('button', string=re.compile(r'Try Example JD', re.I)) or soup.find('button', class_='jd-concierge__example')
+        # Check for Example button (actual: data-jd-example)
+        example_btn = soup.find('button', attrs={'data-jd-example': True})
         if not example_btn:
             result.add_failure(Failure(
                 feature="Feature 4: JD Widget",
                 url=full_url,
-                expected='Button with text "Try Example JD"',
+                expected='Button with data-jd-example',
                 actual="No example button found",
                 severity=Severity.CRITICAL,
                 root_cause="Missing example button"
             ))
         
-        # Check for loading element
-        loading = soup.find(class_='jd-concierge__loading')
+        # Check for loading element (actual: data-jd-loading)
+        loading = soup.find(attrs={'data-jd-loading': True}) or soup.find(class_='jd-concierge__loading')
         if not loading:
             result.add_failure(Failure(
                 feature="Feature 4: JD Widget",
                 url=full_url,
-                expected='Element with class "jd-concierge__loading"',
+                expected='Element with data-jd-loading',
                 actual="No loading indicator found",
                 severity=Severity.CRITICAL,
                 root_cause="Missing loading state"
             ))
         
-        # Check for results container
-        results = soup.find(class_='jd-concierge__results')
+        # Check for results container (actual: data-jd-results)
+        results = soup.find(attrs={'data-jd-results': True}) or soup.find(class_='jd-concierge__results')
         if not results:
             result.add_failure(Failure(
                 feature="Feature 4: JD Widget",
                 url=full_url,
-                expected='Element with class "jd-concierge__results"',
+                expected='Element with data-jd-results',
                 actual="No results container found",
                 severity=Severity.CRITICAL,
                 root_cause="Missing results display"
