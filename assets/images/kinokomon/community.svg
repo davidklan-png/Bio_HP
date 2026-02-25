@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="community-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#eab308;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" fill="#f8fafc"/>
+  <!-- Globe outline -->
+  <circle cx="300" cy="200" r="120" fill="none" stroke="#22c55e" stroke-width="2" opacity="0.3"/>
+  <ellipse cx="300" cy="200" rx="120" ry="40" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
+  <ellipse cx="300" cy="200" rx="40" ry="120" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
+  <line x1="180" y1="200" x2="420" y2="200" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
+  <!-- Connection nodes on globe -->
+  <g fill="#22c55e" opacity="0.7">
+    <circle cx="250" cy="160" r="6"/>
+    <circle cx="350" cy="180" r="5"/>
+    <circle cx="280" cy="240" r="7"/>
+    <circle cx="320" cy="140" r="5"/>
+    <circle cx="380" cy="220" r="6"/>
+  </g>
+  <!-- Connection lines -->
+  <g stroke="#22c55e" stroke-width="1.5" opacity="0.4">
+    <line x1="250" y1="160" x2="350" y2="180"/>
+    <line x1="250" y1="160" x2="280" y2="240"/>
+    <line x1="350" y1="180" x2="380" y2="220"/>
+    <line x1="280" y1="240" x2="380" y2="220"/>
+    <line x1="320" y1="140" x2="350" y2="180"/>
+  </g>
+  <!-- Japan marker (larger) -->
+  <circle cx="380" cy="170" r="10" fill="#eab308" opacity="0.8"/>
+  <circle cx="380" cy="170" r="15" fill="none" stroke="#eab308" stroke-width="2" opacity="0.4"/>
+  <!-- Bridge to right side -->
+  <path d="M420,200 Q600,150 750,200" stroke="url(#community-grad)" stroke-width="3" fill="none" opacity="0.4"/>
+  <!-- Community nodes -->
+  <g fill="#eab308" opacity="0.6">
+    <circle cx="800" cy="180" r="8"/>
+    <circle cx="900" cy="200" r="6"/>
+    <circle cx="850" cy="250" r="7"/>
+    <circle cx="950" cy="160" r="5"/>
+    <circle cx="1000" cy="220" r="6"/>
+    <circle cx="1050" cy="180" r="5"/>
+  </g>
+  <!-- Community connections -->
+  <g stroke="#eab308" stroke-width="1" opacity="0.3">
+    <line x1="800" y1="180" x2="900" y2="200"/>
+    <line x1="800" y1="180" x2="850" y2="250"/>
+    <line x1="900" y1="200" x2="1000" y2="220"/>
+    <line x1="850" y1="250" x2="900" y2="200"/>
+    <line x1="950" y1="160" x2="1050" y2="180"/>
+    <line x1="1000" y1="220" x2="1050" y2="180"/>
+  </g>
+  <!-- Bridge connection point -->
+  <circle cx="750" cy="200" r="8" fill="#22c55e" opacity="0.8"/>
+  <line x1="750" y1="200" x2="800" y2="180" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+</svg>

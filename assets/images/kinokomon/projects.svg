@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="projects-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" fill="#f8fafc"/>
+  <!-- Rocket-like shape -->
+  <g fill="url(#projects-grad)" opacity="0.2">
+    <ellipse cx="200" cy="180" rx="40" ry="100"/>
+    <polygon points="200,80 160,140 240,140"/>
+    <polygon points="150,280 180,250 180,300"/>
+    <polygon points="250,280 220,250 220,300"/>
+  </g>
+  <!-- Flame -->
+  <g fill="#f97316" opacity="0.3">
+    <ellipse cx="200" cy="320" rx="20" ry="40"/>
+    <ellipse cx="190" cy="330" rx="10" ry="25"/>
+    <ellipse cx="210" cy="330" rx="10" ry="25"/>
+  </g>
+  <!-- Stars -->
+  <g fill="#ef4444" opacity="0.5">
+    <polygon points="400,100 405,115 420,115 408,125 413,140 400,130 387,140 392,125 380,115 395,115"/>
+    <polygon points="800,80 804,92 816,92 806,100 810,112 800,104 790,112 794,100 784,92 796,92" transform="scale(0.8) translate(200,50)"/>
+    <polygon points="1000,120 1003,130 1013,130 1005,136 1008,146 1000,140 992,146 995,136 987,130 997,130" transform="scale(0.7) translate(300,80)"/>
+  </g>
+  <!-- Trajectory path -->
+  <path d="M300,350 Q500,200 700,250 T1100,100" stroke="#f97316" stroke-width="3" fill="none" opacity="0.3" stroke-dasharray="10,5"/>
+  <!-- Innovation dots -->
+  <g fill="#ef4444" opacity="0.6">
+    <circle cx="600" cy="200" r="8"/>
+    <circle cx="700" cy="180" r="6"/>
+    <circle cx="850" cy="150" r="7"/>
+    <circle cx="950" cy="200" r="5"/>
+    <circle cx="1050" cy="250" r="6"/>
+  </g>
+</svg>

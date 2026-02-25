@@ -159,3 +159,212 @@
   display: inline-block;
   animation: emoji-float 2s ease-in-out infinite;
 }
+
+/* Navigation Cards */
+.kinokomon-section__quick-links {
+  margin-bottom: 2rem;
+}
+
+.kinokomon-section__nav-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .kinokomon-section__nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kinokomon-section__nav-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.kinokomon-section__nav-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kinokomon-section__nav-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.kinokomon-section__nav-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.kinokomon-section__nav-card-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.kinokomon-section__nav-card-desc {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.kinokomon-section__nav-card-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: flex-start;
+}
+
+/* Projects & Experiments Layout */
+.kinokomon-section__projects,
+.kinokomon-section__experiments,
+.kinokomon-section__community,
+.kinokomon-section__learnings {
+  margin-bottom: 2rem;
+}
+
+.kinokomon-section__section-desc {
+  margin: -0.5rem 0 1.5rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.kinokomon-section__project-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.kinokomon-section__project-item {
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.kinokomon-section__project-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.kinokomon-section__project-item h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  color: #1f2937;
+}
+
+.kinokomon-section__project-desc {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Technology Stack */
+.kinokomon-section__tech-stack {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.kinokomon-section__tech-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .kinokomon-section__tech-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.kinokomon-section__tech-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kinokomon-section__tech-item strong {
+  font-size: 0.9375rem;
+  color: #1f2937;
+}
+
+.kinokomon-section__tech-item span {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+/* Navigation Footer */
+.kinokomon-section__nav-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.kinokomon-section__nav-footer p {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.kinokomon-section__inline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.kinokomon-section__inline-list li {
+  margin: 0;
+}
+
+.kinokomon-section__inline-list a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: color 0.2s ease;
+}
+
+.kinokomon-section__inline-list a:hover {
+  color: #1e40af;
+  text-decoration: underline;
+}
+
+/* Full-width grid variant */
+.kinokomon-section__grid--full {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .kinokomon-section__grid--full {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
