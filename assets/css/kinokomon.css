@@ -382,3 +382,145 @@
   }
 }
 
+/* Header Actions */
+.kinokomon-section__header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.kinokomon-section__action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.kinokomon-section__action-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Downloads Section */
+.kinokomon-section__downloads {
+  margin-bottom: 2rem;
+}
+
+.kinokomon-section__download-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .kinokomon-section__download-card {
+    flex-wrap: nowrap;
+  }
+}
+
+.kinokomon-section__download-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.kinokomon-section__download-info h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.kinokomon-section__download-info p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.kinokomon-section__download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.kinokomon-section__download-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Skills Grid */
+.kinokomon-section__skills {
+  margin-bottom: 2rem;
+}
+
+.kinokomon-section__skills-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .kinokomon-section__skills-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kinokomon-section__skills-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.kinokomon-section__skill-category {
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.kinokomon-section__skill-category h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.kinokomon-section__skill-category .kinokomon-section__list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.kinokomon-section__skill-category .kinokomon-section__list li {
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+}
+
+/* Articles & Documentation grid adjustments */
+.kinokomon-section__articles {
+  margin-bottom: 2rem;
+}
+

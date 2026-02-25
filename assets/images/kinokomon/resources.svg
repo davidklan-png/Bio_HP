@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="resources-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f3e8ff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="book-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#resources-bg)"/>
+  
+  <!-- Book stack -->
+  <g transform="translate(150, 180)" opacity="0.3">
+    <rect x="0" y="0" width="100" height="120" rx="4" fill="#8b5cf6"/>
+    <rect x="20" y="-10" width="100" height="120" rx="4" fill="#a78bfa"/>
+    <rect x="40" y="-20" width="100" height="120" rx="4" fill="#c4b5fd"/>
+  </g>
+  
+  <!-- Document icons -->
+  <g opacity="0.4">
+    <rect x="350" y="100" width="60" height="80" rx="4" fill="#8b5cf6"/>
+    <rect x="355" y="110" width="40" height="4" fill="#f8fafc"/>
+    <rect x="355" y="120" width="50" height="3" fill="#f8fafc"/>
+    <rect x="355" y="128" width="45" height="3" fill="#f8fafc"/>
+    <rect x="355" y="136" width="35" height="3" fill="#f8fafc"/>
+    
+    <rect x="430" y="130" width="60" height="80" rx="4" fill="#a78bfa"/>
+    <rect x="435" y="140" width="40" height="4" fill="#f8fafc"/>
+    <rect x="435" y="150" width="50" height="3" fill="#f8fafc"/>
+    <rect x="435" y="158" width="45" height="3" fill="#f8fafc"/>
+    
+    <rect x="510" y="90" width="60" height="80" rx="4" fill="#c4b5fd"/>
+    <rect x="515" y="100" width="40" height="4" fill="#f8fafc"/>
+    <rect x="515" y="110" width="50" height="3" fill="#f8fafc"/>
+    <rect x="515" y="118" width="35" height="3" fill="#f8fafc"/>
+  </g>
+  
+  <!-- Download arrow -->
+  <g transform="translate(650, 150)" opacity="0.5">
+    <circle cx="40" cy="40" r="40" fill="#8b5cf6" opacity="0.3"/>
+    <path d="M40,20 L40,50 M25,40 L40,55 L55,40" stroke="#8b5cf6" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <rect x="20" y="60" width="40" height="6" rx="3" fill="#8b5cf6"/>
+  </g>
+  
+  <!-- Floating particles -->
+  <g opacity="0.3">
+    <circle cx="200" cy="320" r="4" fill="#8b5cf6">
+      <animate attributeName="cy" values="320;310;320" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="280" r="3" fill="#a78bfa">
+      <animate attributeName="cy" values="280;270;280" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="550" cy="300" r="3.5" fill="#c4b5fd">
+      <animate attributeName="cy" values="300;290;300" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Kinokomon character -->
+  <g transform="translate(880, 50)">
+    <image href="/assets/images/Kinokomon_512x512.png" width="300" height="300" opacity="0.95"/>
+  </g>
+  
+  <!-- Folder icons -->
+  <g opacity="0.25">
+    <path d="M1050,280 L1050,350 L1150,350 L1150,290 L1110,290 L1100,280 Z" fill="#8b5cf6"/>
+    <path d="M1080,300 L1080,370 L1180,370 L1180,310 L1140,310 L1130,300 Z" fill="#a78bfa"/>
+  </g>
+</svg>
