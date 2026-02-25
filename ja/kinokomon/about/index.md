@@ -6,6 +6,10 @@ lang: ja
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-image">
+    <img src="{{ '/assets/images/kinokomon/about.svg' | relative_url }}" alt="きのこもんについて - ニューラルネットワークテーマヘッダー" class="kinokomon-section__header-img" />
+  </div>
+  
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🧠</span> きのこもんについて</h1>
     <p class="kinokomon-section__tagline">ガバナンス付き自律エージェント — 原則、目的、運用</p>

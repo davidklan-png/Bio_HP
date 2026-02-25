@@ -1,32 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
   <defs>
-    <linearGradient id="about-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    <linearGradient id="about-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
     </linearGradient>
+    <linearGradient id="brain-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="1200" height="400" fill="#f8fafc"/>
-  <circle cx="200" cy="200" r="120" fill="url(#about-grad)" opacity="0.1"/>
-  <circle cx="180" cy="180" r="80" fill="url(#about-grad)" opacity="0.15"/>
-  <circle cx="1000" cy="300" r="100" fill="url(#about-grad)" opacity="0.08"/>
-  <!-- Network nodes -->
-  <g fill="#3b82f6" opacity="0.6">
-    <circle cx="150" cy="150" r="8"/>
-    <circle cx="250" cy="120" r="6"/>
-    <circle cx="180" cy="220" r="7"/>
-    <circle cx="300" cy="180" r="5"/>
-    <circle cx="220" cy="280" r="6"/>
+  
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#about-bg)"/>
+  
+  <!-- Neural network pattern -->
+  <g opacity="0.15">
+    <circle cx="100" cy="80" r="40" fill="#3b82f6"/>
+    <circle cx="250" cy="120" r="30" fill="#8b5cf6"/>
+    <circle cx="180" cy="280" r="35" fill="#3b82f6"/>
+    <circle cx="350" cy="200" r="25" fill="#8b5cf6"/>
+    <line x1="100" y1="80" x2="250" y2="120" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="250" y1="120" x2="350" y2="200" stroke="#8b5cf6" stroke-width="2"/>
+    <line x1="180" y1="280" x2="350" y2="200" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="100" y1="80" x2="180" y2="280" stroke="#8b5cf6" stroke-width="2"/>
   </g>
-  <g stroke="#3b82f6" stroke-width="1.5" opacity="0.3">
-    <line x1="150" y1="150" x2="250" y2="120"/>
-    <line x1="150" y1="150" x2="180" y2="220"/>
-    <line x1="250" y1="120" x2="300" y2="180"/>
-    <line x1="180" y1="220" x2="220" y2="280"/>
+  
+  <!-- Kinokomon character -->
+  <g transform="translate(900, 50)">
+    <image href="/assets/images/Kinokomon_512x512.png" width="300" height="300" opacity="0.95"/>
   </g>
-  <!-- Brain-like pattern -->
-  <path d="M400,200 Q500,100 600,200 T800,200" stroke="#8b5cf6" stroke-width="3" fill="none" opacity="0.4"/>
-  <path d="M420,220 Q520,280 620,220 T820,220" stroke="#8b5cf6" stroke-width="2" fill="none" opacity="0.3"/>
-  <!-- Geometric elements -->
-  <polygon points="900,100 950,150 900,200 850,150" fill="#3b82f6" opacity="0.2"/>
-  <polygon points="1050,150 1100,200 1050,250 1000,200" fill="#8b5cf6" opacity="0.15"/>
+  
+  <!-- Brain synapse decoration -->
+  <g filter="url(#glow)" opacity="0.6">
+    <path d="M600,100 Q650,80 700,100 Q750,120 800,100" stroke="url(#brain-glow)" stroke-width="3" fill="none"/>
+    <path d="M620,130 Q670,150 720,130 Q770,110 820,130" stroke="url(#brain-glow)" stroke-width="2" fill="none"/>
+    <circle cx="700" cy="100" r="5" fill="#8b5cf6"/>
+    <circle cx="800" cy="100" r="4" fill="#3b82f6"/>
+    <circle cx="720" cy="130" r="4" fill="#8b5cf6"/>
+  </g>
+  
+  <!-- Floating particles -->
+  <g opacity="0.4">
+    <circle cx="150" cy="350" r="3" fill="#3b82f6">
+      <animate attributeName="cy" values="350;340;350" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="60" r="2" fill="#8b5cf6">
+      <animate attributeName="cy" values="60;50;60" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="550" cy="320" r="2.5" fill="#3b82f6">
+      <animate attributeName="cy" values="320;310;320" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Geometric accent -->
+  <polygon points="1050,350 1100,300 1150,350 1100,400" fill="#3b82f6" opacity="0.1"/>
 </svg>

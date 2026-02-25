@@ -1,56 +1,107 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
   <defs>
-    <linearGradient id="community-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#eab308;stop-opacity:1" />
+    <linearGradient id="community-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dcfce7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="globe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:0.3" />
+    </linearGradient>
+    <linearGradient id="bridge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#eab308;stop-opacity:0.6" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="400" fill="#f8fafc"/>
-  <!-- Globe outline -->
-  <circle cx="300" cy="200" r="120" fill="none" stroke="#22c55e" stroke-width="2" opacity="0.3"/>
-  <ellipse cx="300" cy="200" rx="120" ry="40" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
-  <ellipse cx="300" cy="200" rx="40" ry="120" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
-  <line x1="180" y1="200" x2="420" y2="200" stroke="#22c55e" stroke-width="1" opacity="0.2"/>
+  
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#community-bg)"/>
+  
+  <!-- Globe -->
+  <g transform="translate(200, 200)">
+    <circle cx="0" cy="0" r="110" fill="none" stroke="#22c55e" stroke-width="2.5" opacity="0.4"/>
+    <ellipse cx="0" cy="0" rx="110" ry="35" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.3"/>
+    <ellipse cx="0" cy="0" rx="35" ry="110" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.3"/>
+    <line x1="-110" y1="0" x2="110" y2="0" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    <line x1="0" y1="-110" x2="0" y2="110" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    
+    <!-- Continents suggestion -->
+    <ellipse cx="-30" cy="-20" rx="25" ry="15" fill="url(#globe-grad)"/>
+    <ellipse cx="40" cy="30" rx="20" ry="25" fill="url(#globe-grad)"/>
+    <ellipse cx="-50" cy="40" rx="15" ry="20" fill="url(#globe-grad)"/>
+  </g>
+  
   <!-- Connection nodes on globe -->
   <g fill="#22c55e" opacity="0.7">
-    <circle cx="250" cy="160" r="6"/>
-    <circle cx="350" cy="180" r="5"/>
-    <circle cx="280" cy="240" r="7"/>
-    <circle cx="320" cy="140" r="5"/>
-    <circle cx="380" cy="220" r="6"/>
+    <circle cx="180" cy="170" r="7"/>
+    <circle cx="260" cy="200" r="6"/>
+    <circle cx="200" cy="260" r="8"/>
+    <circle cx="240" cy="150" r="5"/>
+    <circle cx="280" cy="230" r="6"/>
   </g>
-  <!-- Connection lines -->
+  
+  <!-- Node connections -->
   <g stroke="#22c55e" stroke-width="1.5" opacity="0.4">
-    <line x1="250" y1="160" x2="350" y2="180"/>
-    <line x1="250" y1="160" x2="280" y2="240"/>
-    <line x1="350" y1="180" x2="380" y2="220"/>
-    <line x1="280" y1="240" x2="380" y2="220"/>
-    <line x1="320" y1="140" x2="350" y2="180"/>
+    <line x1="180" y1="170" x2="260" y2="200"/>
+    <line x1="180" y1="170" x2="200" y2="260"/>
+    <line x1="260" y1="200" x2="280" y2="230"/>
+    <line x1="200" y1="260" x2="280" y2="230"/>
+    <line x1="240" y1="150" x2="260" y2="200"/>
   </g>
-  <!-- Japan marker (larger) -->
-  <circle cx="380" cy="170" r="10" fill="#eab308" opacity="0.8"/>
-  <circle cx="380" cy="170" r="15" fill="none" stroke="#eab308" stroke-width="2" opacity="0.4"/>
-  <!-- Bridge to right side -->
-  <path d="M420,200 Q600,150 750,200" stroke="url(#community-grad)" stroke-width="3" fill="none" opacity="0.4"/>
-  <!-- Community nodes -->
+  
+  <!-- Japan marker (highlighted) -->
+  <circle cx="280" cy="195" r="12" fill="#eab308" opacity="0.8"/>
+  <circle cx="280" cy="195" r="18" fill="none" stroke="#eab308" stroke-width="2" opacity="0.5">
+    <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Bridge path -->
+  <path d="M310,200 Q500,140 700,200 Q850,240 850,200" stroke="url(#bridge-grad)" stroke-width="3" fill="none" opacity="0.5" stroke-dasharray="8,4"/>
+  
+  <!-- Bridge endpoint -->
+  <circle cx="700" cy="200" r="10" fill="#22c55e" opacity="0.8"/>
+  
+  <!-- Community cluster -->
   <g fill="#eab308" opacity="0.6">
-    <circle cx="800" cy="180" r="8"/>
-    <circle cx="900" cy="200" r="6"/>
-    <circle cx="850" cy="250" r="7"/>
-    <circle cx="950" cy="160" r="5"/>
-    <circle cx="1000" cy="220" r="6"/>
-    <circle cx="1050" cy="180" r="5"/>
+    <circle cx="750" cy="170" r="9"/>
+    <circle cx="820" cy="200" r="7"/>
+    <circle cx="780" cy="250" r="8"/>
+    <circle cx="870" cy="160" r="6"/>
+    <circle cx="900" cy="210" r="7"/>
   </g>
+  
   <!-- Community connections -->
-  <g stroke="#eab308" stroke-width="1" opacity="0.3">
-    <line x1="800" y1="180" x2="900" y2="200"/>
-    <line x1="800" y1="180" x2="850" y2="250"/>
-    <line x1="900" y1="200" x2="1000" y2="220"/>
-    <line x1="850" y1="250" x2="900" y2="200"/>
-    <line x1="950" y1="160" x2="1050" y2="180"/>
-    <line x1="1000" y1="220" x2="1050" y2="180"/>
+  <g stroke="#eab308" stroke-width="1.5" opacity="0.35">
+    <line x1="700" y1="200" x2="750" y2="170"/>
+    <line x1="750" y1="170" x2="820" y2="200"/>
+    <line x1="750" y1="170" x2="780" y2="250"/>
+    <line x1="820" y1="200" x2="900" y2="210"/>
+    <line x1="780" y1="250" x2="820" y2="200"/>
+    <line x1="870" y1="160" x2="750" y2="170"/>
   </g>
-  <!-- Bridge connection point -->
-  <circle cx="750" cy="200" r="8" fill="#22c55e" opacity="0.8"/>
-  <line x1="750" y1="200" x2="800" y2="180" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Kinokomon character -->
+  <g transform="translate(880, 50)">
+    <image href="/assets/images/Kinokomon_512x512.png" width="300" height="300" opacity="0.95"/>
+  </g>
+  
+  <!-- Floating connection particles -->
+  <g opacity="0.4">
+    <circle cx="450" cy="120" r="3" fill="#22c55e">
+      <animate attributeName="cx" values="450;470;450" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="550" cy="280" r="2.5" fill="#eab308">
+      <animate attributeName="cx" values="550;530;550" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="650" cy="150" r="2" fill="#22c55e">
+      <animate attributeName="cy" values="150;140;150" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Decorative elements -->
+  <g opacity="0.2">
+    <polygon points="1050,300 1100,250 1150,300 1100,350" fill="#22c55e"/>
+    <polygon points="100,350 130,320 160,350 130,380" fill="#eab308"/>
+  </g>
 </svg>

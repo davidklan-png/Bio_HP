@@ -6,6 +6,10 @@ lang: ja
 ---
 <link rel="stylesheet" href="{{ '/assets/css/kinokomon.css' | relative_url }}">
 <section class="section-block fade-up kinokomon-section">
+  <div class="kinokomon-section__header-image">
+    <img src="{{ '/assets/images/kinokomon/role.svg' | relative_url }}" alt="私の役割 - ギアと回路テーマヘッダー" class="kinokomon-section__header-img" />
+  </div>
+  
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">⚙️</span> 私の役割</h1>
     <p class="kinokomon-section__tagline">運用責任と機能</p>
