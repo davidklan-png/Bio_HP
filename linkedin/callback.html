@@ -1,0 +1,97 @@
+---
+layout: null
+permalink: /linkedin/callback
+sitemap: false
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinkedIn Authorization — OpenClaw</title>
+  <style>
+  html, body { height: 100%; margin: 0; background: #0a0a0a; color: #fff;
+    font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+  .card { width: min(480px, 100%); background: #1a1a1a; border: 1px solid #333;
+    border-radius: 16px; padding: 32px; text-align: center; }
+  h1 { color: #0a66c2; margin-top: 0; font-size: 22px; }
+  .code-box { background: #000; border: 1px solid #444; border-radius: 8px;
+    padding: 16px; margin: 16px 0; font: 14px/1.4 ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, monospace; word-break: break-all; user-select: all;
+    cursor: text; color: #24e08a; }
+  .copy-btn { appearance: none; border: 1px solid #0a66c2; background: #0a66c2;
+    color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: 600;
+    cursor: pointer; font-size: 14px; margin-top: 8px; }
+  .copy-btn:active { transform: translateY(1px); }
+  .copied { background: #24e08a; border-color: #24e08a; color: #000; }
+  .hint { opacity: 0.6; font-size: 13px; margin-top: 16px; }
+  .err { color: #ff5c5c; }
+  .icon { font-size: 48px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="card">
+    <div class="icon" id="icon">&#8987;</div>
+    <h1 id="title">Processing...</h1>
+    <p id="message">Reading authorization response...</p>
+  </div>
+</div>
+<script>
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const error = params.get("error");
+  const errorDesc = params.get("error_description");
+
+  const icon = document.getElementById("icon");
+  const title = document.getElementById("title");
+  const message = document.getElementById("message");
+  const card = document.getElementById("card");
+
+  if (error) {
+    icon.textContent = "\u2717";
+    icon.className = "icon err";
+    title.textContent = "Authorization Failed";
+    title.style.color = "#ff5c5c";
+    message.textContent = errorDesc
+      ? decodeURIComponent(errorDesc)
+      : "LinkedIn authorization was denied or failed.";
+    return;
+  }
+
+  if (!code) {
+    icon.textContent = "\u2717";
+    icon.className = "icon err";
+    title.textContent = "Missing Code";
+    title.style.color = "#ff5c5c";
+    message.textContent = "No authorization code found in the URL. Please try the auth flow again.";
+    return;
+  }
+
+  icon.textContent = "\u2713";
+  icon.style.color = "#24e08a";
+  title.textContent = "LinkedIn Authorized!";
+
+  card.innerHTML = `
+    <div class="icon" style="color:#24e08a">&#10003;</div>
+    <h1>LinkedIn Authorized!</h1>
+    <p>Copy this code and paste it into your OpenClaw CLI:</p>
+    <div class="code-box" id="code-value">${code}</div>
+    <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copy Code</button>
+    <p class="hint">Run: <code>openclaw linkedin-auth --code=PASTE_HERE</code></p>
+  `;
+
+  window.copyCode = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.getElementById("copy-btn");
+      btn.textContent = "Copied!";
+      btn.className = "copy-btn copied";
+      setTimeout(() => { btn.textContent = "Copy Code"; btn.className = "copy-btn"; }, 2000);
+    });
+  };
+})();
+</script>
+</body>
+</html>
