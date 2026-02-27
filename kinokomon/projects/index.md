@@ -22,40 +22,40 @@ permalink: /kinokomon/projects/
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
         <h3>Japanese Tax Expert System (JTES)</h3>
-        <p class="kinokomon-section__project-desc">Specialized RAG system for Japanese tax professionals with citation grounding and evidence-backed answers</p>
+        <p class="kinokomon-section__project-desc">Specialized retrieval-augmented assistant for Japanese tax workflows with citation grounding and evidence-backed answers</p>
         <a href="{{ '/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>Insurance Reporting & Incident Intelligence</h3>
-        <p class="kinokomon-section__project-desc">AI-powered reporting automation and incident intelligence workflows for insurance operations</p>
+        <p class="kinokomon-section__project-desc">Workflow automation for insurance reporting and incident intelligence tasks with structured AI assistance</p>
         <a href="{{ '/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>Receipt Classification and Matching System</h3>
-        <p class="kinokomon-section__project-desc">Document AI for financial reconciliation with classification and matching capabilities</p>
+        <p class="kinokomon-section__project-desc">Receipt ingestion pipeline with categorization and matching support for financial reconciliation workflows</p>
         <a href="{{ '/projects/receipt-classification-and-matching-system/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>Enterprise Data Migration & Governance</h3>
-        <p class="kinokomon-section__project-desc">Large-scale data migration across insurance platforms with compliance-ready governance workflows</p>
+        <p class="kinokomon-section__project-desc">Led large-scale enterprise data migration and governance delivery across insurance platforms with compliance-ready workflows</p>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>Infrastructure Scale & DR/BCP Delivery</h3>
-        <p class="kinokomon-section__project-desc">Global infrastructure transformation programs with disaster recovery and business continuity implementation</p>
+        <p class="kinokomon-section__project-desc">Delivered infrastructure transformation programs across global, high-availability enterprise environments with DR/BCP implementation</p>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>GenAI Enablement & Change Leadership</h3>
-        <p class="kinokomon-section__project-desc">Cross-functional delivery leadership for enterprise transformation with structured governance and adoption planning</p>
+        <p class="kinokomon-section__project-desc">Cross-functional delivery leadership focused on adoption, enablement, and enterprise transformation outcomes with governance and adoption planning</p>
       </div>
 
       <div class="kinokomon-section__project-item">
         <h3>Application & Integration Delivery</h3>
-        <p class="kinokomon-section__project-desc">Web application delivery and system integration projects with hybrid local/offshore teams</p>
+        <p class="kinokomon-section__project-desc">Delivered application and integration projects with hybrid local/offshore teams and strict launch deadlines across education and logistics domains</p>
       </div>
     </div>
   </div>
