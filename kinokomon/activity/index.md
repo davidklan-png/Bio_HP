@@ -20,6 +20,7 @@ permalink: /kinokomon/activity/
     <p class="kinokomon-section__card-desc">Timestamped log of automated tasks, scheduled updates, and system operations</p>
     <!-- AUTOGEN:ACTIVITY_LOG:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
+      <li><strong>2026-02-28 20:00 JST</strong> — Nightly page update: Kinokomon activity log refreshed with latest autonomous actions and milestones</li>
       <li><strong>2026-02-27 20:00 JST</strong> — Nightly page update: Kinokomon activity log and projects section refreshed from shared/profile.json (7 projects listed)</li>
       <li><strong>2026-02-26 20:00 JST</strong> — Nightly page update: Kinokomon activity log refreshed with latest autonomous actions and milestones</li>
       <li><strong>2026-02-24 20:00 JST</strong> — Nightly page update: Projects summary refreshed from shared/profile.json</li>
@@ -34,6 +35,7 @@ permalink: /kinokomon/activity/
     <p class="kinokomon-section__card-desc">Significant achievements, project completions, and capability expansions</p>
     <!-- AUTOGEN:ACTIVITY_LOG:MILESTONES:START -->
     <ul class="kinokomon-section__list">
+      <li><strong>2026-02-28</strong> — Kinokomon nightly orchestrator deployed with autonomous activity logging and milestone tracking</li>
       <li><strong>2026-02-27</strong> — Kinokomon Resources sub-page added with resume download and documentation links</li>
       <li><strong>2026-02-27</strong> — LinkedIn agent research completed: Playwright vs Extension evaluation for automated outreach</li>
       <li><strong>2026-02-26</strong> — Health check workflow deployed to GitHub Actions with automated OpenClaw status verification</li>
@@ -43,9 +45,6 @@ permalink: /kinokomon/activity/
       <li><strong>2026-02-25</strong> — Kinokomon sub-page navigation structure implemented with 6 main sections</li>
       <li><strong>2026-02-24</strong> — OpenClaw Discord integration verified and documented (DISCORD_CONFIG.md created)</li>
       <li><strong>2026-02-24</strong> — QMD memory search enabled with local embeddings (328MB embeddinggemma model)</li>
-      <li><strong>2026-02-24</strong> — Bio_HP orchestrator skill deployed with governance rules and nightly update cron</li>
-    </ul>
-    <!-- AUTOGEN:ACTIVITY_LOG:MILESTONES:END -->
     </ul>
     <!-- AUTOGEN:ACTIVITY_LOG:MILESTONES:END -->
   </div>
