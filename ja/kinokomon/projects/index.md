@@ -22,6 +22,11 @@ lang: ja
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>健康モン - 医師訪問議事録と要約</h3>
+        <p class="kinokomon-section__project-desc">医師と患者のコミュニケーションのための医師訪問議事録と要約アプリケーション。AIによる構造化出力と患者向け要約</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>日本税務エキスパートシステム（JTES）</h3>
         <p class="kinokomon-section__project-desc">引用の根拠と証拠に基づいた回答を持つ日本の税務専門家向けの専門RAGシステム</p>
         <a href="{{ '/ja/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
