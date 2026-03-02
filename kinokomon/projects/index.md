@@ -21,6 +21,11 @@ permalink: /kinokomon/projects/
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>Kenkoumon - Doctor Visit Transcription & Summary</h3>
+        <p class="kinokomon-section__project-desc">AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>Japanese Tax Expert System (JTES)</h3>
         <p class="kinokomon-section__project-desc">Specialized retrieval-augmented assistant for Japanese tax workflows with citation grounding and evidence-backed answers</p>
         <a href="{{ '/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">View project →</a>
