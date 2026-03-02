@@ -29,16 +29,70 @@
   ],
   "projects": [
     {
+      "name": "Kenkoumon - Doctor Visit Transcription & Summary",
+      "capability_tags": [
+        "LLM foundations",
+        "Agentic workflows",
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Healthcare",
+        "Medical",
+        "Patient Care"
+      ],
+      "tags": [
+        "Medical transcription",
+        "LLM",
+        "Patient summary",
+        "Doctor assistance"
+      ],
+      "summary": "AI-powered patient/doctor application for transcribing and summarizing doctor visits.",
+      "outcomes": [
+        "Automated doctor visit transcription with structured output",
+        "Generated patient-friendly visit summaries",
+        "Improved doctor-patient communication through clear documentation"
+      ],
+      "stack": [
+        "Python",
+        "LLM APIs",
+        "Speech-to-text",
+        "NLP"
+      ],
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/kinokomon/",
+          "label": "Kenkoumon Development",
+          "snippet": "Doctor visit transcription and summary application"
+        }
+      ]
+    },
+    {
       "name": "Japanese Tax Expert System (JTES)",
-      "capability_tags": ["LLM foundations", "RAG"],
-      "domain_tags": ["Tax", "Finance", "Professional Services"],
-      "tags": ["RAG", "Tax domain", "Citation grounding"],
+      "capability_tags": [
+        "LLM foundations",
+        "RAG"
+      ],
+      "domain_tags": [
+        "Tax",
+        "Finance",
+        "Professional Services"
+      ],
+      "tags": [
+        "RAG",
+        "Tax domain",
+        "Citation grounding"
+      ],
       "summary": "Specialized retrieval-augmented assistant for Japanese tax workflows.",
       "outcomes": [
         "Built evidence-grounded answer flow with citations",
         "Improved retrieval relevance using domain-specific chunking"
       ],
-      "stack": ["Python", "Vector search", "LLM APIs", "Jekyll"],
+      "stack": [
+        "Python",
+        "Vector search",
+        "LLM APIs",
+        "Jekyll"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
@@ -49,15 +103,29 @@
     },
     {
       "name": "Insurance Reporting & Incident Intelligence",
-      "capability_tags": ["Python & Integrations"],
-      "domain_tags": ["Insurance", "Finance", "Risk Management"],
-      "tags": ["Enterprise AI", "Reporting automation", "Incident analysis"],
+      "capability_tags": [
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Insurance",
+        "Finance",
+        "Risk Management"
+      ],
+      "tags": [
+        "Enterprise AI",
+        "Reporting automation",
+        "Incident analysis"
+      ],
       "summary": "Workflow automation for insurance reporting and incident intelligence tasks.",
       "outcomes": [
         "Reduced manual report preparation through structured AI assistance",
         "Standardized triage flow for faster analyst handoff"
       ],
-      "stack": ["Python", "Automation", "Data pipelines"],
+      "stack": [
+        "Python",
+        "Automation",
+        "Data pipelines"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
@@ -68,15 +136,29 @@
     },
     {
       "name": "Receipt Classification and Matching System",
-      "capability_tags": ["Python & Integrations"],
-      "domain_tags": ["Finance", "FinTech", "Operations"],
-      "tags": ["Document AI", "Classification", "Matching"],
+      "capability_tags": [
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Finance",
+        "FinTech",
+        "Operations"
+      ],
+      "tags": [
+        "Document AI",
+        "Classification",
+        "Matching"
+      ],
       "summary": "Receipt ingestion pipeline with categorization and matching support.",
       "outcomes": [
         "Improved classification consistency",
         "Enabled faster financial reconciliation workflows"
       ],
-      "stack": ["Python", "OCR", "Rules + ML"],
+      "stack": [
+        "Python",
+        "OCR",
+        "Rules + ML"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/receipt-classification-and-matching-system/",
@@ -87,8 +169,14 @@
     },
     {
       "name": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
-      "capability_tags": ["Governance & Delivery"],
-      "domain_tags": ["Insurance", "Finance", "Data Governance"],
+      "capability_tags": [
+        "Governance & Delivery"
+      ],
+      "domain_tags": [
+        "Insurance",
+        "Finance",
+        "Data Governance"
+      ],
       "tags": [
         "Data migration",
         "Data governance",
@@ -102,7 +190,12 @@
         "Built compliance-ready governance workflows and risk-based reporting",
         "Reduced manual data correction effort through workflow optimization"
       ],
-      "stack": ["Data architecture", "Governance", "ETL", "Program management"],
+      "stack": [
+        "Data architecture",
+        "Governance",
+        "ETL",
+        "Program management"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/work-history/",
@@ -113,8 +206,14 @@
     },
     {
       "name": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
-      "capability_tags": ["Governance & Delivery"],
-      "domain_tags": ["Insurance", "Enterprise IT", "Infrastructure"],
+      "capability_tags": [
+        "Governance & Delivery"
+      ],
+      "domain_tags": [
+        "Insurance",
+        "Enterprise IT",
+        "Infrastructure"
+      ],
       "tags": [
         "Infrastructure refresh",
         "Disaster recovery",
@@ -128,7 +227,12 @@
         "Directed post-merger infrastructure standardization and DR/BCP implementation",
         "Coordinated multi-region delivery teams across Japan, EMEA, and North America"
       ],
-      "stack": ["Windows Server", "Client/server", "Project governance", "Vendor management"],
+      "stack": [
+        "Windows Server",
+        "Client/server",
+        "Project governance",
+        "Vendor management"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/work-history/",
@@ -139,8 +243,14 @@
     },
     {
       "name": "GenAI Enablement and Change Leadership",
-      "capability_tags": ["Change enablement", "Workshops & Training", "Stakeholder management"],
-      "domain_tags": ["Enterprise Transformation"],
+      "capability_tags": [
+        "Change enablement",
+        "Workshops & Training",
+        "Stakeholder management"
+      ],
+      "domain_tags": [
+        "Enterprise Transformation"
+      ],
       "tags": [
         "Change management",
         "Enablement",
@@ -154,7 +264,12 @@
         "Led stakeholder alignment and vendor coordination for complex delivery programs",
         "Applied structured communication and adoption plans across multi-team initiatives"
       ],
-      "stack": ["Program management", "Governance", "Risk management", "Communication"],
+      "stack": [
+        "Program management",
+        "Governance",
+        "Risk management",
+        "Communication"
+      ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/work-history/",
@@ -165,8 +280,13 @@
     },
     {
       "name": "Application and Integration Delivery (Education / Depot Systems)",
-      "capability_tags": ["Python & Integrations"],
-      "domain_tags": ["Education", "Logistics"],
+      "capability_tags": [
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Education",
+        "Logistics"
+      ],
       "tags": [
         "Web application delivery",
         "System integration",
@@ -197,7 +317,10 @@
   ],
   "constraints": {
     "location": "United States and Japan (open to remote and hybrid)",
-    "languages": ["English (Native)", "Japanese (Business)"],
+    "languages": [
+      "English (Native)",
+      "Japanese (Business)"
+    ],
     "availability": "Open to full-time, consulting, or advisory AI/IT delivery roles"
   },
   "source_documents": [
