@@ -21,6 +21,11 @@ permalink: /kinokomon/projects/
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>Keirimon - Japanese Tax & Accounting Assistant</h3>
+        <p class="kinokomon-section__project-desc">Japanese tax and accounting assistant. Automates expense tracking, receipt categorization, and tax preparation for Japanese filers with LLM-powered OCR and compliance checking.</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>Kenkoumon - Doctor Visit Transcription & Summary</h3>
         <p class="kinokomon-section__project-desc">AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</p>
       </div>

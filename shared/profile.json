@@ -67,6 +67,45 @@
       ]
     },
     {
+      "name": "Keirimon - Japanese Tax & Accounting Assistant",
+      "capability_tags": [
+        "LLM foundations",
+        "Python & Integrations",
+        "Enterprise delivery"
+      ],
+      "domain_tags": [
+        "Tax",
+        "Finance",
+        "Accounting"
+      ],
+      "tags": [
+        "Japanese tax",
+        "Expense tracking",
+        "Receipt categorization",
+        "Tax preparation"
+      ],
+      "summary": "Japanese tax and accounting assistant that automates expense tracking, receipt categorization, and tax preparation for Japanese filers.",
+      "outcomes": [
+        "Automated expense tracking and categorization",
+        "Receipt OCR and data extraction",
+        "Tax preparation workflow optimization",
+        "Japanese tax law compliance checking"
+      ],
+      "stack": [
+        "Python",
+        "LLM APIs",
+        "OCR",
+        "Japanese NLP"
+      ],
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/kinokomon/",
+          "label": "Keirimon Development",
+          "snippet": "Japanese tax and accounting assistant application"
+        }
+      ]
+    },
+    {
       "name": "Japanese Tax Expert System (JTES)",
       "capability_tags": [
         "LLM foundations",
