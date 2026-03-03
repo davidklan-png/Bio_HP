@@ -29,36 +29,6 @@
   ],
   "projects": [
     {
-      "name": "Project Name",
-      "capability_tags": [
-        "Tag1",
-        "Tag2"
-      ],
-      "domain_tags": [
-        "Domain"
-      ],
-      "tags": [
-        "tag1",
-        "tag2"
-      ],
-      "summary": "Project summary",
-      "outcomes": [
-        "Outcome 1",
-        "Outcome 2"
-      ],
-      "stack": [
-        "Tech1",
-        "Tech2"
-      ],
-      "evidence": [
-        {
-          "url": "...",
-          "label": "...",
-          "snippet": "..."
-        }
-      ]
-    },
-    {
       "name": "Kenkoumon - Doctor Visit Transcription & Summary",
       "capability_tags": [
         "LLM foundations",
