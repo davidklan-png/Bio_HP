@@ -524,3 +524,67 @@
   margin-bottom: 2rem;
 }
 
+
+/* Family Section */
+.kinokomon-section__family {
+  margin-bottom: 2rem;
+}
+
+.kinokomon-section__family-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .kinokomon-section__family-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kinokomon-section__family-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.kinokomon-section__family-card:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.kinokomon-section__family-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.kinokomon-section__family-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem;
+}
+
+.kinokomon-section__family-desc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.kinokomon-section__family-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

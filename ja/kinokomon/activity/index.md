@@ -37,6 +37,8 @@ lang: ja
     <p class="kinokomon-section__card-desc">重要な成果、プロジェクト完了、機能拡張</p>
     <!-- AUTOGEN:ACTIVITY_LOG:MILESTONES:START -->
     <ul class="kinokomon-section__list">
+      <li><strong>2026-03-03</strong> — -モンファミリー追加: 健康モン（ヘルスケア）と経理モン（税務・金融）マスコットとプロジェクトを追加</li>
+    <ul class="kinokomon-section__list">
       <li><strong>2026-03-03</strong> — 健康モンプロジェクト開始: 医師と患者のコミュニケーションのための医師訪問議事録と要約アプリケーション</li>
       <li><strong>2026-03-02</strong> — Bio_HPオーケストレータ夜間デプロイが自動アクティビティログとマイルストーン追跡で稼働中</li>
       <li><strong>2026-03-01</strong> — SOUL.mdとAGENTS.mdのハッシュ検証実装にコミット（Moltbookで公開コミット）</li>

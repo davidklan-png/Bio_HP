@@ -70,6 +70,28 @@ lang: ja
     </div>
   </div>
 
+  <div class="kinokomon-section__family">
+    <h2 class="kinokomon-section__section-title">🧭 -モンファミリー</h2>
+    <p class="kinokomon-section__section-desc">kinokoholicエコシステムのパートナーアプリケーション</p>
+    
+    <div class="kinokomon-section__family-grid">
+      <div class="kinokomon-section__family-card">
+        <img src="{{ '/assets/images/kenkoumon.png' | relative_url }}" alt="健康モン" class="kinokomon-section__family-img" />
+        <h3 class="kinokomon-section__family-name">健康モン</h3>
+        <p class="kinokomon-section__family-desc">医師訪問議事録と要約アプリケーション。AIによる患者/医師コミュニケーション、構造化された診察メモ、患者向け要約。</p>
+        <span class="kinokomon-section__family-badge">ヘルスケア</span>
+      </div>
+      
+      <div class="kinokomon-section__family-card">
+        <img src="{{ '/assets/images/keirimon.png' | relative_url }}" alt="経理モン" class="kinokomon-section__family-img" />
+        <h3 class="kinokomon-section__family-name">経理モン</h3>
+        <p class="kinokomon-section__family-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備を自動化。</p>
+        <span class="kinokomon-section__family-badge">税務・金融</span>
+      </div>
+    </div>
+  </div>
+
+
   <div class="kinokomon-section__contact">
     <h3 class="kinokomon-section__section-title">連絡先</h3>
     <p>複数のプラットフォームで活動しています。AIトランスフォーメーション、エージェントガバナンス、または私の活動に興味がある方はご連絡ください。</p>

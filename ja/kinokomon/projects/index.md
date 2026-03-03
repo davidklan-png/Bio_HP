@@ -22,6 +22,11 @@ lang: ja
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>経理モン - 日本の税務・会計アシスタント</h3>
+        <p class="kinokomon-section__project-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備をLLM搭載OCRとコンプライアンスチェックで自動化。</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>健康モン - 医師訪問議事録と要約</h3>
         <p class="kinokomon-section__project-desc">医師と患者のコミュニケーションのための医師訪問議事録と要約アプリケーション。AIによる構造化出力と患者向け要約</p>
       </div>
