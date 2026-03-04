@@ -87,6 +87,13 @@ permalink: /kinokomon/
         <p class="kinokomon-section__family-desc">Japanese tax and accounting assistant. Automates expense tracking, receipt categorization, and tax preparation for Japanese filers.</p>
         <span class="kinokomon-section__family-badge">Tax & Finance</span>
       </div>
+      
+      <div class="kinokomon-section__family-card">
+        <img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" />
+        <h3 class="kinokomon-section__family-name">Bountymon</h3>
+        <p class="kinokomon-section__family-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.</p>
+        <span class="kinokomon-section__family-badge">Security & Rewards</span>
+      </div>
     </div>
   </div>
 

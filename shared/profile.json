@@ -106,6 +106,45 @@
       ]
     },
     {
+      "name": "Bountymon - Bug Bounty & Task Rewards Platform",
+      "capability_tags": [
+        "LLM foundations",
+        "Agentic workflows",
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Security",
+        "Bug Bounty",
+        "Gamification"
+      ],
+      "tags": [
+        "Bug bounty",
+        "Task rewards",
+        "Gamification",
+        "Security research"
+      ],
+      "summary": "Bug bounty and gamified task platform that rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.",
+      "outcomes": [
+        "Gamified bug reporting with reward tracking",
+        "Security challenge completion with bounties",
+        "Productivity tracking with calendar and progress bars",
+        "Freelance task marketplace matching"
+      ],
+      "stack": [
+        "Python",
+        "LLM APIs",
+        "Gamification",
+        "Security tools"
+      ],
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/kinokomon/",
+          "label": "Bountymon Development",
+          "snippet": "Bug bounty and task rewards platform"
+        }
+      ]
+    },
+    {
       "name": "Japanese Tax Expert System (JTES)",
       "capability_tags": [
         "LLM foundations",

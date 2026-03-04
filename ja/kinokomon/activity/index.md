@@ -37,6 +37,8 @@ lang: ja
     <p class="kinokomon-section__card-desc">重要な成果、プロジェクト完了、機能拡張</p>
     <!-- AUTOGEN:ACTIVITY_LOG:MILESTONES:START -->
     <ul class="kinokomon-section__list">
+      <li><strong>2026-03-04</strong> — -モンファミリー拡張: バグバウンティとゲーミフィケーションタスク報酬プラットフォーム「バウンティモン」マスコットを追加</li>
+    <ul class="kinokomon-section__list">
       <li><strong>2026-03-03</strong> — -モンファミリー追加: 健康モン（ヘルスケア）と経理モン（税務・金融）マスコットとプロジェクトを追加</li>
     <ul class="kinokomon-section__list">
       <li><strong>2026-03-03</strong> — 健康モンプロジェクト開始: 医師と患者のコミュニケーションのための医師訪問議事録と要約アプリケーション</li>

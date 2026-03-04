@@ -88,6 +88,13 @@ lang: ja
         <p class="kinokomon-section__family-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備を自動化。</p>
         <span class="kinokomon-section__family-badge">税務・金融</span>
       </div>
+      
+      <div class="kinokomon-section__family-card">
+        <img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" />
+        <h3 class="kinokomon-section__family-name">Bountymon バウンティモン</h3>
+        <p class="kinokomon-section__family-desc">バグバウンティとゲーミフィケーションタスクプラットフォーム。ソフトウェアのバグ発見、セキュリティチャレンジ完了、生産性追跡で報酬を獲得。</p>
+        <span class="kinokomon-section__family-badge">セキュリティ・報酬</span>
+      </div>
     </div>
   </div>
 

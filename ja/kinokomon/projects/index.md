@@ -22,6 +22,11 @@ lang: ja
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>バウンティモン - バグバウンティ & タスク報酬プラットフォーム</h3>
+        <p class="kinokomon-section__project-desc">バグバウンティとゲーミフィケーションタスクプラットフォーム。ソフトウェアのバグ発見、セキュリティチャレンジ完了、生産性追跡で報酬を獲得。カレンダー追跡、プログレスバー、報酬システムを搭載。</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>経理モン - 日本の税務・会計アシスタント</h3>
         <p class="kinokomon-section__project-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備をLLM搭載OCRとコンプライアンスチェックで自動化。</p>
       </div>

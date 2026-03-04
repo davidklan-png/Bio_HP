@@ -21,6 +21,11 @@ permalink: /kinokomon/projects/
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
+        <h3>Bountymon - Bug Bounty & Task Rewards Platform</h3>
+        <p class="kinokomon-section__project-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme. Features calendar tracking, progress bars, and reward systems.</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>Keirimon - Japanese Tax & Accounting Assistant</h3>
         <p class="kinokomon-section__project-desc">Japanese tax and accounting assistant. Automates expense tracking, receipt categorization, and tax preparation for Japanese filers with LLM-powered OCR and compliance checking.</p>
       </div>
