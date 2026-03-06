@@ -8,6 +8,7 @@ site/_site/
 node_modules/
 vendor/
 .bundle/
+/package-lock.json
 
 # Environment
 .env
