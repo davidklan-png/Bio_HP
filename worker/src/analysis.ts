@@ -1,6 +1,6 @@
 import { parseConfig, type ConfigEnv } from "./config";
 
-console.log("[DEBUG] analysis.ts loaded, version 2.0");
+// analysis.ts v2.1 — improved response quality and consistency
 
 export type Confidence = "Low" | "Medium" | "High";
 
@@ -328,14 +328,15 @@ function domainsCompatible(domain1: string | null, domain2: string | null): bool
   const compatiblePairs: Record<string, string[]> = {
     finance: ["enterprise", "tech", "ai_llm"],
     tech: ["enterprise", "finance", "ai_llm", "software_engineering"],
-    enterprise: ["finance", "tech", "ai_llm"],
-    ai_llm: ["tech", "enterprise", "finance"]
+    enterprise: ["finance", "tech", "ai_llm", "software_engineering"],
+    ai_llm: ["tech", "enterprise", "finance", "software_engineering"],
+    software_engineering: ["tech", "enterprise", "ai_llm"]
   };
 
-  // Explicitly incompatible domain pairs
+  // Explicitly incompatible domain pairs (very narrow — only truly unrelated fields)
   const incompatiblePairs: Record<string, string[]> = {
-    ai_llm: ["software_engineering"],
-    software_engineering: ["ai_llm"]
+    cosmetics: ["software_engineering"],
+    fashion: ["software_engineering"]
   };
 
   // Check if domains are explicitly incompatible
@@ -711,19 +712,12 @@ export function analyzeJobDescription(
     100
   );
 
-  console.log(`[DEBUG] rawScore calculation: jdText.length=${jdText.length}, rawScore=${rawScore}`);
-
   // Apply penalty for very short JDs (under 150 characters)
-  // Very short JDs don't provide enough information for confident scoring
   let score = rawScore;
   if (jdText.length < 150) {
-    // Reduce score proportionally to JD length
-    // Minimum of 50 characters gets max 40% of rawScore
-    // 150 characters gets 100% of rawScore
     const lengthRatio = (jdText.length - 50) / (150 - 50);
     const clampedRatio = Math.max(0.4, Math.min(1.0, lengthRatio));
     score = Math.round(rawScore * clampedRatio);
-    console.log(`[DEBUG] Short JD penalty: length=${jdText.length}, rawScore=${rawScore}, ratio=${clampedRatio.toFixed(2)}, adjustedScore=${score}`);
   }
 
   // Cap medium-fit roles at 85
@@ -751,10 +745,7 @@ export function analyzeJobDescription(
   // This prevents inflated scores for domain-specific matches that aren't the primary focus
   const shouldCapForNicheDomain = hasNicheDomain && domainFitScore === 10 && score > 85;
 
-  console.log(`[DEBUG] Medium fit check: domainFit=${domainFitScore}, hasNicheDomain=${hasNicheDomain}, shouldCap=${shouldCapForNicheDomain}`);
-
   if (shouldCapForNicheDomain) {
-    console.log(`[DEBUG] Niche domain cap applied: rawScore=${score}, domainFit=${domainFitScore} -> capped=85`);
     score = 85;
   }
 
@@ -1059,14 +1050,9 @@ function evaluateSection(
   const detectedJDDomainTerms: string[] = [];
   const normalizedJdText = normalizeText(jdText);
   
-  console.log(`[DEBUG] evaluateSection: label=${label}, jdText.length=${jdText.length}, normalizedJdText.length=${normalizedJdText.length}`);
-  console.log(`[DEBUG] evaluateSection: normalizedJdText="${normalizedJdText.substring(0, 200)}..."`);
-
   for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
-    console.log(`[DEBUG] Checking domain ${domain} with ${keywords.length} keywords`);
     for (const keyword of keywords) {
       if (containsTerm(normalizedJdText, keyword)) {
-        console.log(`[DEBUG] Found keyword "${keyword}" for domain ${domain}`);
         if (!detectedJDDomainTerms.includes(domain)) {
           detectedJDDomainTerms.push(domain);
         }
@@ -1077,8 +1063,6 @@ function evaluateSection(
     if (jdDomain) break;
   }
 
-  console.log(`[DEBUG] evaluateSection: jdDomain=${jdDomain}, detectedDomains=[${detectedJDDomainTerms.join(', ')}]`);
-
   // Check if there's any domain overlap between JD and profile
   let hasDomainOverlap = jdDomain === null; // No domain detected = allow all
   let domainCompatibilityRatio = 1.0; // Default: fully compatible
@@ -1088,27 +1072,18 @@ function evaluateSection(
     let compatibleProjects = 0;
     let totalProjects = 0;
 
-    // Check if any profile project matches JD's domain
     for (const entry of projectIndex) {
       const projectDomain = extractDomain(
         `${entry.project.name} ${entry.project.summary} ${entry.project.tags.join(" ")}`
       );
       totalProjects++;
-      const isCompatible = domainsCompatible(jdDomain, projectDomain);
-      console.log(`[DEBUG] Project domain check: project="${entry.project.name.substring(0, 30)}", projectDomain=${projectDomain}, compatible=${isCompatible}`);
-      if (isCompatible) {
+      if (domainsCompatible(jdDomain, projectDomain)) {
         compatibleProjects++;
       }
     }
 
-    // Calculate compatibility ratio
     domainCompatibilityRatio = totalProjects > 0 ? compatibleProjects / totalProjects : 0;
-
-    // Require at least 25% of projects to be compatible for domain overlap
-    // This prevents a single outlier project from creating false compatibility
     hasDomainOverlap = domainCompatibilityRatio >= 0.25;
-
-    console.log(`[DEBUG] Domain compatibility: ${compatibleProjects}/${totalProjects} projects compatible (${(domainCompatibilityRatio * 100).toFixed(0)}%), hasDomainOverlap=${hasDomainOverlap}`);
   }
 
   for (const line of sanitizedLines) {
@@ -1129,8 +1104,6 @@ function evaluateSection(
         );
 
         if (!domainsCompatible(jdDomain, projectDomain)) {
-          // Generic skill in incompatible domain - don't count as evidence
-          console.log(`[DEBUG] Domain mismatch for generic skill: JD domain=${jdDomain}, project domain=${projectDomain}. Rejecting match for line: "${line.substring(0, 50)}..."`);
           matches.push({ line });
           misses.push(line);
           continue;
@@ -1163,8 +1136,7 @@ function evaluateSection(
   // Apply domain compatibility penalty if applicable
   if (domainCompatibilityRatio < 1.0 && domainCompatibilityRatio > 0) {
     const penalty = 1.0 - domainCompatibilityRatio;
-    score = Math.round(score * (1.0 - penalty * 0.5)); // Apply up to 50% of the penalty
-    console.log(`[DEBUG] Applied domain compatibility penalty: ratio=${(domainCompatibilityRatio * 100).toFixed(0)}%, originalScore=${Math.round(weight * coverage)}, adjustedScore=${score}`);
+    score = Math.round(score * (1.0 - penalty * 0.5));
   }
 
   const notes = `${linesWithEvidence}/${sanitizedLines.length} ${label.toLowerCase()} items have direct portfolio evidence.`;
@@ -1455,10 +1427,25 @@ function extractRequirementPhrase(jdLine: string): string {
 
 /** Build a clean, human-readable rationale */
 function buildStrengthRationale(requirement: string, projectName: string, category: string): string {
-  // Remove trailing period if present
   const cleanReq = requirement.replace(/\.$/, "").trim();
-  const categoryStr = category === "Domain fit" ? "domain alignment" : category.toLowerCase();
-  return `Matched "${cleanReq}" to ${projectName} (${categoryStr}).`;
+
+  if (category === "Domain fit") {
+    return `Portfolio demonstrates domain expertise relevant to "${cleanReq}" through ${projectName}.`;
+  }
+
+  if (category === "Responsibilities") {
+    return `Responsibility "${cleanReq}" is supported by hands-on experience in ${projectName}.`;
+  }
+
+  if (category === "Must-haves") {
+    return `Core requirement "${cleanReq}" evidenced by ${projectName}.`;
+  }
+
+  if (category === "Nice-to-haves") {
+    return `Preferred qualification "${cleanReq}" supported by ${projectName}.`;
+  }
+
+  return `"${cleanReq}" matched to ${projectName} (${category.toLowerCase()}).`;
 }
 
 /** Find a semantic cluster label based on the matched JD text */
@@ -1522,11 +1509,12 @@ function collectGaps(entries: Array<[string, SectionEval]>): Gap[] {
     const meaningfulMisses = evalResult.misses.filter((line) => !isHeadingLine(line));
 
     for (const missedLine of meaningfulMisses.slice(0, 2)) {
+      const cleanedMiss = missedLine.replace(/^[-*•]\s+/, "").replace(/^\d+[.)]\s+/, "").trim();
+      const mitigationHint = buildGapMitigation(cleanedMiss, area);
       gaps.push({
         area,
-        why_it_matters: `No evidence found for: "${truncate(missedLine, 120)}".`,
-        mitigation:
-          "Add a project with measurable outcomes and an evidence URL, or document related evidence in shared/profile.json."
+        why_it_matters: `No portfolio evidence for: "${truncate(cleanedMiss, 120)}".`,
+        mitigation: mitigationHint
       });
     }
   }
@@ -1541,12 +1529,59 @@ function buildFitSummary(
   gapCount: number,
   riskFlags: string[]
 ): string {
-  const riskSnippet =
-    riskFlags.length > 0
-      ? `${riskFlags.length} risk flag(s) need review before application.`
-      : "No major constraints risk was detected from JD text.";
+  // Build a natural-language summary based on score band
+  let fitDescription: string;
+  if (score >= 80) {
+    fitDescription = "Strong alignment with this role.";
+  } else if (score >= 65) {
+    fitDescription = "Good alignment with several key requirements.";
+  } else if (score >= 45) {
+    fitDescription = "Partial alignment — some requirements match, but notable gaps exist.";
+  } else {
+    fitDescription = "Limited alignment with this role's core requirements.";
+  }
 
-  return `Compatibility score ${score}/100 (${confidence} confidence). Evidence-backed strengths: ${strengthCount}. Gaps or unknowns: ${gapCount}. ${riskSnippet}`;
+  const evidencePart = strengthCount > 0
+    ? ` ${strengthCount} strength${strengthCount !== 1 ? "s" : ""} backed by portfolio evidence.`
+    : " No evidence-backed strengths were identified.";
+
+  const gapPart = gapCount > 0
+    ? ` ${gapCount} gap${gapCount !== 1 ? "s" : ""} identified.`
+    : "";
+
+  const riskPart = riskFlags.length > 0
+    ? ` ${riskFlags.length} risk flag${riskFlags.length !== 1 ? "s" : ""} to review.`
+    : "";
+
+  return `${fitDescription} Score: ${score}/100 (${confidence} confidence).${evidencePart}${gapPart}${riskPart}`;
+}
+
+function buildGapMitigation(missedRequirement: string, category: string): string {
+  const lower = missedRequirement.toLowerCase();
+
+  // Specific mitigations based on what was missed
+  if (/certif|credential|degree|education/.test(lower)) {
+    return "This appears to be a formal credential requirement. Consider highlighting relevant experience or equivalent qualifications.";
+  }
+  if (/years?\s+of\s+experience|\d+\+?\s+years?/.test(lower)) {
+    return "Experience duration requirements are noted. Relevant project depth and outcomes may compensate.";
+  }
+  if (/specific\s+(tool|platform|software)|salesforce|sap|oracle|tableau/.test(lower)) {
+    return "This requires a specific tool/platform. Document transferable skills or relevant experience with similar systems.";
+  }
+  if (/manage|lead|director|supervise/.test(lower)) {
+    return "This suggests a management requirement. Add evidence of team leadership, project oversight, or stakeholder coordination.";
+  }
+
+  // Fallback based on category
+  if (category === "Must-haves") {
+    return "This is a core requirement. Consider documenting related experience or transferable skills in the portfolio.";
+  }
+  if (category === "Nice-to-haves") {
+    return "This is a preferred qualification. Related adjacent experience may partially satisfy this requirement.";
+  }
+
+  return "Consider adding project evidence with measurable outcomes that demonstrates this capability.";
 }
 
 function findBestEvidenceProject(
