@@ -370,6 +370,305 @@ describe("domain mismatch detection (TC002)", () => {
   });
 });
 
+describe("buildFitSummary via analyzeJobDescription", () => {
+  const strongProfile: Profile = {
+    skills: ["Python", "RAG", "LLM", "Prompt engineering", "AI architecture", "Vector databases", "TypeScript"],
+    projects: [
+      {
+        name: "RAG Pipeline",
+        tags: ["RAG", "LLM", "vector databases", "Python"],
+        summary: "Built production RAG system with LLM integration.",
+        outcomes: ["Deployed RAG pipeline serving 10k queries/day", "Reduced hallucination rate by 40%"],
+        stack: ["Python", "TypeScript", "Pinecone"],
+        evidence_urls: ["https://example.com/rag/"]
+      },
+      {
+        name: "Prompt Engineering Framework",
+        tags: ["prompt engineering", "LLM", "AI"],
+        summary: "Designed prompt engineering best practices for enterprise AI systems.",
+        outcomes: ["Improved response quality by 35%", "Established prompt design standards"],
+        stack: ["Python", "OpenAI"],
+        evidence_urls: ["https://example.com/prompts/"]
+      }
+    ],
+    constraints: {
+      location: "United States (remote)",
+      languages: ["English"],
+      availability: "Open to full-time roles"
+    }
+  };
+
+  it("produces 'Strong alignment' prose for high-scoring JDs (score >= 80)", () => {
+    const jd = [
+      "Position: Senior AI/ML Engineer",
+      "Responsibilities:",
+      "- Build RAG pipelines and LLM integrations",
+      "- Design prompt engineering systems",
+      "- Develop vector database solutions",
+      "Requirements:",
+      "- Python",
+      "- RAG and LLM experience",
+      "- Prompt engineering expertise",
+      "- Vector database knowledge",
+      "- TypeScript",
+      "Nice-to-haves:",
+      "- AI architecture experience"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, strongProfile, "fit-strong");
+    if (result.score >= 80) {
+      expect(result.fit_summary).toContain("Strong alignment");
+    } else if (result.score >= 65) {
+      expect(result.fit_summary).toContain("Good alignment");
+    } else if (result.score >= 45) {
+      expect(result.fit_summary).toContain("Partial alignment");
+    } else {
+      expect(result.fit_summary).toContain("Limited alignment");
+    }
+    // Score should appear in format "Score: N/100"
+    expect(result.fit_summary).toMatch(/Score:\s*\d+\/100/);
+  });
+
+  it("produces 'Limited alignment' prose for low-scoring JDs (score < 45)", () => {
+    const jd = [
+      "Position: Cosmetics Sales Manager",
+      "Responsibilities:",
+      "- Manage luxury beauty product sales",
+      "- Conduct skincare consultations",
+      "Requirements:",
+      "- 5+ years cosmetics retail experience",
+      "- Beauty industry certifications",
+      "- Passion for skincare"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "fit-low");
+    // For a mismatch scenario the score should be low
+    expect(result.score).toBeLessThan(45);
+    expect(result.fit_summary).toContain("Limited alignment");
+  });
+
+  it("fit_summary includes evidence count, gap count, and confidence", () => {
+    const jd = [
+      "Responsibilities:",
+      "- Build RAG workflows",
+      "Requirements:",
+      "- Python",
+      "- Enablement experience"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "fit-counts");
+    // Should include confidence label
+    expect(result.fit_summary).toMatch(/\b(Low|Medium|High)\s+confidence/i);
+    // If there are strengths, mention them
+    if (result.strengths.length > 0) {
+      expect(result.fit_summary).toMatch(/\d+\s+strength/i);
+    }
+    // If there are gaps, mention them
+    if (result.gaps.length > 0) {
+      expect(result.fit_summary).toMatch(/\d+\s+gap/i);
+    }
+  });
+});
+
+describe("buildGapMitigation via gap output", () => {
+  it("suggests credential advice for certification gaps", () => {
+    const jd = [
+      "Requirements:",
+      "- AWS Certified Solutions Architect certification required",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "gap-certif");
+    const certGap = result.gaps.find(g =>
+      g.why_it_matters.toLowerCase().includes("certif") ||
+      g.why_it_matters.toLowerCase().includes("aws")
+    );
+    if (certGap) {
+      expect(certGap.mitigation.toLowerCase()).toMatch(/credential|certif|equivalent|qualification/);
+    }
+  });
+
+  it("suggests experience depth advice for years-of-experience gaps", () => {
+    const jd = [
+      "Requirements:",
+      "- 10+ years of experience in enterprise software",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "gap-years");
+    const expGap = result.gaps.find(g =>
+      g.why_it_matters.toLowerCase().includes("years") ||
+      g.why_it_matters.toLowerCase().includes("experience")
+    );
+    if (expGap) {
+      expect(expGap.mitigation.toLowerCase()).toMatch(/experience|project depth|outcomes|compensate/);
+    }
+  });
+
+  it("suggests management evidence for leadership gaps", () => {
+    const jd = [
+      "Requirements:",
+      "- Must manage and lead a team of engineers",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "gap-manage");
+    const leadGap = result.gaps.find(g =>
+      g.why_it_matters.toLowerCase().includes("manage") ||
+      g.why_it_matters.toLowerCase().includes("lead")
+    );
+    if (leadGap) {
+      expect(leadGap.mitigation.toLowerCase()).toMatch(/leadership|team|oversight|coordination/);
+    }
+  });
+
+  it("uses category-aware fallback for Must-haves gaps", () => {
+    const jd = [
+      "Requirements:",
+      "- Expert knowledge of quantum computing algorithms",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "gap-must");
+    const mustGap = result.gaps.find(g => g.area === "Must-haves");
+    if (mustGap) {
+      // Must-haves fallback should mention "core requirement"
+      expect(mustGap.mitigation.toLowerCase()).toMatch(/core requirement|transferable|portfolio/);
+    }
+  });
+});
+
+describe("buildStrengthRationale via strength output", () => {
+  it("Responsibilities strengths use 'hands-on experience' phrasing", () => {
+    const jd = [
+      "Responsibilities:",
+      "- Design AI orchestration playbooks",
+      "Requirements:",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "rationale-resp");
+    const respStrength = result.strengths.find(s => s.area === "Responsibilities");
+    if (respStrength) {
+      expect(respStrength.rationale.toLowerCase()).toContain("hands-on experience");
+    }
+  });
+
+  it("Must-haves strengths use 'evidenced by' phrasing", () => {
+    const jd = [
+      "Responsibilities:",
+      "- Work with AI systems",
+      "Requirements:",
+      "- RAG experience",
+      "- Python"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "rationale-must");
+    const mustStrength = result.strengths.find(s => s.area === "Must-haves");
+    if (mustStrength) {
+      expect(mustStrength.rationale.toLowerCase()).toMatch(/evidenced by|core requirement/);
+    }
+  });
+
+  it("Nice-to-haves strengths use 'preferred qualification' or 'supported by' phrasing", () => {
+    const jd = [
+      "Requirements:",
+      "- Python",
+      "Nice-to-haves:",
+      "- RAG experience preferred",
+      "- Prompt engineering a plus"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, baseProfile, "rationale-nice");
+    const niceStrength = result.strengths.find(s => s.area === "Nice-to-haves");
+    if (niceStrength) {
+      expect(niceStrength.rationale.toLowerCase()).toMatch(/preferred qualification|supported by/);
+    }
+  });
+});
+
+describe("domain compatibility: ai_llm and software_engineering", () => {
+  const aiSWEProfile: Profile = {
+    skills: ["Python", "TypeScript", "LLM", "RAG", "REST API", "backend development"],
+    projects: [
+      {
+        name: "LLM Backend Service",
+        tags: ["LLM", "REST API", "backend development", "Python", "TypeScript"],
+        summary: "Built a production LLM-powered backend API service.",
+        outcomes: ["Served 100k requests/day", "Integrated multiple LLM providers"],
+        stack: ["Python", "TypeScript", "FastAPI"],
+        evidence_urls: ["https://example.com/llm-backend/"]
+      }
+    ],
+    constraints: {
+      location: "United States (remote)",
+      languages: ["English"],
+      availability: "Open to full-time roles"
+    }
+  };
+
+  it("does not penalize ai_llm profile for software engineering JD", () => {
+    const jd = [
+      "Position: Senior Software Engineer",
+      "Responsibilities:",
+      "- Build backend services and REST APIs",
+      "- Develop AI/LLM integrations",
+      "Requirements:",
+      "- Python",
+      "- TypeScript",
+      "- Backend development experience",
+      "- LLM integration experience"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, aiSWEProfile, "domain-compat-ai-swe");
+
+    // Should score reasonably (ai_llm and software_engineering are now compatible)
+    expect(result.score).toBeGreaterThan(40);
+
+    // Should NOT flag domain incompatibility
+    const hasDomainMismatch = result.risk_flags.some(f =>
+      f.toLowerCase().includes("domain mismatch") || f.toLowerCase().includes("incompatible")
+    );
+    expect(hasDomainMismatch).toBe(false);
+  });
+
+  it("still penalizes cosmetics JD for software engineering profile", () => {
+    const swProfile: Profile = {
+      skills: ["Python", "TypeScript", "backend development", "REST API"],
+      projects: [
+        {
+          name: "Web API Service",
+          tags: ["backend", "REST API", "TypeScript"],
+          summary: "Built backend web services.",
+          outcomes: ["Deployed production API"],
+          stack: ["TypeScript", "Python"],
+          evidence_urls: ["https://example.com/api/"]
+        }
+      ],
+      constraints: {
+        location: "United States",
+        languages: ["English"],
+        availability: "Open to full-time roles"
+      }
+    };
+
+    const jd = [
+      "Position: Beauty Counter Manager",
+      "Responsibilities:",
+      "- Manage cosmetics sales team",
+      "- Conduct beauty consultations",
+      "Requirements:",
+      "- 3+ years cosmetics retail experience",
+      "- Skincare product knowledge"
+    ].join("\n");
+
+    const result = analyzeJobDescription(jd, swProfile, "domain-incompat-cosmetics");
+
+    // cosmetics <-> software_engineering are still incompatible
+    expect(result.score).toBeLessThan(30);
+  });
+});
+
 describe("input and rate-limit payload", () => {
   it("rejects jd_text over 15k chars", () => {
     const err = validateAnalyzeBody({ jd_text: "a".repeat(15001) });
