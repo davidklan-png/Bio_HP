@@ -90,8 +90,8 @@ lang: ja
       </div>
       
       <div class="kinokomon-section__family-card">
-        <img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" />
-        <h3 class="kinokomon-section__family-name">Bountymon バウンティモン</h3>
+        <a href="https://bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" /></a>
+        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon バウンティモン</a></h3>
         <p class="kinokomon-section__family-desc">バグバウンティとゲーミフィケーションタスクプラットフォーム。ソフトウェアのバグ発見、セキュリティチャレンジ完了、生産性追跡で報酬を獲得。</p>
         <span class="kinokomon-section__family-badge">セキュリティ・報酬</span>
       </div>
