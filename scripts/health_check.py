@@ -384,7 +384,8 @@ def feature_5_api_functional_test(result: HealthCheckResult):
     
     headers = {
         "Authorization": API_AUTH,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; HealthCheck/1.0; +https://kinokoholic.com)"
     }
     
     # Test 1: Strong match JD

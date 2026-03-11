@@ -16,7 +16,6 @@ import {
   insertValidationError,
   sha256Hex
 } from "./storage";
-import { validateAccessJWT } from "./access";
 
 type Env = {
   ALLOWED_ORIGINS?: string;
@@ -25,8 +24,6 @@ type Env = {
   DB: D1Database;
   AI?: unknown;
   ANALYZER_API_KEY?: string;
-  CF_ACCESS_AUD?: string;
-  CF_ACCESS_TEAM_DOMAIN?: string;
 } & ConfigEnv;
 
 interface RateLimitDecision {
@@ -48,6 +45,21 @@ interface RequestMetrics {
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 5;
 const CACHE_CONTROL_HEADER = "no-store";
+
+// Security: Allowed referers for additional validation
+const ALLOWED_REFERERS = [
+  "https://kinokoholic.com",
+  "http://localhost:4000",
+  "http://127.0.0.1:4000",
+  "http://localhost:4001"
+];
+
+// Security: Suspicious patterns in User-Agent to block bots/scraper
+const SUSPICIOUS_UA_PATTERNS = [
+  /bot/i, /crawler/i, /spider/i, /scraper/i,
+  /curl/i, /wget/i, /python/i, /requests/i,
+  /go-http-client/i, /java/i
+];
 
 const PROFILE: Profile = parseAndValidateProfile(profileData);
 
@@ -123,44 +135,47 @@ export default {
       return jsonError(405, "Method not allowed", cors.headers, requestId);
     }
 
-    // Dual auth: Cloudflare Access JWT for .workers.dev, Bearer token for custom domain
-    const isWorkersDev = url.hostname.endsWith(".workers.dev");
-    if (isWorkersDev && (!env.CF_ACCESS_AUD || !env.CF_ACCESS_TEAM_DOMAIN)) {
-      console.warn(
-        JSON.stringify({
-          warning: "workers_dev_access_misconfigured",
-          request_id: requestId,
-          message: "CF_ACCESS_AUD or CF_ACCESS_TEAM_DOMAIN not set; falling back to Bearer token auth on .workers.dev"
-        })
-      );
+    // Bearer token authentication for all domains
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${env.ANALYZER_API_KEY}`) {
+      logRequestLifecycle(env, {
+        requestId,
+        jdLength: 0,
+        score: null,
+        confidence: null,
+        rateLimited: false
+      });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      });
     }
-    if (isWorkersDev && env.CF_ACCESS_AUD && env.CF_ACCESS_TEAM_DOMAIN) {
-      const jwtError = await validateAccessJWT(request, env.CF_ACCESS_AUD, env.CF_ACCESS_TEAM_DOMAIN);
-      if (jwtError) {
-        logRequestLifecycle(env, {
-          requestId,
-          jdLength: 0,
-          score: null,
-          confidence: null,
-          rateLimited: false
-        });
-        return jsonError(403, "Access denied: " + jwtError, cors.headers, requestId);
-      }
-    } else {
-      const authHeader = request.headers.get("Authorization");
-      if (!authHeader || authHeader !== `Bearer ${env.ANALYZER_API_KEY}`) {
-        logRequestLifecycle(env, {
-          requestId,
-          jdLength: 0,
-          score: null,
-          confidence: null,
-          rateLimited: false
-        });
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
+
+    // Additional security: Validate Referer header
+    const referer = request.headers.get("Referer");
+    const refererError = validateReferer(referer);
+    if (refererError) {
+      logRequestLifecycle(env, {
+        requestId,
+        jdLength: 0,
+        score: null,
+        confidence: null,
+        rateLimited: false
+      });
+      return jsonError(403, refererError, cors.headers, requestId);
+    }
+
+    // Additional security: Validate User-Agent (block obvious bots)
+    const uaError = validateUserAgent(userAgent);
+    if (uaError) {
+      logRequestLifecycle(env, {
+        requestId,
+        jdLength: 0,
+        score: null,
+        confidence: null,
+        rateLimited: false
+      });
+      return jsonError(403, uaError, cors.headers, requestId);
     }
 
     initializeConfig(env);
@@ -408,6 +423,62 @@ function getClientIp(request: Request): string {
   }
 
   return "unknown-ip";
+}
+
+/**
+ * Security: Validate Referer header to prevent CSRF from unauthorized sites.
+ * Allows requests from kinokoholic.com and localhost for development.
+ */
+function validateReferer(referer: string | null): string | null {
+  if (!referer) {
+    // Browsers may not send Referer in some cases (same-origin, HTTPS->HTTP downgrade)
+    // Origin validation already handles CORS enforcement
+    return null;
+  }
+
+  try {
+    const refererUrl = new URL(referer);
+    const refererHost = refererUrl.hostname;
+
+    // Check if referer matches allowed hosts
+    for (const allowed of ALLOWED_REFERERS) {
+      const allowedUrl = new URL(allowed);
+      if (refererHost === allowedUrl.hostname || refererHost.endsWith(`.${allowedUrl.hostname}`)) {
+        return null; // Valid referer
+      }
+    }
+
+    return `Unauthorized referer: ${refererHost}`;
+  } catch {
+    return "Invalid referer header";
+  }
+}
+
+/**
+ * Security: Validate User-Agent to block obvious bots and scrapers.
+ * Note: This is a basic defense; sophisticated attackers can spoof UA.
+ */
+function validateUserAgent(userAgent: string | null): string | null {
+  if (!userAgent) {
+    return "User-Agent header required";
+  }
+
+  const ua = userAgent.toLowerCase();
+
+  // Block suspicious user agents
+  for (const pattern of SUSPICIOUS_UA_PATTERNS) {
+    if (pattern.test(ua)) {
+      return `Access denied for automated client`;
+    }
+  }
+
+  // Require browser-like user agents (basic check)
+  const hasBrowserIndicator = /mozilla|chrome|safari|firefox|edge|opera|edg|msie|trident/i.test(ua);
+  if (!hasBrowserIndicator) {
+    return "Access denied: browser required";
+  }
+
+  return null;
 }
 
 async function applyRateLimit(
