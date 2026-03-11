@@ -4,6 +4,7 @@
     "TypeScript",
     "LLM application architecture",
     "RAG",
+    "Retrieval-Augmented Generation",
     "Prompt engineering",
     "Evaluation and observability",
     "Infrastructure transformation",
@@ -15,7 +16,17 @@
     "DR/BCP delivery",
     "PMO reporting",
     "Cross-region team leadership",
-    "Compliance and risk management"
+    "Compliance and risk management",
+    "Risk & Issue Management",
+    "Scope Management",
+    "Budget Management",
+    "Schedule Management",
+    "Resource Management",
+    "Communication Management",
+    "Governance Management",
+    "Closure Management",
+    "Vendor Management",
+    "Project Management Professional (PMP)"
   ],
   "capability_tags": [
     "Prompt engineering",
@@ -25,7 +36,19 @@
     "LLM foundations",
     "Python & Integrations",
     "Stakeholder management",
-    "Governance & Delivery"
+    "Governance & Delivery",
+    "Risk & Issue Management",
+    "Project Delivery",
+    "Infrastructure Management",
+    "Data Governance",
+    "Vendor Coordination"
+  ],
+  "certifications": [
+    {
+      "name": "Project Management Professional (PMP)",
+      "issuer": "Project Management Institute",
+      "year": "2012"
+    }
   ],
   "projects": [
     {
@@ -248,7 +271,9 @@
     {
       "name": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
       "capability_tags": [
-        "Governance & Delivery"
+        "Governance & Delivery",
+        "Risk & Issue Management",
+        "Vendor Management"
       ],
       "domain_tags": [
         "Insurance",
@@ -260,32 +285,37 @@
         "Data governance",
         "Compliance",
         "Mainframe sunset",
-        "Stakeholder management"
+        "Stakeholder management",
+        "Risk-based reporting"
       ],
-      "summary": "Led large-scale enterprise data migration and governance delivery across insurance platforms.",
+      "summary": "Led large-scale enterprise data migration and governance delivery across insurance platforms. Managed customer data migration project during mainframe sunset, ensuring zero critical data loss across multiple systems.",
       "outcomes": [
         "Supported multi-system migration with zero critical data loss during mainframe sunset",
         "Built compliance-ready governance workflows and risk-based reporting",
-        "Reduced manual data correction effort through workflow optimization"
+        "Reduced manual data correction time by 40% through workflow optimizations",
+        "Coordinated with internal IS/IT teams, external vendors, and business units"
       ],
       "stack": [
         "Data architecture",
         "Governance",
         "ETL",
-        "Program management"
+        "Program management",
+        "Vendor management"
       ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/work-history/",
           "label": "Data Migration & Governance",
-          "snippet": "Multi-system data migration with compliance workflows"
+          "snippet": "Multi-system data migration with compliance workflows and zero critical data loss"
         }
       ]
     },
     {
       "name": "Infrastructure Scale and DR/BCP Delivery (AXA / Smart Partners)",
       "capability_tags": [
-        "Governance & Delivery"
+        "Governance & Delivery",
+        "Risk & Issue Management",
+        "Vendor Management"
       ],
       "domain_tags": [
         "Insurance",
@@ -297,13 +327,16 @@
         "Disaster recovery",
         "Business continuity",
         "Global delivery",
-        "Program governance"
+        "Program governance",
+        "DR/BCP policy"
       ],
-      "summary": "Delivered infrastructure transformation programs across global, high-availability enterprise environments.",
+      "summary": "Delivered infrastructure transformation programs across global, high-availability enterprise environments. Managed infrastructure programs including merger and build-out of 1,200+ servers across global environments.",
       "outcomes": [
         "Managed infrastructure refresh for 10,000+ clients and 400+ servers",
         "Directed post-merger infrastructure standardization and DR/BCP implementation",
-        "Coordinated multi-region delivery teams across Japan, EMEA, and North America"
+        "Coordinated multi-region delivery teams across Japan, EMEA, and North America",
+        "Delivered automated onboarding workflow system - reduced setup time from 3 days to under 1",
+        "Aligned infrastructure delivery with strict DR/BCP standards"
       ],
       "stack": [
         "Windows Server",
@@ -363,20 +396,24 @@
       ],
       "domain_tags": [
         "Education",
-        "Logistics"
+        "Logistics",
+        "Construction"
       ],
       "tags": [
         "Web application delivery",
         "System integration",
         "Offshore coordination",
         "Testing and QA",
-        "Lifecycle management"
+        "Lifecycle management",
+        "AS/400"
       ],
       "summary": "Delivered application and integration projects with hybrid local/offshore teams and strict launch deadlines.",
       "outcomes": [
         "Launched web-based university mock exam platform on schedule with client acceptance",
         "Implemented AS/400 and warehouse integration improvements for inventory and shipping operations",
-        "Owned delivery lifecycle from requirements through closure across multi-stakeholder teams"
+        "Owned delivery lifecycle from requirements through closure across multi-stakeholder teams",
+        "Led compliance implementation of ISO9000/ISO9001 and SOX requirements",
+        "Developed WMS interface streamlining inventory from order intake to shipping"
       ],
       "stack": [
         "Web application delivery",
@@ -393,6 +430,24 @@
       ]
     }
   ],
+  "project_management_responsibilities": {
+    "scope_management": "Deliver projects and programs on scope. Define program scope objectives, goals and success criteria. Control scope through change management. Provide weekly reports to stakeholders on scope performance.",
+    "budget_management": "Deliver projects and programs on budget. Ensure all project resources and materials are accounted for in the budget. Reconcile actual and commitment costs. Obtain formal sponsor funding approval by creating commercial documentation. Provide weekly reports to stakeholders on budget performance.",
+    "schedule_management": "Deliver projects and programs on schedule. Define and document schedules (WBS, Roadmap, Timeline). Monitor progress and find creative solutions to accelerate activities. Provide weekly reports to stakeholders on schedule performance.",
+    "resource_management": "Acquire resources for the project. Provide resource plans in the form of a Statement of Work. Identify stakeholders and create stakeholder register. Complete on-boarding and off-boarding of resources.",
+    "risk_issue_management": "Define and document issues and risks with impact, mitigation, resolution date and escalation for each item. Provide weekly reports to stakeholders on risks and issues. Create and maintain Risk, Issues and Decision logs.",
+    "communication_management": "Define and document Communication and stakeholder management plans. Provide timely and targeted reports to all stakeholders. Provide weekly status, steering committee and governance reports including scope, schedule, budget, resources, risks/issues, mitigation and internal/external dependencies.",
+    "governance_management": "Define and document a governance model that covers all stakeholders across governance, steering, program and project levels. Define and document stakeholder management plan targeting each stakeholder's interests. Manage stakeholder and sponsor support within the program objectives.",
+    "closure_management": "Define criteria for project closure. Obtain handover signoff from stakeholders and operations management. Create full financial report and reconciliation at the time of project closure and handover."
+  },
+  "project_scales": {
+    "infrastructure_clients": "10,000+ client PCs",
+    "infrastructure_servers": "400+ servers",
+    "infrastructure_servers_global": "1,200+ servers across global environments",
+    "office_move": "500-seat office move",
+    "team_sizes": "Teams of 6-10 members",
+    "multi_region": "Japan, EMEA, and North America"
+  },
   "constraints": {
     "location": "United States and Japan (open to remote and hybrid)",
     "languages": [

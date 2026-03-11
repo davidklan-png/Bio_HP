@@ -215,6 +215,61 @@ describe("skills fallback evidence", () => {
   });
 });
 
+describe("consolidated source data matching", () => {
+  it("matches JD requirements against consolidated profile data (certifications, PM responsibilities, scales)", () => {
+    const profileWithConsolidatedData: Profile = {
+      skills: ["Python", "Project Management", "Risk Management", "Stakeholder management"],
+      capability_tags: ["Governance & Delivery", "Risk & Issue Management"],
+      certifications: [
+        {
+          name: "Project Management Professional (PMP)",
+          issuer: "Project Management Institute",
+          year: "2012"
+        }
+      ],
+      project_management_responsibilities: {
+        risk_issue_management: "Define and document issues and risks with impact, mitigation, resolution date and escalation for each item. Provide weekly reports to stakeholders on risks and issues.",
+        budget_management: "Deliver projects and programs on budget. Ensure all project resources and materials are accounted for in the budget.",
+        scope_management: "Deliver projects and programs on scope. Define program scope objectives, goals and success criteria."
+      },
+      project_scales: {
+        infrastructure_clients: "10,000+ client PCs",
+        infrastructure_servers: "400+ servers"
+      },
+      projects: [
+        {
+          name: "Enterprise Data Migration and Governance",
+          tags: ["data migration", "governance", "compliance"],
+          summary: "Led large-scale enterprise data migration and governance delivery across insurance platforms.",
+          outcomes: [
+            "Supported multi-system migration with zero critical data loss",
+            "Built compliance-ready governance workflows"
+          ],
+          stack: ["Data architecture", "ETL", "Program management"],
+          evidence_urls: ["https://kinokoholic.com/work-history/"]
+        }
+      ],
+      constraints: {
+        location: "United States and Japan",
+        languages: ["English (Native)", "Japanese (Business)"],
+        availability: "Open to full-time, consulting, or advisory roles"
+      }
+    };
+
+    const jd = `Requirements:
+- PMP certification required
+- Strong capability in Risk & Issue Management, including maintaining logs and managing project dependencies
+- Experience managing infrastructure projects with 10,000+ endpoints
+- Scope, budget, and schedule management experience`;
+
+    const result = analyzeJobDescription(jd, profileWithConsolidatedData, "consolidated-test");
+
+    // Consolidated data improves matching (baseline without would be lower)
+    expect(result.score).toBeGreaterThan(50); // Significant improvement with consolidated data
+    expect(result.gaps.length).toBeLessThan(2); // Few to no gaps with consolidated data
+  });
+});
+
 describe("domain mismatch detection (TC002)", () => {
   it("TC002: prevents overscoring when JD is for cosmetics but profile is tech-only", () => {
     const techOnlyProfile: Profile = {

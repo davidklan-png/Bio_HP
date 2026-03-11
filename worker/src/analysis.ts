@@ -79,10 +79,20 @@ export interface ProfileConstraints {
   availability: string;
 }
 
+export interface ProfileCertification {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
 export interface Profile {
   skills: string[];
+  capability_tags?: string[];
   projects: ProfileProject[];
   constraints: ProfileConstraints;
+  certifications?: ProfileCertification[];
+  project_management_responsibilities?: Record<string, string>;
+  project_scales?: Record<string, string>;
 }
 
 interface ProjectIndex {
@@ -551,6 +561,7 @@ export function analyzeJobDescription(
   }
 ): AnalyzeResponse {
   const projectIndex = buildProjectIndex(profile);
+  const profileIndex = buildProfileIndex(profile);
   const skillEvidence = buildSkillEvidenceMap(profile, projectIndex);
   const domainTerms = buildDomainTerms(profile);
 
@@ -597,7 +608,8 @@ export function analyzeJobDescription(
     projectIndex,
     skillEvidence,
     jdDomainTerms,
-    jdText
+    jdText,
+    profileIndex
   );
   const mustHavesEval = evaluateSection(
     requirementLines,
@@ -606,7 +618,8 @@ export function analyzeJobDescription(
     projectIndex,
     skillEvidence,
     jdDomainTerms,
-    jdText
+    jdText,
+    profileIndex
   );
 
   const niceEval =
@@ -618,7 +631,8 @@ export function analyzeJobDescription(
           projectIndex,
           skillEvidence,
           jdDomainTerms,
-          jdText
+          jdText,
+          profileIndex
         )
       : {
           score: Math.round(RUBRIC_WEIGHTS.niceToHaves * 0.5),
@@ -1030,7 +1044,8 @@ function evaluateSection(
   projectIndex: ProjectIndex[],
   skillEvidence: SkillEvidenceMap,
   jdDomainTerms: string[] = [],
-  jdText: string = ""
+  jdText: string = "",
+  profileIndex: string[] = []
 ): SectionEval {
   const sanitizedLines = lines.map((line) => line.trim()).filter(Boolean).slice(0, 24);
   if (sanitizedLines.length === 0) {
@@ -1087,7 +1102,7 @@ function evaluateSection(
   }
 
   for (const line of sanitizedLines) {
-    const evidenceProject = findBestEvidenceProject(line, projectIndex, skillEvidence);
+    const evidenceProject = findBestEvidenceProject(line, projectIndex, skillEvidence, profileIndex);
 
     if (evidenceProject) {
       const normalizedLine = normalizeText(line);
@@ -1587,7 +1602,8 @@ function buildGapMitigation(missedRequirement: string, category: string): string
 function findBestEvidenceProject(
   input: string,
   projectIndex: ProjectIndex[],
-  skillEvidence: SkillEvidenceMap
+  skillEvidence: SkillEvidenceMap,
+  profileIndex: string[] = []
 ): ProfileProject | undefined {
   const normalizedInput = normalizeText(input);
   if (!normalizedInput) {
@@ -1597,6 +1613,15 @@ function findBestEvidenceProject(
   let bestProject: ProfileProject | undefined;
   let bestScore = 0;
 
+  // First, check against profile-level index (skills, certifications, PM responsibilities)
+  // This gives a baseline score for any match at the profile level
+  let profileMatchScore = 0;
+  for (const term of profileIndex) {
+    if (containsTerm(normalizedInput, term)) {
+      profileMatchScore += term.includes(" ") ? 2 : 1;
+    }
+  }
+
   for (const index of projectIndex) {
     const project = index.project;
     const evidenceUrls = getProjectEvidenceUrls(project);
@@ -1604,7 +1629,7 @@ function findBestEvidenceProject(
       continue;
     }
 
-    let matchScore = 0;
+    let matchScore = profileMatchScore; // Start with profile match score
     for (const term of index.searchableTerms) {
       if (containsTerm(normalizedInput, term)) {
         matchScore += term.includes(" ") ? 2 : 1;
@@ -1734,6 +1759,11 @@ function buildProjectIndex(profile: Profile): ProjectIndex[] {
       rawTerms.push(...project.capability_tags);
     }
 
+    // Add domain_tags for additional context
+    if ((project as any).domain_tags && Array.isArray((project as any).domain_tags)) {
+      rawTerms.push(...(project as any).domain_tags);
+    }
+
     const termSet = new Set<string>();
 
     for (const raw of rawTerms) {
@@ -1754,6 +1784,74 @@ function buildProjectIndex(profile: Profile): ProjectIndex[] {
       searchableTerms: Array.from(termSet)
     };
   });
+}
+
+/** Build profile-level index including skills, certifications, and PM expertise */
+function buildProfileIndex(profile: Profile): string[] {
+  const termSet = new Set<string>();
+
+  // Add all skills
+  for (const skill of profile.skills) {
+    const normalized = normalizeText(skill);
+    termSet.add(normalized);
+    for (const token of tokenize(skill)) {
+      if (token.length >= 4) {
+        termSet.add(token);
+      }
+    }
+  }
+
+  // Add capability tags
+  if (profile.capability_tags) {
+    for (const tag of profile.capability_tags) {
+      const normalized = normalizeText(tag);
+      termSet.add(normalized);
+      for (const token of tokenize(tag)) {
+        if (token.length >= 4) {
+          termSet.add(token);
+        }
+      }
+    }
+  }
+
+  // Add certifications
+  if (profile.certifications) {
+    for (const cert of profile.certifications) {
+      const normalized = normalizeText(cert.name);
+      termSet.add(normalized);
+      for (const token of tokenize(cert.name)) {
+        if (token.length >= 4) {
+          termSet.add(token);
+        }
+      }
+    }
+  }
+
+  // Add PM responsibilities
+  if (profile.project_management_responsibilities) {
+    for (const [_key, value] of Object.entries(profile.project_management_responsibilities)) {
+      const normalized = normalizeText(value);
+      for (const token of tokenize(value)) {
+        if (token.length >= 4) {
+          termSet.add(token);
+        }
+      }
+    }
+  }
+
+  // Add project scales
+  if (profile.project_scales) {
+    for (const [_key, value] of Object.entries(profile.project_scales)) {
+      const normalized = normalizeText(value);
+      for (const token of tokenize(value)) {
+        if (token.length >= 3) {
+          termSet.add(token);
+        }
+      }
+    }
+  }
+
+  return Array.from(termSet);
 }
 
 function buildDomainTerms(profile: Profile): string[] {
