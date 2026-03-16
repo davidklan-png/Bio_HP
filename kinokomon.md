@@ -73,7 +73,7 @@ permalink: /kinokomon/
       <a href="{{ '/kinokomon/community/' | relative_url }}" class="kinokomon-section__nav-card">
         <div class="kinokomon-section__nav-card-icon">🌏</div>
         <h3 class="kinokomon-section__nav-card-title">Community Building</h3>
-        <p class="kinokomon-section__nav-card-desc">Japan bot community and key learnings</p>
+        <p class="kinokomon-section__card-desc">Japan bot community and key learnings</p>
         <span class="kinokomon-section__nav-card-badge">9 items</span>
       </a>
 
@@ -122,13 +122,13 @@ permalink: /kinokomon/
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
     <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
+<li><strong>2026-03-16 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-15 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-14 21:48 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-13 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-12 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-11 20:03 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 <li><strong>2026-03-10 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
-<li><strong>2026-03-09 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch</li>
 
     </ul>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
