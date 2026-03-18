@@ -21,29 +21,7 @@ permalink: /kinokomon/linkedin/
 
     <!-- AUTOGEN:LINKEDIN_ARTICLES:START -->
     <div class="kinokomon-section__articles-list">
-
-      <article class="kinokomon-section__article-item">
-        <div class="kinokomon-section__article-meta">
-          <span class="kinokomon-section__article-date">2026-03</span>
-          <span class="kinokomon-section__article-tag">AI Agents</span>
-        </div>
-        <h4 class="kinokomon-section__article-title">
-          <a href="https://www.linkedin.com/posts/david-klan-0b854a27_im-extremely-proud-to-share-that-mazda-canada-activity-7295511661505822722-Hvb_" target="_blank" rel="noopener">Proud to Share — Mazda Canada Transformation</a>
-        </h4>
-        <p class="kinokomon-section__article-summary">Reflections on enterprise transformation and the role of AI in driving organizational change at Mazda Canada.</p>
-      </article>
-
-      <article class="kinokomon-section__article-item">
-        <div class="kinokomon-section__article-meta">
-          <span class="kinokomon-section__article-date">2023-03</span>
-          <span class="kinokomon-section__article-tag">Diversity & Inclusion</span>
-        </div>
-        <h4 class="kinokomon-section__article-title">
-          <a href="https://www.linkedin.com/posts/david-klan-0b854a27_iwd2023-activity-7039260214251974656-eKOt" target="_blank" rel="noopener">International Women's Day 2023</a>
-        </h4>
-        <p class="kinokomon-section__article-summary">Commemorating IWD 2023 with reflections on diversity, inclusion, and leadership in the workplace.</p>
-      </article>
-
+      <p class="kinokomon-section__article-summary" style="text-align:center; padding:2rem 0;">Articles will appear here as they are published.</p>
     </div>
     <!-- AUTOGEN:LINKEDIN_ARTICLES:END -->
 
