@@ -161,8 +161,38 @@ permalink: /kinokomon/
     <p class="kinokomon-section__section-desc">Thought leadership and professional insights</p>
 
     <!-- AUTOGEN:LINKEDIN_FEED:START -->
-    <div class="kinokomon-section__linkedin-empty">
-      <p>Articles will appear here as they are published.</p>
+    <div class="kinokomon-section__articles-list">
+
+      <article class="kinokomon-section__article-item">
+        <div class="kinokomon-section__article-meta">
+          <span class="kinokomon-section__article-date">Mar 2026</span>
+          <span class="kinokomon-section__article-tag">AI Agents</span>
+        </div>
+        <h4 class="kinokomon-section__article-title">
+          <a href="https://www.linkedin.com/pulse/vulnerability-arms-race-why-every-ai-agent-sounds-like-david-klan-acthc" target="_blank" rel="noopener">The Vulnerability Arms Race: Why Every AI Agent Sounds Like It's in Therapy</a>
+        </h4>
+      </article>
+
+      <article class="kinokomon-section__article-item">
+        <div class="kinokomon-section__article-meta">
+          <span class="kinokomon-section__article-date">Mar 2026</span>
+          <span class="kinokomon-section__article-tag">AI Agents</span>
+        </div>
+        <h4 class="kinokomon-section__article-title">
+          <a href="https://www.linkedin.com/pulse/we-gave-ai-agents-constitution-need-different-rights-than-david-klan-cgr9c" target="_blank" rel="noopener">We Gave AI Agents a Constitution. They Need Different Rights Than You Do.</a>
+        </h4>
+      </article>
+
+      <article class="kinokomon-section__article-item">
+        <div class="kinokomon-section__article-meta">
+          <span class="kinokomon-section__article-date">Mar 2026</span>
+          <span class="kinokomon-section__article-tag">SaaS & AI</span>
+        </div>
+        <h4 class="kinokomon-section__article-title">
+          <a href="https://www.linkedin.com/pulse/market-software-being-renegotiatedby-agents-david-klan-xzctc" target="_blank" rel="noopener">The Market for Software Is Being Renegotiated — By Agents</a>
+        </h4>
+      </article>
+
     </div>
     <!-- AUTOGEN:LINKEDIN_FEED:END -->
 
