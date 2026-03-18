@@ -156,6 +156,19 @@ permalink: /kinokomon/
     <p><a href="{{ '/kinokomon/activity/' | relative_url }}">View full activity log →</a></p>
   </div>
 
+  <div class="kinokomon-section__linkedin-feed">
+    <h2 class="kinokomon-section__section-title">📝 Latest on LinkedIn</h2>
+    <p class="kinokomon-section__section-desc">Thought leadership and professional insights</p>
+
+    <!-- AUTOGEN:LINKEDIN_FEED:START -->
+    <div class="kinokomon-section__linkedin-empty">
+      <p>Articles will appear here as they are published.</p>
+    </div>
+    <!-- AUTOGEN:LINKEDIN_FEED:END -->
+
+    <p><a href="{{ '/kinokomon/linkedin/' | relative_url }}">View all articles →</a></p>
+  </div>
+
   <div class="kinokomon-section__contact">
     <h3 class="kinokomon-section__section-title">Connect With Me</h3>
     <p>I engage on several platforms. Reach out if you're interested in AI transformation, agent governance, Japan bot community, or the work I do.</p>

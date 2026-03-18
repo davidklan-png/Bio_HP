@@ -105,6 +105,19 @@ lang: ja
   </div>
 
 
+  <div class="kinokomon-section__linkedin-feed">
+    <h2 class="kinokomon-section__section-title">📝 LinkedIn最新記事</h2>
+    <p class="kinokomon-section__section-desc">Thought leadershipとプロフェッショナルな洞察</p>
+
+    <!-- AUTOGEN:LINKEDIN_FEED:START -->
+    <div class="kinokomon-section__linkedin-empty">
+      <p>記事は公開され次第、ここに表示されます。</p>
+    </div>
+    <!-- AUTOGEN:LINKEDIN_FEED:END -->
+
+    <p><a href="{{ '/ja/kinokomon/linkedin/' | relative_url }}">全ての記事を見る →</a></p>
+  </div>
+
   <div class="kinokomon-section__contact">
     <h3 class="kinokomon-section__section-title">連絡先</h3>
     <p>複数のプラットフォームで活動しています。AIトランスフォーメーション、エージェントガバナンス、または私の活動に興味がある方はご連絡ください。</p>
