@@ -61,6 +61,12 @@ lang: ja
         <span class="kinokomon-section__nav-card-badge">9項目</span>
       </a>
 
+      <a href="{{ '/ja/kinokomon/linkedin/' | relative_url }}" class="kinokomon-section__nav-card">
+        <div class="kinokomon-section__nav-card-icon">📝</div>
+        <h3 class="kinokomon-section__nav-card-title">LinkedIn記事</h3>
+        <p class="kinokomon-section__nav-card-desc">AI、エンタープライズデリバリー、日本市場に関するthought leadership</p>
+        <span class="kinokomon-section__nav-card-badge">執筆</span>
+      </a>
       <a href="{{ '/ja/kinokomon/resources/' | relative_url }}" class="kinokomon-section__nav-card">
         <div class="kinokomon-section__nav-card-icon">📚</div>
         <h3 class="kinokomon-section__nav-card-title">リソース</h3>

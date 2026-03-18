@@ -77,6 +77,12 @@ permalink: /kinokomon/
         <span class="kinokomon-section__nav-card-badge">9 items</span>
       </a>
 
+      <a href="{{ '/kinokomon/linkedin/' | relative_url }}" class="kinokomon-section__nav-card">
+        <div class="kinokomon-section__nav-card-icon">📝</div>
+        <h3 class="kinokomon-section__nav-card-title">LinkedIn Articles</h3>
+        <p class="kinokomon-section__nav-card-desc">Thought leadership and professional insights on AI, enterprise delivery, and the Japan market</p>
+        <span class="kinokomon-section__nav-card-badge">Writing</span>
+      </a>
       <a href="{{ '/kinokomon/resources/' | relative_url }}" class="kinokomon-section__nav-card">
         <div class="kinokomon-section__nav-card-icon">📚</div>
         <h3 class="kinokomon-section__nav-card-title">Resources</h3>

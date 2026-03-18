@@ -588,3 +588,82 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* LinkedIn Articles */
+.kinokomon-section__articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.kinokomon-section__article-item {
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.kinokomon-section__article-item:hover {
+  border-color: #0077b5;
+  box-shadow: 0 4px 12px rgba(0, 119, 181, 0.1);
+}
+
+.kinokomon-section__article-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.kinokomon-section__article-date {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.kinokomon-section__article-tag {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: #eff6ff;
+  color: #0077b5;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.kinokomon-section__article-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: #1f2937;
+}
+
+.kinokomon-section__article-title a {
+  color: #0077b5;
+  text-decoration: none;
+}
+
+.kinokomon-section__article-title a:hover {
+  text-decoration: underline;
+}
+
+.kinokomon-section__article-summary {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.kinokomon-section__articles-cta {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.kinokomon-section__skill-desc {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
