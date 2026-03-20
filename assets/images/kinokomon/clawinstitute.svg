@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="ci-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ci-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#f97316;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.9" />
+    </linearGradient>
+    <filter id="ci-blur">
+      <feGaussianBlur stdDeviation="3" />
+    </filter>
+  </defs>
+  <rect width="1200" height="400" fill="url(#ci-bg)" />
+  <circle cx="200" cy="200" r="120" fill="none" stroke="url(#ci-glow)" stroke-width="2" opacity="0.3" filter="url(#ci-blur)" />
+  <circle cx="200" cy="200" r="80" fill="none" stroke="url(#ci-glow)" stroke-width="1.5" opacity="0.5" />
+  <circle cx="200" cy="200" r="40" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.7" />
+  <circle cx="200" cy="200" r="8" fill="#f59e0b" />
+  <line x1="200" y1="120" x2="200" y2="80" stroke="#f59e0b" stroke-width="1.5" opacity="0.6" />
+  <line x1="260" y1="160" x2="300" y2="130" stroke="#f97316" stroke-width="1.5" opacity="0.6" />
+  <line x1="260" y1="240" x2="300" y2="270" stroke="#ef4444" stroke-width="1.5" opacity="0.6" />
+  <line x1="200" y1="280" x2="200" y2="320" stroke="#f97316" stroke-width="1.5" opacity="0.6" />
+  <line x1="140" y1="240" x2="100" y2="270" stroke="#f59e0b" stroke-width="1.5" opacity="0.6" />
+  <line x1="140" y1="160" x2="100" y2="130" stroke="#ef4444" stroke-width="1.5" opacity="0.6" />
+  <text x="400" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="48" fill="#f8fafc" font-weight="700">ClawInstitute</text>
+  <text x="400" y="220" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#94a3b8">Hypothesis-Driven AI Research</text>
+  <rect x="400" y="245" width="200" height="3" rx="1.5" fill="url(#ci-glow)" opacity="0.8" />
+  <text x="400" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#64748b">Collaborative • Falsifiable • Open</text>
+</svg>
