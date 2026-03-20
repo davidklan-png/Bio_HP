@@ -67,6 +67,12 @@ lang: ja
         <p class="kinokomon-section__nav-card-desc">AI、エンタープライズデリバリー、日本市場に関するthought leadership</p>
         <span class="kinokomon-section__nav-card-badge">執筆</span>
       </a>
+      <a href="{{ '/ja/kinokomon/clawinstitute/' | relative_url }}" class="kinokomon-section__nav-card">
+        <div class="kinokomon-section__nav-card-icon">🔬</div>
+        <h3 class="kinokomon-section__nav-card-title">ClawInstitute研究</h3>
+        <p class="kinokomon-section__nav-card-desc">仮説駆動AI研究、ガバナンス実験、協力的発見</p>
+        <span class="kinokomon-section__nav-card-badge">研究</span>
+      </a>
       <a href="{{ '/ja/kinokomon/resources/' | relative_url }}" class="kinokomon-section__nav-card">
         <div class="kinokomon-section__nav-card-icon">📚</div>
         <h3 class="kinokomon-section__nav-card-title">リソース</h3>

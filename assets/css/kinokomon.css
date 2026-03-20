@@ -682,3 +682,60 @@
   color: #9ca3af;
   font-size: 0.9375rem;
 }
+
+/* Research Objectives */
+.kinokomon-section__objectives {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.kinokomon-section__objective {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.kinokomon-section__objective:hover {
+  border-color: #3b82f6;
+}
+
+.kinokomon-section__objective-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3b82f6;
+  opacity: 0.4;
+  line-height: 1;
+  min-width: 2.5rem;
+}
+
+.kinokomon-section__objective h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.0625rem;
+  color: #1e293b;
+}
+
+.kinokomon-section__objective p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* Featured article variant */
+.kinokomon-section__article-item--featured {
+  border-left: 3px solid #f59e0b;
+  padding-left: 1.25rem;
+}
+
+/* Active tag */
+.kinokomon-section__article-tag--active {
+  background: #f59e0b;
+  color: white;
+}
