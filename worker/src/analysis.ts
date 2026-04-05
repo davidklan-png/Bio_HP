@@ -1246,7 +1246,7 @@ function evaluateRiskAndConstraints(
   };
 
   const jdRequiresOnsite =
-    /(onsite only|on site only|must be located|relocat(e|ion) required|in office five days|5 days onsite|5 days on site|in-office|fully onsite|onsite - no remote)/i.test(
+    /(onsite only|on site only|must be (?:located|on-?site|in-?office)|relocat(e|ion) required|in office five days|5 days onsite|5 days on site|in-office|fully onsite|onsite - no remote|no (?:remote|hybrid))/i.test(
       jdText
     );
   const profilePrefersRemote = /remote|hybrid/.test(normalizedLocation);
