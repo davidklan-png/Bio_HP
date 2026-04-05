@@ -73,6 +73,16 @@ Requirements:
     expect(result.risk_flags.some(f => f.startsWith("ONSITE_REQUIRED:"))).toBe(true);
   });
 
+  it("ONSITE_REQUIRED flag is generated for onsite requirements with 'Must be on-site' pattern", () => {
+    const jd = "We need a civil engineer with 10 years of bridge construction experience. Must be on-site in rural Alaska daily. No remote option.";
+    const result = analyzeJobDescription(jd, baseProfile, "onsite-must-be-test");
+
+    // Should trigger ONSITE_REQUIRED flag
+    expect(result.risk_flags.some(f => f.startsWith("ONSITE_REQUIRED:"))).toBe(true);
+    // Score should be capped due to hard gate
+    expect(result.score).toBeLessThanOrEqual(70); // DEFAULT_ONSITE_HARD_CAP
+  });
+
   it("Japanese hard gate only triggers for fluent/native requirements, not business level", () => {
     const fluentProfile = {
       ...baseProfile,
