@@ -151,8 +151,7 @@
     if (prevErr) prevErr.remove();
 
     try {
-      const bubble = await streamResponse();
-      // Update the assistant message (created during stream)
+      await streamResponse();
     } catch (err) {
       removeTypingIndicator();
       showError(err.message || 'Something went wrong. Please try again.');
@@ -294,12 +293,17 @@
     // Italic
     html = html.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
 
-    // Bullet lists
-    html = html.replace(/^(\s*)[-*]\s+(.+)$/gm, '$1<li>$2</li>');
-    html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
+    // Bullet lists — tag with a sentinel so wrapping picks the right list type
+    html = html.replace(/^(\s*)[-*]\s+(.+)$/gm, '$1<li data-list="ul">$2</li>');
     // Numbered lists
-    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li data-list="ol">$1</li>');
+    // Wrap consecutive <li>s of the same kind
+    html = html.replace(/(?:<li data-list="ul">.*?<\/li>\n?)+/g, (block) =>
+      `<ul>${block.replace(/ data-list="ul"/g, '')}</ul>`,
+    );
+    html = html.replace(/(?:<li data-list="ol">.*?<\/li>\n?)+/g, (block) =>
+      `<ol>${block.replace(/ data-list="ol"/g, '')}</ol>`,
+    );
 
     // Paragraphs (double newline)
     html = html.replace(/\n\n/g, '</p><p>');
