@@ -4,17 +4,18 @@
 {% if page.lang == 'ja' or current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
   {% assign footer_is_ja = true %}
 {% endif %}
-<footer class="site-footer">
-  <div class="container footer-inner">
+<footer class="footer">
+  <div class="container footer__inner">
     {% if footer_is_ja %}
-      <p>{{ site.data.site.owner_name }} | {{ site.data.site.owner_role_ja }}</p>
+      <span>© 2026 {{ site.data.site.owner_name }} · kinokoholic.com</span>
+      <span>Build in Public · 最終更新 2026.05.05 20:00 JST</span>
     {% else %}
-      <p>{{ site.data.site.owner_name }} | {{ site.data.site.owner_role }}</p>
+      <span>© 2026 {{ site.data.site.owner_name }} · kinokoholic.com</span>
+      <span>built in public · last orchestrator run 2026.05.05 20:00 JST</span>
     {% endif %}
-    <div class="footer-links">
+    <div class="footer__links">
       <a href="{{ site.data.site.contacts.github }}" target="_blank" rel="noreferrer">GitHub</a>
       <a href="{{ site.data.site.contacts.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>
-      <a href="{{ site.data.site.contacts.website }}" target="_blank" rel="noreferrer">Website</a>
       <a href="mailto:{{ site.data.site.contacts.email }}">{% if footer_is_ja %}メール{% else %}Email{% endif %}</a>
     </div>
   </div>
