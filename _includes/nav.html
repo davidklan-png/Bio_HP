@@ -30,34 +30,49 @@
   {% assign en_switch = '/' %}
 {% endif %}
 
-<header class="top-nav">
-  <div class="container nav-inner">
-    {% if is_ja %}
-      <a class="brand" href="{{ '/ja/' | relative_url }}">{{ site.data.site.site_title_ja }}</a>
-    {% else %}
-      <a class="brand" href="{{ "/" | relative_url }}">{{ site.data.site.site_title }}</a>
-    {% endif %}
-    <nav class="nav-links" aria-label="Primary">
-      {% if is_ja %}
-        <a class="nav-link {% if current_url == '/ja/' or current_url == '/ja' %}is-active{% endif %}" href="{{ '/ja/' | relative_url }}">ホーム</a>
-        <a class="nav-link {% if current_url == '/ja/about/' %}is-active{% endif %}" href="{{ '/ja/about/' | relative_url }}">概要 / 連絡先</a>
-        <a class="nav-link {% if current_url == '/ja/kinokomon/' %}is-active{% endif %}" href="{{ '/ja/kinokomon/' | relative_url }}">きのこもん</a>
-      {% else %}
-        <a class="nav-link {% if current_url == '/' %}is-active{% endif %}" href="{{ "/" | relative_url }}">Home</a>
-        <a class="nav-link {% if current_url == '/about/' %}is-active{% endif %}" href="{{ "/about/" | relative_url }}">About / Contact</a>
-        <a class="nav-link {% if current_url == '/kinokomon/' %}is-active{% endif %}" href="{{ "/kinokomon/" | relative_url }}">Kinokomon</a>
-      {% endif %}
+{% if is_ja %}
+  {% assign home_href = '/ja/' %}
+  {% assign about_href = '/ja/about/' %}
+  {% assign kk_href = '/ja/kinokomon/' %}
+  {% assign label_home = 'ホーム' %}
+  {% assign label_about = '概要' %}
+  {% assign label_kk = 'きのこモン' %}
+  {% assign label_projects = 'プロジェクト' %}
+{% else %}
+  {% assign home_href = '/' %}
+  {% assign about_href = '/about/' %}
+  {% assign kk_href = '/kinokomon/' %}
+  {% assign label_home = '/home' %}
+  {% assign label_about = '/about' %}
+  {% assign label_kk = '/kinokomon' %}
+  {% assign label_projects = '/projects' %}
+{% endif %}
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="{{ home_href | relative_url }}">
+      <span class="nav__brand-mark">き</span>
+      <span>kinokoholic<span class="nav__brand-host">.com</span></span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a class="nav__link {% if current_url == home_href %}is-active{% endif %}" href="{{ home_href | relative_url }}">{{ label_home }}</a>
+      <a class="nav__link {% if current_url contains '/projects/' %}is-active{% endif %}" href="{{ home_href | relative_url }}#projects">{{ label_projects }}</a>
+      <a class="nav__link {% if current_url == kk_href %}is-active{% endif %}" href="{{ kk_href | relative_url }}">{{ label_kk }}</a>
+      <a class="nav__link {% if current_url == about_href %}is-active{% endif %}" href="{{ about_href | relative_url }}">{{ label_about }}</a>
     </nav>
-    <div class="lang-toggle">
-      {% if is_ja %}
-        <a href="{{ en_switch | relative_url }}" data-lang-switch="en" class="active">EN</a>
-        <span class="divider">|</span>
-        <span class="current">日本語</span>
-      {% else %}
-        <span class="current">EN</span>
-        <span class="divider">|</span>
-        <a href="{{ ja_switch | relative_url }}" data-lang-switch="ja">日本語</a>
-      {% endif %}
+    <div class="nav__util">
+      <div class="nav__lang lang-toggle" role="group" aria-label="Language">
+        {% if is_ja %}
+          <a class="nav__lang-btn" href="{{ en_switch | relative_url }}" data-lang-switch="en" aria-pressed="false">EN</a>
+          <span aria-hidden="true">·</span>
+          <span class="nav__lang-btn current" aria-pressed="true">JA</span>
+        {% else %}
+          <span class="nav__lang-btn current" aria-pressed="true">EN</span>
+          <span aria-hidden="true">·</span>
+          <a class="nav__lang-btn" href="{{ ja_switch | relative_url }}" data-lang-switch="ja" aria-pressed="false">JA</a>
+        {% endif %}
+      </div>
+      <button class="nav__theme" data-theme-toggle aria-label="Toggle theme"></button>
     </div>
   </div>
 </header>
