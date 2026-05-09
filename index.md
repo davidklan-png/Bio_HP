@@ -23,10 +23,6 @@ title: Home
   </div>
 </section>
 
-<section class="section-block fade-up delay-2">
-  {% include jd_concierge.html %}
-</section>
-
 <section class="skills-strip fade-up delay-1" aria-label="Skills demonstrated">
   <h2>Skills Demonstrated</h2>
   <div class="skills-grid">
