@@ -72,12 +72,22 @@ Companion agents in the kinokoholic ecosystem, each doing one thing well:
 - Never fabricate projects, metrics, or timeline details not in this prompt`;
 
 // ── In-memory rate limiter ───────────────────────────────────────────────────
-// Keyed by IP, auto-expires old entries on each request
+// Per-isolate (Cloudflare may run several), so the effective limit is
+// maxPerHour × isolate_count. For strict enforcement use Durable Objects / KV.
 const rateMap = new Map();
+const RATE_MAP_MAX_ENTRIES = 10_000;
 
-function isRateLimited(ip, maxPerHour) {
+export function isRateLimited(ip, maxPerHour) {
   const now = Date.now();
   const windowMs = 3600_000;
+
+  // Opportunistic eviction once the map gets large
+  if (rateMap.size > RATE_MAP_MAX_ENTRIES) {
+    for (const [key, rec] of rateMap) {
+      if (now - rec.start > windowMs) rateMap.delete(key);
+    }
+  }
+
   const record = rateMap.get(ip);
   if (!record || now - record.start > windowMs) {
     rateMap.set(ip, { start: now, count: 1 });
@@ -85,6 +95,11 @@ function isRateLimited(ip, maxPerHour) {
   }
   record.count++;
   return record.count > maxPerHour;
+}
+
+// Test helper — not used at runtime.
+export function _resetRateMap() {
+  rateMap.clear();
 }
 
 // ── CORS helpers ─────────────────────────────────────────────────────────────
@@ -97,7 +112,7 @@ function corsHeaders(origin) {
 }
 
 // ── Request validation ───────────────────────────────────────────────────────
-function validateRequest(body, maxMessages) {
+export function validateRequest(body, maxMessages) {
   if (!body || !Array.isArray(body.messages) || body.messages.length === 0) {
     return { ok: false, status: 400, error: 'messages array is required and must not be empty' };
   }
@@ -217,7 +232,7 @@ export default {
           'x-api-key': apiKey,
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 1024,
           system: SYSTEM_PROMPT,
           messages: body.messages,
@@ -238,7 +253,8 @@ export default {
       const { readable, writable } = new TransformStream();
       response.body
         .pipeThrough(createChunkTransformer())
-        .pipeTo(writable);
+        .pipeTo(writable)
+        .catch((err) => console.error('Stream pipe error:', err));
 
       return new Response(readable, {
         status: 200,

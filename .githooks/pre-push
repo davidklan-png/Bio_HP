@@ -10,12 +10,26 @@ python3 scripts/tdd_guard.py --against "$base_ref"
 
 changed_range="$(git diff --name-only --diff-filter=ACMR "$base_ref"...HEAD || true)"
 
+has_npm_script() {
+  # Returns 0 if package.json at $1 defines script $2.
+  node -e "process.exit(require('$1/package.json').scripts && require('$1/package.json').scripts['$2'] ? 0 : 1)" 2>/dev/null
+}
+
 if echo "$changed_range" | grep -q '^worker/'; then
   echo "Running Worker checks..."
   for wdir in worker/*/; do
-    if [ -f "${wdir}package.json" ]; then
-      echo "  Checking ${wdir}..."
-      (cd "$wdir" && npm run check 2>/dev/null && npm test 2>/dev/null) && echo "  ✓ ${wdir} checks passed" || echo "  ⚠ ${wdir} has no check/test scripts (skipping)"
+    [ -f "${wdir}package.json" ] || continue
+    echo "  Checking ${wdir}..."
+    pkg="${wdir%/}"
+    if has_npm_script "$pkg" check; then
+      (cd "$wdir" && npm run check)
+    else
+      echo "  ⚠ ${wdir} has no 'check' script (skipping)"
+    fi
+    if has_npm_script "$pkg" test; then
+      (cd "$wdir" && npm test)
+    else
+      echo "  ⚠ ${wdir} has no 'test' script (skipping)"
     fi
   done
 fi
@@ -26,6 +40,11 @@ if echo "$changed_range" | grep -Eq '^(site/assets/js/|assets/js/|site/tests/|te
 fi
 
 if echo "$changed_range" | grep -Eq '^(site/|_config.yml|_layouts/|_includes/|assets/)'; then
-  echo "Running Jekyll build check..."
-  bundle exec jekyll build >/dev/null 2>&1 && echo "✓ Jekyll build passed" || echo "⚠ Jekyll build skipped (bundle not available)"
+  if command -v bundle >/dev/null 2>&1; then
+    echo "Running Jekyll build check..."
+    bundle exec jekyll build >/dev/null
+    echo "✓ Jekyll build passed"
+  else
+    echo "⚠ Jekyll build skipped (bundle not installed)"
+  fi
 fi
