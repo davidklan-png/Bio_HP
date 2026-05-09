@@ -1,10 +1,24 @@
 # Agent Handover Guide
 
-Last updated: 2026-02-17
+Last updated: 2026-05-09
 
 ## Purpose
 
-This repository is a Jekyll-based portfolio site with data-driven project pages. Most edits should happen in YAML data files and Markdown content, not in layout logic.
+This repository serves two surfaces from one codebase:
+
+1. A **static operator-console homepage** (`index.html` at the root) —
+   the AI-forward portfolio with hero, AI workflow recipes, projects,
+   -mon family, GitHub feed, career, articles, and a build-in-public
+   activity log. EN/JA toggle wired via `assets/js/i18n.js` reading
+   `i18n/strings.ja.json`. No Jekyll layout — the file is shipped
+   verbatim.
+2. A **Jekyll-rendered set of deeper pages** — project case studies
+   (`projects/*.md`), Kinokomon hub (`kinokomon.md`), about,
+   work history, and the JA mirror under `ja/`. These use
+   `_layouts/default.html` and the data files under `_data/`.
+
+Most copy edits should happen in YAML data files, Markdown content, or
+the JA translation bundle — not in layout logic.
 
 ## Directory Structure (Canonical — Root-First)
 
@@ -12,12 +26,16 @@ All source files live at the repository root. There is **no `site/` subdirectory
 
 ```
 Bio_HP/
+├── index.html           ← Static operator-console homepage (no Jekyll layout)
+├── i18n/                ← JA translation bundle (strings.ja.json)
 ├── _config.yml          ← Single Jekyll config
 ├── _includes/           ← All Jekyll includes
 ├── _layouts/            ← All Jekyll layouts
 ├── _data/               ← All data (projects, site config)
 ├── assets/              ← All assets (js, css, images)
 ├── projects/            ← Project pages (markdown)
+├── kinokomon.md, about.md, work-history.md
+├── ja/                  ← JA mirror of Jekyll pages
 ├── tests/               ← JS unit tests
 ├── worker/              ← Cloudflare Worker (API backend)
 ├── scripts/             ← Build/CI helper scripts
@@ -27,14 +45,30 @@ Bio_HP/
 
 ## High-Impact Paths
 
+### Operator-console homepage
+- `index.html`: static homepage at site root. Tagged with `data-i18n="<key>"`
+  and `data-i18n-attr="attr:key,…"` on every translatable element.
+  `<html data-i18n-page="page.home">` declares the namespace.
+- `assets/css/site.css`: operator-console theme. Includes lang-toggle
+  button styles and `html[lang="ja"]` font swap to Noto Sans JP.
+- `assets/js/site.js`: theme toggle, nav active-link highlight,
+  IntersectionObserver scroll-fade for `[data-fade]`.
+- `assets/js/github-feed.js`: live GitHub fetch with static-card fallback.
+- `assets/js/i18n.js`: EN/JA applier (lazy-loads `i18n/strings.ja.json`
+  on first JA toggle, persists choice in `localStorage.kk_lang`).
+- `i18n/strings.ja.json`: translation table. Top-level keys: `_global`
+  + `page.<name>`. Keys ending in `.html` are injected via `innerHTML`.
+
+### Jekyll surfaces
 - `_data/projects/*.yml`: project content source of truth
 - `projects/*.md`: per-project page routing/front matter
-- `_layouts/project.html`: project page renderer
+- `_layouts/default.html`, `_layouts/project.html`: page renderers
 - `_includes/jd_concierge.html`: JD Concierge widget include
 - `assets/js/jd_concierge.js`: JD Concierge client-side logic
 - `assets/css/jd_concierge.css`: JD Concierge styling
-- `assets/css/styles.css`: shared styling
-- `assets/images/`: static image assets used by project screenshots
+- `assets/css/styles.css`: legacy Jekyll-page shared styling
+- `assets/images/`: static image assets used by the homepage and
+  project screenshots
 
 ## Critical Rule: No Duplicate Source Trees
 
@@ -48,6 +82,26 @@ If you need to test something in isolation, use a separate git branch — not a 
 2. Validate YAML before committing.
 3. Confirm screenshot paths exist under `assets/images/`.
 4. Commit only relevant files (avoid bundling unrelated local changes).
+
+## Editing Homepage Copy
+
+The homepage is direct-edit (no build step, no Liquid). To change a
+visible string:
+
+1. Find the element in `index.html`. EN is canonical and lives in the
+   HTML itself.
+2. Edit the EN text/markup in place.
+3. Open `i18n/strings.ja.json` and update the matching key under the
+   page namespace (e.g. `page.home.hero.summary`). If the key ends in
+   `.html`, the value may contain inline tags (`<em>`, `<strong>`).
+4. Hard-reload the page, click the JA toggle, and watch the dev
+   console — `[i18n] missing key` warnings flag any orphans.
+
+To add a new translatable element: add a `data-i18n="<page>.<new.key>"`
+attribute and the matching JA entry. No JS change required.
+
+Internal links from the homepage must use **pretty Jekyll permalinks**
+(`/kinokomon/`, `/projects/<slug>/`), not flat `.html` paths.
 
 ## TDD Requirement
 
@@ -73,8 +127,12 @@ for path in glob.glob('_data/**/*.yml', recursive=True):
 print('ALL_YAML_OK')
 PY
 
-# Run JS tests
-node --test tests/jd_concierge.test.js
+# Validate JA translation bundle is parseable JSON
+python3 -c "import json; json.load(open('i18n/strings.ja.json'))" && echo I18N_OK
+
+# Run all site JS tests (covers jd_concierge, about, kinokomon, site,
+# github-feed, i18n)
+./scripts/run-site-js-tests.sh
 
 # Optional: inspect repo state before commit
 git status --short
