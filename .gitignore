@@ -20,5 +20,6 @@ __pycache__/
 
 # Worker build artifacts
 worker/.wrangler/
+worker/**/.wrangler/
 worker/src/*.js
 worker/worker-configuration.d.ts
