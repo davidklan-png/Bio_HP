@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{% if page.lang %}{{ page.lang }}{% else %}en{% endif %}">
+<html lang="{% if page.lang %}{{ page.lang }}{% else %}en{% endif %}" data-theme="dark">
   {% assign current_url = page.url | default: "/" %}
   {% assign current_slice = current_url | slice: 0, 4 %}
   {% assign is_ja_path = false %}
@@ -37,10 +37,11 @@
     <link rel="alternate" hreflang="x-default" href="{{ en_alt | absolute_url }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ "/assets/css/site.css" | relative_url }}">
     <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
     <script>
-      // Language persistence and page-specific switching
+      // Language persistence and page-specific switching for the Jekyll EN/JA mirror.
       (function() {
         const baseUrl = {{ site.baseurl | default: "" | jsonify }};
         const stripBaseUrl = (pathname) => {
@@ -55,40 +56,30 @@
 
         const currentPath = stripBaseUrl(window.location.pathname);
         const isJaPage = currentPath === '/ja' || currentPath.indexOf('/ja/') === 0;
-        const currentLang = isJaPage ? 'ja' : 'en';
-        const storedLang = localStorage.getItem('site-lang');
-        const effectiveLang = storedLang || currentLang;
 
-        // Redirect only if stored preference differs from current page language
-        if ((effectiveLang === 'ja' && !isJaPage) || (effectiveLang === 'en' && isJaPage)) {
-          // Let the navigation handle the redirect via data-lang-switch links
-        }
-
-        // Update lang toggle active states
         document.addEventListener('DOMContentLoaded', function() {
           const pagePath = stripBaseUrl(window.location.pathname);
           const isJa = pagePath === '/ja' || pagePath.indexOf('/ja/') === 0;
           const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
           const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
-          if (enLink) enLink.classList.toggle('active', !isJa);
-          if (jaLink) jaLink.classList.toggle('active', isJa);
+          if (enLink) enLink.setAttribute('aria-pressed', isJa ? 'false' : 'true');
+          if (jaLink) jaLink.setAttribute('aria-pressed', isJa ? 'true' : 'false');
         });
 
-        // Store language choice when toggle is clicked
         document.addEventListener('click', function(e) {
           const target = e.target.closest('.lang-toggle a');
           if (target) {
             const lang = target.getAttribute('data-lang-switch');
-            localStorage.setItem('site-lang', lang);
+            try { localStorage.setItem('site-lang', lang); } catch (err) {}
           }
         });
       })();
     </script>
   </head>
   <body>
-    <div class="site-bg" aria-hidden="true"></div>
     {% include nav.html %}
-    <main class="container">{{ content }}</main>
+    <main class="container page-content">{{ content }}</main>
     {% include footer.html %}
+    <script src="{{ "/assets/js/site.js" | relative_url }}"></script>
   </body>
 </html>

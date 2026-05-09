@@ -24,10 +24,6 @@ lang: ja
   </div>
 </section>
 
-<section class="section-block fade-up delay-2">
-  {% include jd_concierge_ja.html %}
-</section>
-
 <section class="skills-strip fade-up delay-1" aria-label="実証スキル">
   <h2>実証スキル</h2>
   <div class="skills-grid">
