@@ -1,8 +1,57 @@
-# JD Concierge (Jekyll + Cloudflare Worker)
+# Kinokoholic Portfolio (Jekyll + Cloudflare Worker)
+
+This repo serves two surfaces from one codebase:
+
+1. **Operator-console homepage** — a static `index.html` at the site root
+   (no Jekyll layout) that ships the AI-forward portfolio: hero +
+   operator status, AI workflow recipes, project grid, -mon family,
+   live GitHub feed, career table, articles, NOW/NEXT + activity log,
+   connect block. EN/JA toggle wired against `i18n/strings.ja.json`.
+2. **JD Concierge** — Jekyll widget + Cloudflare Worker for evidence-
+   grounded JD fit analysis. Grounding lives in `shared/profile.json`.
+
+## Homepage (Operator Console)
+
+| File | Role |
+| --- | --- |
+| `index.html` | Static homepage. No Jekyll front matter — copied verbatim to `_site/index.html`. Tagged with `data-i18n="<key>"` and `data-i18n-attr="attr:key"` on every translatable element. `<html data-i18n-page="page.home">` declares the namespace. |
+| `assets/css/site.css` | Operator-console theme (dark-first, brand teal accents). Includes lang-toggle button styling and `html[lang="ja"]` font-stack swap to Noto Sans JP. |
+| `assets/js/site.js` | Theme toggle (`data-theme-toggle`), nav active-link highlight, `data-fade` IntersectionObserver. |
+| `assets/js/github-feed.js` | Live fetch of `https://api.github.com/users/<user>/repos`; gracefully falls back to the static cards in the markup. |
+| `assets/js/i18n.js` | EN/JA applier. Caches each EN element's original content on first JA application, swaps `innerHTML`/`textContent` (or attributes) keyed by `data-i18n`, persists choice in `localStorage.kk_lang`, and lazy-fetches the JA bundle only on first JA toggle. |
+| `i18n/strings.ja.json` | Full JA translation table — `_global` + page namespaces (currently `page.home` is consumed). Keys ending in `.html` are injected with `innerHTML`; everything else is `textContent`. |
+
+### Adding or editing copy
+
+1. Add the markup with EN as the canonical source (EN lives in the HTML).
+2. Tag the element: `<h2 data-i18n="page.home.section.h2">…</h2>` — or
+   `data-i18n-attr="placeholder:foo,aria-label:bar"` for attributes.
+3. Add the JA value under the matching namespace in
+   `i18n/strings.ja.json`. If the key ends in `.html`, the value may
+   contain inline tags (`<em>`, `<strong>`) and will be injected via
+   `innerHTML`.
+4. Reload the page and toggle JA — confirm no `[i18n] missing key`
+   warnings in the console.
+
+### Internal links
+
+The homepage is static HTML but references Jekyll-generated pages.
+Link to **pretty permalinks**, not flat `.html` paths:
+
+- `/` (homepage)
+- `/kinokomon/`
+- `/projects/<slug>/` — see `projects/*.md` front matter for slugs.
+
+There is no `/projects/` index page; the homepage's `#projects`
+anchor is the canonical "all projects" target.
+
+---
+
+## JD Concierge
 
 Minimal end-to-end JD fit concierge:
 
-- Frontend: plain Jekyll widget under `/site`
+- Frontend: Jekyll widget under `_includes/jd_concierge.html`
 - Backend: Cloudflare Worker (`/worker`)
 - Grounding: `shared/profile.json`
 - Guardrails: evidence-only strengths, size limits, DO rate limiting
@@ -58,23 +107,38 @@ Notes:
 
 ## Repository Layout
 
+All Jekyll source lives at the repo root — there is no `site/` subdirectory.
+
 ```text
+index.html                ← static operator-console homepage
+i18n/
+  strings.ja.json         ← JA translation bundle for the homepage
+assets/
+  css/site.css            ← operator-console theme + JA font swap
+  css/styles.css          ← legacy Jekyll-page styles
+  js/i18n.js              ← EN/JA applier
+  js/site.js              ← theme toggle + scroll fade
+  js/github-feed.js       ← live GitHub repo cards (with fallback)
+  js/jd_concierge.js
+  css/jd_concierge.css
+  images/
+_config.yml
+_includes/
+  jd_concierge.html
+  nav.html · footer.html · icon.html
+_layouts/
+  default.html · project.html
+_data/                    ← projects + site config (YAML)
+projects/                 ← per-project Jekyll pages (markdown)
+kinokomon.md · about.md · work-history.md
 shared/
-  profile.json
-site/
-  _config.yml
-  _includes/jd_concierge.html
-  assets/js/jd_concierge.js
-  assets/css/jd_concierge.css
-  index.md
-  projects/jd-concierge-sandbox.md
+  profile.json            ← JD Concierge grounding source of truth
 worker/
-  src/index.ts
-  src/analysis.ts
-  src/analysis.test.ts
-  wrangler.toml
-  package.json
-  tsconfig.json
+  src/index.ts · src/analysis.ts · src/analysis.test.ts
+  wrangler.toml · package.json · tsconfig.json
+tests/                    ← site JS unit tests (node --test)
+scripts/
+  tdd_guard.py · run-site-js-tests.sh · setup-git-hooks.sh
 ```
 
 ## 1) Profile Dataset
