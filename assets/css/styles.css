@@ -1,22 +1,26 @@
+/* Page-content tokens, rebased onto the dark operator-console palette.
+   site.css ships first (chrome + theme tokens). styles.css inherits and
+   re-asserts these tokens for legacy page widgets so .section-block,
+   .audience-card, .project-card etc. read correctly on the dark bg. */
 :root {
-  --bg: #f0f4f8;
-  --surface: #ffffff;
-  --ink: #162130;
-  --muted: #5e6b7d;
-  --brand: #0f5f80;
-  --brand-strong: #0b4a65;
-  --brand-light: #1a7fa8;
-  --accent: #e4f0fa;
-  --accent-warm: #fff8f0;
-  --line: #d4e0ec;
-  --tag-bg: #eaf4fc;
-  --shadow: 0 8px 32px rgba(15, 35, 56, 0.08);
-  --shadow-hover: 0 12px 40px rgba(15, 35, 56, 0.14);
+  --bg: #0a0e13;
+  --surface: #10161e;
+  --ink: #d8e1ec;
+  --muted: #8a96a8;
+  --brand: #5eead4;
+  --brand-strong: #2dd4bf;
+  --brand-light: #99f6e4;
+  --accent: rgba(94, 234, 212, 0.10);
+  --accent-warm: rgba(245, 158, 11, 0.10);
+  --line: rgba(94, 234, 212, 0.18);
+  --tag-bg: rgba(94, 234, 212, 0.10);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.55);
   --radius-xl: 20px;
   --radius-lg: 14px;
   --radius-sm: 10px;
-  --gradient-brand: linear-gradient(135deg, #0f5f80, #1a7fa8);
-  --gradient-surface: linear-gradient(170deg, #ffffff, #f6faff);
+  --gradient-brand: linear-gradient(135deg, #2dd4bf, #5eead4);
+  --gradient-surface: linear-gradient(170deg, #10161e, #0a0e13);
 }
 
 * {
@@ -99,7 +103,7 @@ ol {
   z-index: 30;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(244, 248, 252, 0.88);
+  background: var(--surface);
   border-bottom: 1px solid rgba(212, 224, 236, 0.7);
 }
 
@@ -266,7 +270,7 @@ ol {
 .skills-strip {
   margin-top: 1.8rem;
   padding: 1.4rem 1.5rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(228, 240, 250, 0.5));
+  background: var(--gradient-surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
@@ -530,7 +534,7 @@ ol {
 .shot-card iframe {
   display: block;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .shot-overlay-link {
@@ -610,7 +614,7 @@ ol {
 .site-footer {
   margin-top: 3rem;
   border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 248, 252, 0.95));
+  background: var(--gradient-surface);
 }
 
 .footer-inner {
