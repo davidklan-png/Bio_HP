@@ -46,6 +46,7 @@
   {% assign label_about = '/about' %}
   {% assign label_kk = '/kinokomon' %}
   {% assign label_projects = '/projects' %}
+  {% assign label_chat = '/chat' %}
 {% endif %}
 
 <header class="nav">
@@ -59,6 +60,9 @@
       <a class="nav__link {% if current_url contains '/projects/' %}is-active{% endif %}" href="{{ home_href | relative_url }}#projects">{{ label_projects }}</a>
       <a class="nav__link {% if current_url == kk_href %}is-active{% endif %}" href="{{ kk_href | relative_url }}">{{ label_kk }}</a>
       <a class="nav__link {% if current_url == about_href %}is-active{% endif %}" href="{{ about_href | relative_url }}">{{ label_about }}</a>
+      {% unless is_ja %}
+        <a class="nav__link {% if current_url == '/chat/' %}is-active{% endif %}" href="{{ '/chat/' | relative_url }}">{{ label_chat }}</a>
+      {% endunless %}
     </nav>
     <div class="nav__util">
       <div class="nav__lang lang-toggle" role="group" aria-label="Language">
