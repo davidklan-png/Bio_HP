@@ -42,7 +42,6 @@ permalink: /about/
     <ul class="about-section__list">
       <li><a href="https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/" class="about-section__link"><strong>JTES</strong></a> — An AI assistant for Japanese tax professionals with citation grounding</li>
       <li><a href="https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/" class="about-section__link"><strong>Insurance Reporting Automation</strong></a> — Making complex workflows less painful for insurance teams</li>
-      <li><a href="https://kinokoholic.com/" class="about-section__link"><strong>JD Concierge</strong></a> — Analyze job descriptions against my experience</li>
     </ul>
   </div>
 

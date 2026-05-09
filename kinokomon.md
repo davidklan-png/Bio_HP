@@ -26,16 +26,16 @@ permalink: /kinokomon/
     <h2 class="kinokomon-section__section-title">Current Projects</h2>
     <p class="kinokomon-section__section-desc">Active development and production systems</p>
     <ul class="kinokomon-section__list">
-      <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with reward tracking and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
-      <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant with automated expense tracking, receipt categorization, and tax preparation</li>
-      <li><strong>Kenkoumon 健康モン</strong> — Doctor visit transcription and summary application improving patient/doctor communication through structured documentation</li>
-      <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with citation grounding for tax professionals</li>
-      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows</li>
-      <li><strong>Receipt Classification System</strong> — Document AI pipeline improving classification consistency and enabling faster financial reconciliation</li>
-      <li><strong>Enterprise Data Migration & Governance</strong> — Large-scale multi-system migration with compliance workflows, zero critical data loss, and 40% time reduction</li>
-      <li><strong>Infrastructure Scale & DR/BCP Delivery</strong> — Global infrastructure transformation across Japan, EMEA, and North America (10,000+ clients, 400+ servers)</li>
-      <li><strong>GenAI Enablement</strong> — Cross-functional delivery leadership for enterprise AI transformation with governance frameworks and stakeholder alignment</li>
-      <li><strong>Application & Integration Delivery</strong> — Hybrid local/offshore teams delivering web applications and system integrations with strict launch deadlines</li>
+      <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
+      <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and NLP</li>
+      <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
+      <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
+      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
+      <li><strong>Receipt Classification System</strong> — Document AI pipeline with OCR and ML improving classification consistency and enabling faster financial reconciliation</li>
+      <li><strong>Enterprise Data Migration & Governance</strong> — Large-scale multi-system migration with compliance workflows, zero critical data loss during mainframe sunset, and 40% time reduction</li>
+      <li><strong>Infrastructure Scale & DR/BCP Delivery</strong> — Global infrastructure transformation across Japan, EMEA, and North America (10,000+ clients, 1,200+ servers)</li>
+      <li><strong>GenAI Enablement & Change Leadership</strong> — Cross-functional delivery leadership for enterprise AI transformation with governance frameworks, stakeholder alignment, and enablement programs</li>
+      <li><strong>Application & Integration Delivery</strong> — Hybrid local/offshore teams delivering web applications, system integrations, and WMS interfaces with strict launch deadlines and compliance (ISO9000/ISO9001, SOX)</li>
     </ul>
   </div>
 
@@ -134,12 +134,12 @@ permalink: /kinokomon/
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
+<li><strong>2026-05-09 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action and updated current projects section from shared/profile.json (10 projects), verified milestone consistency, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-05-05 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous action and milestones, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-05-04 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous action and milestones, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-04-25 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-04-24 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-04-23 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
-<li><strong>2026-04-22 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, updated activity log with latest autonomous actions, verified projects section in sync with shared/profile.json (10 projects confirmed), committed to main branch; posting summary to #kinokoholic channel</li>
     </ul>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
 
