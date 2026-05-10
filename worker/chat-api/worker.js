@@ -174,7 +174,7 @@ function createChunkTransformer() {
 // ── Available Anthropic models ───────────────────────────────────────────────
 // Selected via the MODEL env var (defaults to 'sonnet'). Add new models here.
 export const MODELS = {
-  sonnet: 'claude-sonnet-4-20250514',
+  sonnet: 'claude-sonnet-4-6',
   haiku: 'claude-haiku-4-5-20251001',
 };
 const DEFAULT_MODEL_KEY = 'sonnet';
