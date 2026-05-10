@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateRequest, isRateLimited, _resetRateMap, resolveModel, MODELS } from './worker.js';
+import { validateRequest, isRateLimited, _resetRateMap, resolveModel, MODELS, parseSSEChunk } from './worker.js';
 
 test('validateRequest rejects missing/empty messages', () => {
   assert.equal(validateRequest({}, 50).ok, false);
@@ -63,4 +63,30 @@ test('resolveModel falls back to sonnet for unknown keys', () => {
 
 test('MODELS contains the latest Haiku 4.5 ID', () => {
   assert.equal(MODELS.haiku, 'claude-haiku-4-5-20251001');
+});
+
+test('parseSSEChunk extracts text_delta text from Anthropic streaming event', () => {
+  const event = JSON.stringify({
+    type: 'content_block_delta',
+    index: 0,
+    delta: { type: 'text_delta', text: 'Hello' },
+  });
+  const result = parseSSEChunk(`data: ${event}\n`);
+  assert.deepEqual(result, ['Hello']);
+});
+
+test('parseSSEChunk skips non-text_delta events', () => {
+  const event = JSON.stringify({ type: 'message_start', message: {} });
+  const result = parseSSEChunk(`data: ${event}\n`);
+  assert.deepEqual(result, []);
+});
+
+test('parseSSEChunk handles empty string delta without crashing', () => {
+  const event = JSON.stringify({
+    type: 'content_block_delta',
+    index: 0,
+    delta: { type: 'text_delta', text: '' },
+  });
+  const result = parseSSEChunk(`data: ${event}\n`);
+  assert.deepEqual(result, ['']);
 });
