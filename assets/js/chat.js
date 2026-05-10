@@ -68,14 +68,67 @@
     renderAll();
   }
 
+  // ── Starter questions ────────────────────────────────────────────────
+  const STARTER_GROUPS = [
+    {
+      label: 'Recruiter',
+      questions: [
+        "What's David's current availability and the type of roles he's open to?",
+        "What's his strongest end-to-end project — from problem to production?",
+        "How does his PM background change the way he builds AI systems?",
+      ],
+    },
+    {
+      label: 'Business partner',
+      questions: [
+        "What kind of engagements does David take on?",
+        "How would he scope and approach a RAG or agentic workflow project?",
+        "What's a realistic timeline and process for an AI-powered product MVP?",
+      ],
+    },
+    {
+      label: 'Startup founder',
+      questions: [
+        "Can you walk me through the -mon product family and what it's building toward?",
+        "What would David build differently if he were starting the JTES project over?",
+        "How does he decide when to ship vs. keep iterating?",
+      ],
+    },
+  ];
+
+  function renderStarterQuestions() {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-starters';
+    wrap.innerHTML = `<p class="chat-starters__intro">Ask me anything about David's work, or pick a question below.</p>`;
+
+    STARTER_GROUPS.forEach(group => {
+      const section = document.createElement('div');
+      section.className = 'chat-starters__group';
+      section.innerHTML = `<span class="chat-starters__label">${escapeHtml(group.label)}</span>`;
+
+      group.questions.forEach(q => {
+        const btn = document.createElement('button');
+        btn.className = 'chat-starter-btn';
+        btn.textContent = q;
+        btn.addEventListener('click', () => {
+          inputEl.value = q;
+          autoResize();
+          handleSend();
+        });
+        section.appendChild(btn);
+      });
+
+      wrap.appendChild(section);
+    });
+
+    messagesEl.appendChild(wrap);
+  }
+
   // ── Render ──────────────────────────────────────────────────────────
   function renderAll() {
     messagesEl.innerHTML = '';
     if (messages.length === 0) {
-      messagesEl.innerHTML = `
-        <div class="chat-empty">
-          Ask me anything about David's work — projects, tradeoffs, scope, what he'd do differently.
-        </div>`;
+      renderStarterQuestions();
       return;
     }
     messages.forEach(msg => appendMessage(msg.role, msg.content));
@@ -83,8 +136,7 @@
   }
 
   function appendMessage(role, content) {
-    // Remove empty state if present
-    const empty = messagesEl.querySelector('.chat-empty');
+    const empty = messagesEl.querySelector('.chat-empty, .chat-starters');
     if (empty) empty.remove();
 
     const row = document.createElement('div');
