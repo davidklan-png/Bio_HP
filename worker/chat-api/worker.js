@@ -164,6 +164,19 @@ function createChunkTransformer() {
   });
 }
 
+// ── Available Anthropic models ───────────────────────────────────────────────
+// Selected via the MODEL env var (defaults to 'sonnet'). Add new models here.
+export const MODELS = {
+  sonnet: 'claude-sonnet-4-20250514',
+  haiku: 'claude-haiku-4-5-20251001',
+};
+const DEFAULT_MODEL_KEY = 'sonnet';
+
+export function resolveModel(env) {
+  const key = (env.MODEL || DEFAULT_MODEL_KEY).toLowerCase();
+  return MODELS[key] || MODELS[DEFAULT_MODEL_KEY];
+}
+
 // ── Main handler ─────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
@@ -232,7 +245,7 @@ export default {
           'x-api-key': apiKey,
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: resolveModel(env),
           max_tokens: 1024,
           system: SYSTEM_PROMPT,
           messages: body.messages,
