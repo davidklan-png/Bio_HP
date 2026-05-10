@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateRequest, isRateLimited, _resetRateMap } from './worker.js';
+import { validateRequest, isRateLimited, _resetRateMap, resolveModel, MODELS } from './worker.js';
 
 test('validateRequest rejects missing/empty messages', () => {
   assert.equal(validateRequest({}, 50).ok, false);
@@ -46,4 +46,21 @@ test('isRateLimited treats different IPs independently', () => {
   assert.equal(isRateLimited('a', 1), false);
   assert.equal(isRateLimited('a', 1), true);
   assert.equal(isRateLimited('b', 1), false);
+});
+
+test('resolveModel defaults to sonnet when MODEL is unset', () => {
+  assert.equal(resolveModel({}), MODELS.sonnet);
+});
+
+test('resolveModel selects haiku when MODEL=haiku', () => {
+  assert.equal(resolveModel({ MODEL: 'haiku' }), MODELS.haiku);
+  assert.equal(resolveModel({ MODEL: 'HAIKU' }), MODELS.haiku);
+});
+
+test('resolveModel falls back to sonnet for unknown keys', () => {
+  assert.equal(resolveModel({ MODEL: 'opus' }), MODELS.sonnet);
+});
+
+test('MODELS contains the latest Haiku 4.5 ID', () => {
+  assert.equal(MODELS.haiku, 'claude-haiku-4-5-20251001');
 });
