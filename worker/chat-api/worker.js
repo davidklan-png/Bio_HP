@@ -131,31 +131,38 @@ export function validateRequest(body, maxMessages) {
   return { ok: true };
 }
 
+// ── SSE parsing ──────────────────────────────────────────────────────────────
+// Exported for unit tests. Accepts a decoded string chunk, returns text tokens.
+export function parseSSEChunk(chunk) {
+  const tokens = [];
+  for (const line of chunk.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('data: ')) continue;
+    const data = trimmed.slice(6);
+    if (!data || data === '[DONE]') continue;
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta' && parsed.delta.text != null) {
+        tokens.push(parsed.delta.text);
+      }
+    } catch { /* skip malformed */ }
+  }
+  return tokens;
+}
+
 // ── Stream transformer: Anthropic SSE → client chunks ────────────────────────
 function createChunkTransformer() {
   let buffer = '';
   return new TransformStream({
     transform(chunk, controller) {
+      // chunk is already a decoded string (TextDecoderStream runs before this)
       buffer += chunk;
       const lines = buffer.split('\n');
       buffer = lines.pop(); // keep incomplete line in buffer
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith('data: ')) continue;
-        const data = trimmed.slice(6);
-        if (data === '[DONE]') continue;
-
-        try {
-          const parsed = JSON.parse(data);
-          // Anthropic streaming event types
-          if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-            const payload = JSON.stringify({ text: parsed.delta.text });
-            controller.enqueue(new TextEncoder().encode(`data: ${payload}\n\n`));
-          }
-        } catch {
-          // skip malformed JSON
-        }
+      for (const token of parseSSEChunk(lines.join('\n') + '\n')) {
+        const payload = JSON.stringify({ text: token });
+        controller.enqueue(new TextEncoder().encode(`data: ${payload}\n\n`));
       }
     },
     flush(controller) {
@@ -262,9 +269,11 @@ export default {
         );
       }
 
-      // Stream Anthropic SSE through our transformer to the client
+      // Stream Anthropic SSE through our transformer to the client.
+      // TextDecoderStream converts Uint8Array chunks → strings before parsing.
       const { readable, writable } = new TransformStream();
       response.body
+        .pipeThrough(new TextDecoderStream())
         .pipeThrough(createChunkTransformer())
         .pipeTo(writable)
         .catch((err) => console.error('Stream pipe error:', err));
