@@ -62,3 +62,50 @@ test('message shape validation accepts valid roles only', () => {
   assert.equal(isValidMessage({}), false);
   assert.equal(isValidMessage(null), false);
 });
+
+// ── Starter questions data ──────────────────────────────────────────
+// Mirrors STARTER_GROUPS in assets/js/chat.js — update both together.
+const STARTER_GROUPS = [
+  {
+    label: 'Recruiter',
+    questions: [
+      "What's David's current availability and the type of roles he's open to?",
+      "What's his strongest end-to-end project — from problem to production?",
+      "How does his PM background change the way he builds AI systems?",
+    ],
+  },
+  {
+    label: 'Business partner',
+    questions: [
+      "What kind of engagements does David take on?",
+      "How would he scope and approach a RAG or agentic workflow project?",
+      "What's a realistic timeline and process for an AI-powered product MVP?",
+    ],
+  },
+  {
+    label: 'Startup founder',
+    questions: [
+      "Can you walk me through the -mon product family and what it's building toward?",
+      "What would David build differently if he were starting the JTES project over?",
+      "How does he decide when to ship vs. keep iterating?",
+    ],
+  },
+];
+
+test('starter groups have 3 personas each with at least 3 non-empty questions', () => {
+  assert.equal(STARTER_GROUPS.length, 3);
+  for (const group of STARTER_GROUPS) {
+    assert.ok(typeof group.label === 'string' && group.label.length > 0, `${group.label} has a label`);
+    assert.ok(group.questions.length >= 3, `${group.label} has at least 3 questions`);
+    for (const q of group.questions) {
+      assert.ok(typeof q === 'string' && q.trim().length > 0, `question is non-empty string`);
+    }
+  }
+});
+
+test('starter group labels cover the expected personas', () => {
+  const labels = STARTER_GROUPS.map(g => g.label);
+  assert.ok(labels.includes('Recruiter'));
+  assert.ok(labels.includes('Business partner'));
+  assert.ok(labels.includes('Startup founder'));
+});
