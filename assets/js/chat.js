@@ -9,10 +9,14 @@
 
   const STORAGE_KEY = 'kinokoholic-chat-history';
   const API_ENDPOINT = '/api/chat';
+  const MAX_HISTORY_MESSAGES = 50;
+  const MAX_INPUT_CHARS = 4000;
+  const STREAM_TIMEOUT_MS = 60000;
 
   // ── State ───────────────────────────────────────────────────────────
   let messages = []; // { role: 'user'|'assistant', content: string }
   let isStreaming = false;
+  let lastFailedUserText = '';
 
   // ── DOM refs ────────────────────────────────────────────────────────
   const container = document.getElementById('chat-app');
@@ -25,8 +29,11 @@
     // Load history
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) messages = JSON.parse(saved);
-    } catch { /* ignore */ }
+      if (saved) messages = sanitizeMessages(JSON.parse(saved));
+    } catch {
+      messages = [];
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    }
 
     // Build DOM
     container.innerHTML = `
@@ -40,6 +47,7 @@
           <div class="chat-input-row">
             <textarea class="chat-input"
               rows="1"
+              maxlength="${MAX_INPUT_CHARS}"
               placeholder="Ask me anything about David's work — projects, tradeoffs, scope, what he'd do differently."
               aria-label="Type your message"></textarea>
             <button class="chat-send-btn" aria-label="Send message">
@@ -185,9 +193,15 @@
   async function handleSend() {
     const text = inputEl.value.trim();
     if (!text || isStreaming) return;
+    if (inputEl.value.length > MAX_INPUT_CHARS) {
+      showError(`Message is too long. Keep it under ${MAX_INPUT_CHARS} characters.`);
+      return;
+    }
 
     // Add user message
     messages.push({ role: 'user', content: text });
+    messages = sanitizeMessages(messages);
+    lastFailedUserText = text;
     inputEl.value = '';
     autoResize();
     appendMessage('user', text);
@@ -204,6 +218,7 @@
 
     try {
       await streamResponse();
+      lastFailedUserText = '';
     } catch (err) {
       removeTypingIndicator();
       showError(err.message || 'Something went wrong. Please try again.');
@@ -214,19 +229,38 @@
     }
   }
 
-  function retryLastMessage() {
-    // Remove last assistant message if it was an error state
+  async function retryLastMessage() {
+    if (isStreaming) return;
+
     if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
       messages.pop();
       save();
     }
-    // Remove error element
+
     const err = messagesEl.querySelector('.chat-error');
     if (err) err.remove();
-    // Re-render and re-send the last user message
+
+    if (messages.length === 0 && lastFailedUserText) {
+      messages.push({ role: 'user', content: lastFailedUserText });
+      save();
+    }
+
     renderAll();
     if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
-      handleSend();
+      isStreaming = true;
+      sendBtn.disabled = true;
+      showTypingIndicator();
+      try {
+        await streamResponse();
+        lastFailedUserText = '';
+      } catch (retryErr) {
+        removeTypingIndicator();
+        showError(retryErr.message || 'Something went wrong. Please try again.');
+      } finally {
+        isStreaming = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
     }
   }
 
@@ -236,19 +270,28 @@
       messages: messages.slice(-50), // limit history
     });
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), STREAM_TIMEOUT_MS);
+
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
       body,
+      signal: controller.signal,
     });
 
     if (!response.ok) {
+      clearTimeout(timeout);
       let errMsg = `Request failed (${response.status})`;
       try {
         const errData = await response.json();
         errMsg = errData.error || errMsg;
       } catch { /* use default */ }
       throw new Error(errMsg);
+    }
+    if (!response.body) {
+      clearTimeout(timeout);
+      throw new Error('The response stream was empty.');
     }
 
     removeTypingIndicator();
@@ -257,14 +300,16 @@
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = '';
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -283,12 +328,17 @@
         }
       }
     } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new Error('The request timed out. Please try again.');
+      }
       // If we have partial text, keep it
       if (fullText) {
         messages.push({ role: 'assistant', content: fullText });
         save();
       }
       throw err;
+    } finally {
+      clearTimeout(timeout);
     }
 
     // Save complete assistant message
@@ -322,8 +372,22 @@
   // ── Persistence ─────────────────────────────────────────────────────
   function save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-50)));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeMessages(messages).slice(-MAX_HISTORY_MESSAGES)));
     } catch { /* quota exceeded, ignore */ }
+  }
+
+  function sanitizeMessages(value) {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter(msg =>
+        msg &&
+        typeof msg === 'object' &&
+        (msg.role === 'user' || msg.role === 'assistant') &&
+        typeof msg.content === 'string' &&
+        msg.content.trim().length > 0
+      )
+      .map(msg => ({ role: msg.role, content: msg.content.slice(0, MAX_INPUT_CHARS) }))
+      .slice(-MAX_HISTORY_MESSAGES);
   }
 
   // ── Markdown-lite renderer ──────────────────────────────────────────
