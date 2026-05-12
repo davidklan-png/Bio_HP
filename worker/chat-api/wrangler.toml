@@ -6,8 +6,13 @@ routes = [
 ]
 
 [vars]
-ALLOWED_ORIGIN = "https://kinokoholic.com"
+ALLOWED_ORIGINS = "https://kinokoholic.com"
 MAX_MESSAGES = 50
+MAX_MESSAGE_CHARS = 4000
+MAX_BODY_BYTES = 65536
+MAX_OUTPUT_TOKENS = 1024
 RATE_LIMIT_PER_HOUR = 30
+ENABLE_PROMPT_CACHE = "true"
+PROMPT_CACHE_TTL = "5m"
 # MODEL keys are defined in worker.js MODELS (currently: "sonnet", "haiku").
 MODEL = "sonnet"

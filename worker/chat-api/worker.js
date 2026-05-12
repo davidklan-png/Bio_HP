@@ -2,7 +2,8 @@
  * kinokoholic-chat-api — Cloudflare Worker
  *
  * Streams portfolio Q&A responses via Claude Sonnet.
- * Env vars: ANTHROPIC_API_KEY (secret), ALLOWED_ORIGIN, MAX_MESSAGES, RATE_LIMIT_PER_HOUR
+ * Env vars: ANTHROPIC_API_KEY (secret), ALLOWED_ORIGIN(S), MAX_MESSAGES,
+ * MAX_MESSAGE_CHARS, MAX_BODY_BYTES, RATE_LIMIT_PER_HOUR, PROMPT_CACHE_TTL
  */
 
 // ── System prompt (David Klan portfolio assistant) ──────────────────────────
@@ -103,16 +104,57 @@ export function _resetRateMap() {
 }
 
 // ── CORS helpers ─────────────────────────────────────────────────────────────
+const DEFAULT_ALLOWED_ORIGIN = 'https://kinokoholic.com';
+const DEFAULT_MAX_MESSAGES = 50;
+const DEFAULT_MAX_MESSAGE_CHARS = 4000;
+const DEFAULT_MAX_BODY_BYTES = 64 * 1024;
+const DEFAULT_RATE_LIMIT_PER_HOUR = 30;
+
+export function parseAllowedOrigins(value) {
+  return String(value || DEFAULT_ALLOWED_ORIGIN)
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+export function isOriginAllowed(requestOrigin, allowedOrigins) {
+  if (!requestOrigin) return true;
+  return allowedOrigins.includes(requestOrigin);
+}
+
+function responseOrigin(requestOrigin, allowedOrigins) {
+  return requestOrigin && allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : allowedOrigins[0] || DEFAULT_ALLOWED_ORIGIN;
+}
+
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
   };
 }
 
+function jsonResponse(payload, status, origin) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
+}
+
+function parsePositiveInt(value, fallback) {
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function isJsonContentType(value) {
+  return /^application\/json(?:\s*;|$)/i.test(value || '');
+}
+
 // ── Request validation ───────────────────────────────────────────────────────
-export function validateRequest(body, maxMessages) {
+export function validateRequest(body, maxMessages, maxMessageChars = DEFAULT_MAX_MESSAGE_CHARS) {
   if (!body || !Array.isArray(body.messages) || body.messages.length === 0) {
     return { ok: false, status: 400, error: 'messages array is required and must not be empty' };
   }
@@ -124,9 +166,18 @@ export function validateRequest(body, maxMessages) {
     if (typeof msg.role !== 'string' || typeof msg.content !== 'string') {
       return { ok: false, status: 400, error: `message[${i}] must have string role and content` };
     }
+    if (msg.content.trim().length === 0) {
+      return { ok: false, status: 400, error: `message[${i}].content must not be empty` };
+    }
+    if (msg.content.length > maxMessageChars) {
+      return { ok: false, status: 413, error: `message[${i}].content is too long (max ${maxMessageChars} chars)` };
+    }
     if (!['user', 'assistant'].includes(msg.role)) {
       return { ok: false, status: 400, error: `message[${i}].role must be "user" or "assistant"` };
     }
+  }
+  if (body.messages[body.messages.length - 1].role !== 'user') {
+    return { ok: false, status: 400, error: 'latest message must be from the user' };
   }
   return { ok: true };
 }
@@ -184,62 +235,108 @@ export function resolveModel(env) {
   return MODELS[key] || MODELS[DEFAULT_MODEL_KEY];
 }
 
+export function buildCacheControl(env) {
+  if (String(env.ENABLE_PROMPT_CACHE || '').toLowerCase() === 'false') return null;
+  const ttl = String(env.PROMPT_CACHE_TTL || '5m').toLowerCase();
+  if (ttl === '1h') return { type: 'ephemeral', ttl: '1h' };
+  return { type: 'ephemeral' };
+}
+
+export function cacheStatusHeader(env) {
+  const cacheControl = buildCacheControl(env);
+  if (!cacheControl) return 'disabled';
+  return cacheControl.ttl ? `enabled; ttl=${cacheControl.ttl}` : 'enabled; ttl=5m';
+}
+
+export function buildAnthropicPayload(env, messages) {
+  const payload = {
+    model: resolveModel(env),
+    max_tokens: parsePositiveInt(env.MAX_OUTPUT_TOKENS, 1024),
+    system: SYSTEM_PROMPT,
+    messages,
+    stream: true,
+  };
+  const cacheControl = buildCacheControl(env);
+  if (cacheControl) payload.cache_control = cacheControl;
+  return payload;
+}
+
+async function readJsonBody(request, maxBodyBytes) {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength, 10) > maxBodyBytes) {
+    return { ok: false, status: 413, error: `request body is too large (max ${maxBodyBytes} bytes)` };
+  }
+
+  const text = await request.text();
+  if (new TextEncoder().encode(text).length > maxBodyBytes) {
+    return { ok: false, status: 413, error: `request body is too large (max ${maxBodyBytes} bytes)` };
+  }
+
+  try {
+    return { ok: true, body: JSON.parse(text) };
+  } catch {
+    return { ok: false, status: 400, error: 'invalid JSON body' };
+  }
+}
+
 // ── Main handler ─────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const origin = env.ALLOWED_ORIGIN || 'https://kinokoholic.com';
-    const maxMsg = parseInt(env.MAX_MESSAGES, 10) || 50;
-    const rateLimit = parseInt(env.RATE_LIMIT_PER_HOUR, 10) || 30;
+    const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN);
+    const requestOrigin = request.headers.get('Origin');
+    const origin = responseOrigin(requestOrigin, allowedOrigins);
+    const maxMsg = parsePositiveInt(env.MAX_MESSAGES, DEFAULT_MAX_MESSAGES);
+    const maxMessageChars = parsePositiveInt(env.MAX_MESSAGE_CHARS, DEFAULT_MAX_MESSAGE_CHARS);
+    const maxBodyBytes = parsePositiveInt(env.MAX_BODY_BYTES, DEFAULT_MAX_BODY_BYTES);
+    const rateLimit = parsePositiveInt(env.RATE_LIMIT_PER_HOUR, DEFAULT_RATE_LIMIT_PER_HOUR);
+
+    if (url.pathname !== '/api/chat') {
+      return jsonResponse({ error: 'not found' }, 404, origin);
+    }
 
     // CORS preflight
     if (request.method === 'OPTIONS') {
+      if (!isOriginAllowed(requestOrigin, allowedOrigins)) {
+        return jsonResponse({ error: 'origin not allowed' }, 403, origin);
+      }
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
+
+    if (!isOriginAllowed(requestOrigin, allowedOrigins)) {
+      return jsonResponse({ error: 'origin not allowed' }, 403, origin);
     }
 
     // Only POST allowed
     if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'method not allowed' }), {
-        status: 405,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'method not allowed' }, 405, origin);
+    }
+
+    if (!isJsonContentType(request.headers.get('Content-Type'))) {
+      return jsonResponse({ error: 'content-type must be application/json' }, 415, origin);
     }
 
     // Rate limit by IP
     const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
     if (isRateLimited(clientIP, rateLimit)) {
-      return new Response(JSON.stringify({ error: 'rate limited — try again later' }), {
-        status: 429,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'rate limited - try again later' }, 429, origin);
     }
 
     // Parse body
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ error: 'invalid JSON body' }), {
-        status: 400,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+    const parsedBody = await readJsonBody(request, maxBodyBytes);
+    if (!parsedBody.ok) {
+      return jsonResponse({ error: parsedBody.error }, parsedBody.status, origin);
     }
 
-    const validation = validateRequest(body, maxMsg);
+    const validation = validateRequest(parsedBody.body, maxMsg, maxMessageChars);
     if (!validation.ok) {
-      return new Response(JSON.stringify({ error: validation.error }), {
-        status: validation.status,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: validation.error }, validation.status, origin);
     }
 
     // Check Anthropic key
     const apiKey = env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'service not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'service not configured' }, 500, origin);
     }
 
     // Call Anthropic streaming API
@@ -251,22 +348,17 @@ export default {
           'anthropic-version': '2023-06-01',
           'x-api-key': apiKey,
         },
-        body: JSON.stringify({
-          model: resolveModel(env),
-          max_tokens: 1024,
-          system: SYSTEM_PROMPT,
-          messages: body.messages,
-          stream: true,
-        }),
+        body: JSON.stringify(buildAnthropicPayload(env, parsedBody.body.messages)),
       });
 
       if (!response.ok) {
         const errBody = await response.text();
         console.error(`Anthropic API error ${response.status}: ${errBody}`);
-        return new Response(
-          JSON.stringify({ error: `upstream error (${response.status})` }),
-          { status: 502, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } },
-        );
+        return jsonResponse({ error: `upstream error (${response.status})` }, 502, origin);
+      }
+
+      if (!response.body) {
+        return jsonResponse({ error: 'upstream response was empty' }, 502, origin);
       }
 
       // Stream Anthropic SSE through our transformer to the client.
@@ -285,14 +377,12 @@ export default {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           'Connection': 'keep-alive',
+          'X-Prompt-Cache': cacheStatusHeader(env),
         },
       });
     } catch (err) {
       console.error('Worker fetch error:', err);
-      return new Response(JSON.stringify({ error: 'internal server error' }), {
-        status: 500,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'internal server error' }, 500, origin);
     }
   },
 };

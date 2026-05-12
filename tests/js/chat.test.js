@@ -4,6 +4,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const STORAGE_KEY = 'kinokoholic-chat-history';
+const MAX_HISTORY_MESSAGES = 50;
+const MAX_INPUT_CHARS = 4000;
 
 function makeLocalStorage() {
   const store = new Map();
@@ -108,4 +110,55 @@ test('starter group labels cover the expected personas', () => {
   assert.ok(labels.includes('Recruiter'));
   assert.ok(labels.includes('Business partner'));
   assert.ok(labels.includes('Startup founder'));
+});
+
+test('history sanitizer drops invalid records and caps length', () => {
+  const sanitizeMessages = (value) => {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((msg) =>
+        msg &&
+        typeof msg === 'object' &&
+        (msg.role === 'user' || msg.role === 'assistant') &&
+        typeof msg.content === 'string' &&
+        msg.content.trim().length > 0,
+      )
+      .slice(-MAX_HISTORY_MESSAGES);
+  };
+
+  const noisy = [
+    { role: 'system', content: 'bad' },
+    { role: 'user', content: 'ok' },
+    { role: 'assistant', content: '' },
+    null,
+  ];
+  assert.deepEqual(sanitizeMessages(noisy), [{ role: 'user', content: 'ok' }]);
+  assert.equal(
+    sanitizeMessages(Array.from({ length: 60 }, (_, i) => ({ role: 'user', content: String(i) }))).length,
+    50,
+  );
+});
+
+test('input length guard rejects oversized prompts', () => {
+  const isValidInput = (text) => text.trim().length > 0 && text.length <= MAX_INPUT_CHARS;
+  assert.equal(isValidInput('hello'), true);
+  assert.equal(isValidInput('   '), false);
+  assert.equal(isValidInput('x'.repeat(MAX_INPUT_CHARS + 1)), false);
+});
+
+test('SSE buffer parses complete data lines and keeps partial tail', () => {
+  let buffer = '';
+  const consume = (chunk) => {
+    buffer += chunk;
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    return lines
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('data: '))
+      .map((line) => JSON.parse(line.slice(6)).text);
+  };
+
+  assert.deepEqual(consume('data: {"text":"Hel'), []);
+  assert.deepEqual(consume('lo"}\n\n'), ['Hello']);
+  assert.equal(buffer, '');
 });
