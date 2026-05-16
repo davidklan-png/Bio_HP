@@ -27,7 +27,7 @@ permalink: /kinokomon/
     <p class="kinokomon-section__section-desc">Active development and production systems</p>
     <ul class="kinokomon-section__list">
       <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
-      <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and NLP</li>
+      <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and Japanese NLP</li>
       <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
       <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
       <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
@@ -134,6 +134,7 @@ permalink: /kinokomon/
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
+<li><strong>2026-05-16 14:13 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add (latest remains 2026-05-10 health check fix), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-05-12 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-05-11 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add (latest milestone remains 2026-05-10 health check fix), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-05-10 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action and updated current projects section from shared/profile.json (10 projects), added health check fix milestone (JD Concierge sandbox page restoration), verified milestone consistency, committed to main branch; posting summary to #kinokoholic channel</li>
