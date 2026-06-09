@@ -183,7 +183,7 @@
   <section class="container section" id="projects" data-screen-label="01 Home — Projects">
     <div class="section-head">
       <div>
-        <span class="modlabel" data-i18n="proj.modlabel">// PROJECTS · FOUR INVESTIGATIONS</span>
+        <span class="modlabel" data-i18n="proj.modlabel">// PROJECTS · FIVE INVESTIGATIONS</span>
         <h2 style="margin-top:.5rem" data-i18n="proj.h2">Where language models meet the resistance of the real world.</h2>
       </div>
       <a class="chip chip--brand" href="#projects" data-i18n="proj.cta_all">view all projects ↗</a>
@@ -218,16 +218,16 @@
           <span class="project-card__status project-card__status--ship" data-i18n="proj.p2.status">shipping</span>
         </div>
         <div class="project-card__body">
-          <h3 class="project-card__title" data-i18n="proj.p2.title">Receipt Classification &amp; Matching</h3>
-          <p class="project-card__sum" data-i18n="proj.p2.summary">Statement-to-receipt reconciliation pipeline. Vendor disambiguation, ambiguity escalation, tax-ready categories.</p>
+          <h3 class="project-card__title" data-i18n="proj.p2.title">Receipt Capture &amp; AMEX Reconciliation</h3>
+          <p class="project-card__sum" data-i18n="proj.p2.summary">Mobile-first capture, AMEX statement reconciliation, and 10-year-retention accountant export on Cloudflare Workers, D1, and immutable R2.</p>
           <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p2.why">Manual triage is the bottleneck.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p2.tradeoff">Recall vs false-match cost.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p2.assumes">Vendor names noisy.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p2.lesson">Escalation beats over-fit.</span></div>
+            <div><span class="k">why</span><span class="v" data-i18n="proj.p2.why">A paper close isn't auditable.</span></div>
+            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p2.tradeoff">Immutable storage costs more.</span></div>
+            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p2.assumes">Tax records live 10 years.</span></div>
+            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p2.lesson">Fail-closed beats convenient.</span></div>
           </div>
           <div class="project-card__foot">
-            <div class="project-card__tags"><span data-i18n="proj.p2.tag1">Document AI</span><span data-i18n="proj.p2.tag2">Classification</span><span data-i18n="proj.p2.tag3">Expense ops</span></div>
+            <div class="project-card__tags"><span data-i18n="proj.p2.tag1">Cloudflare Workers</span><span data-i18n="proj.p2.tag2">Document AI</span><span data-i18n="proj.p2.tag3">Compliance</span></div>
             <span class="project-card__cta">Open case study</span>
           </div>
         </div>
@@ -270,6 +270,27 @@
           </div>
           <div class="project-card__foot">
             <div class="project-card__tags"><span data-i18n="proj.p4.tag1">Grounded gen</span><span data-i18n="proj.p4.tag2">Style control</span><span data-i18n="proj.p4.tag3">Human-in-loop</span></div>
+            <span class="project-card__cta">Open case study</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-card" href="/projects/nfc-networking-card-contact-capture/" data-fade>
+        <div class="project-card__hdr">
+          <span class="project-card__id" data-i18n="proj.p5.id">PRJ.05 · EDGE-OAUTH</span>
+          <span class="project-card__status project-card__status--ship" data-i18n="proj.p5.status">shipping</span>
+        </div>
+        <div class="project-card__body">
+          <h3 class="project-card__title" data-i18n="proj.p5.title">NFC Networking Card</h3>
+          <p class="project-card__sum" data-i18n="proj.p5.summary">Tokenized NFC tap → one-tap Google sign-in or manual capture. CSRF-hardened OAuth, tap logging, and auto follow-up on Cloudflare Pages + D1.</p>
+          <div class="project-card__why">
+            <div><span class="k">why</span><span class="v" data-i18n="proj.p5.why">Paper cards are a dead end.</span></div>
+            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p5.tradeoff">Fast path vs sign-in friction.</span></div>
+            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p5.assumes">Tap now, follow up later.</span></div>
+            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p5.lesson">Bind the credential to a nonce.</span></div>
+          </div>
+          <div class="project-card__foot">
+            <div class="project-card__tags"><span data-i18n="proj.p5.tag1">Cloudflare Pages</span><span data-i18n="proj.p5.tag2">OAuth · GIS</span><span data-i18n="proj.p5.tag3">Edge D1</span></div>
             <span class="project-card__cta">Open case study</span>
           </div>
         </div>
