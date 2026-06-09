@@ -1,137 +1,148 @@
 id: receipt_classification_matching
 detail_page: /projects/receipt-classification-and-matching-system/
-name: Receipt Classification & Matching System
-name_ja: レシート分類・マッチングシステム
-one_line_value: Automated statement-to-receipt reconciliation for faster, cleaner tax submission workflows.
-one_line_value_ja: 明細書とレシートの自動照合による、より迅速で正確な税務申請ワークフロー。
+name: Receipt Capture & AMEX Reconciliation
+name_ja: レシート取り込み・AMEX突合システム
+one_line_value: Mobile-first receipt capture with AMEX statement reconciliation and audit-ready, 10-year-retention accountant export, running on Cloudflare's edge.
+one_line_value_ja: モバイルファーストのレシート取り込み、AMEX明細との突合、監査対応の10年保管エクスポートをCloudflareエッジ上で実現。
 icon: receipt
 tags:
+  - Cloudflare Workers
   - Document AI
-  - Expense Operations
-  - Classification
+  - Compliance & Retention
 tags_ja:
+  - Cloudflare Workers
   - ドキュメントAI
-  - 経費業務
-  - 分類
+  - コンプライアンス・保管
 impact_bullets:
-  - Reduced manual receipt matching and exception triage effort.
-  - Improved categorization consistency for tax-ready reporting.
-  - Added ambiguity handling for difficult vendor names.
+  - Replaced monthly composite paper-receipt scans with one-receipt-per-record mobile capture.
+  - Automated AMEX statement-to-receipt reconciliation behind a human review-and-correction queue.
+  - Hardened tax-record retention with immutable R2 originals and SHA-256-hashed export manifests.
 impact_bullets_ja:
-  - 手動レシート照合と例外トリアージ作業の削減。
-  - 税務対応可能なレポーティングのための分類一貫性の向上。
-  - 曖昧なベンダー名に対するあいまい処理の追加。
+  - 月次のレシート一括スキャンを、1レシート＝1レコードのモバイル取り込みに置き換え。
+  - AMEX明細とレシートの突合を自動化し、人手のレビュー・修正キューを後段に配置。
+  - 不変のR2オリジナルとSHA-256ハッシュ付きエクスポートで税務記録の保管を強化。
 executive_summary:
-  problem: Credit card statements and receipts were reconciled manually, creating delays and inconsistent categorization before company tax submission.
-  solution: Built a Gemini Colab workflow using free LLMs to match statement lines to receipts, then classify transactions with ambiguity-aware vendor handling.
-  outcome: Delivered a repeatable review flow that speeds reconciliation and produces cleaner, tax-oriented expense categorization.
+  problem: Monthly expense prep meant scanning a composite sheet of paper receipts, hand-matching them to the AMEX statement, and trusting a fragile, non-auditable paper trail before company tax submission.
+  solution: Built an access-gated receipt module inside the Dazbeez Next.js/Cloudflare Workers app — iPhone capture, structured extraction, AMEX CSV import and reconciliation, and a monthly accountant export — backed by D1 records and immutable R2 image storage carrying conservative retention metadata.
+  outcome: A repeatable, audit-ready monthly close where every receipt is a first-class record, reconciliation is assisted rather than manual, and the statutory archive is hashed and retention-locked.
 executive_summary_ja:
-  problem: クレジットカード明細とレシートの照合を手作業で行っていたため、会社の税務申告前に遅延と分類の不一致が発生していました。
-  solution: 無料LLMを使うGemini Colabワークフローを構築し、明細行とレシートを照合した上で、曖昧性を考慮したベンダー処理で取引分類を行いました。
-  outcome: 照合を高速化し、税務向けの経費分類品質を高める再現可能なレビュー工程を実現しました。
+  problem: 月次の経費処理は、紙のレシートを一括スキャンしてAMEX明細と手作業で突合し、監査に耐えない脆い紙の証跡に頼ったまま会社の税務申告を行う状態でした。
+  solution: Dazbeezの Next.js／Cloudflare Workers アプリ内にアクセス制限付きのレシートモジュールを構築。iPhone取り込み、構造化抽出、AMEXのCSV取り込みと突合、月次の会計士向けエクスポートを、D1レコードと保管メタデータ付き不変R2ストレージで支えています。
+  outcome: すべてのレシートが第一級のレコードとなり、突合は手作業ではなく支援型となり、法定アーカイブはハッシュ化・保管ロックされた、再現可能で監査対応の月次クローズを実現しました。
 use_case:
-  summary: Finance and operations teams need reliable monthly transaction matching and categorization without scaling manual review time.
+  summary: A solo consultancy and its accountant need trustworthy, low-effort monthly expense reconciliation that still stands up to a tax audit years later.
   stakeholders:
-    - Finance operations analysts
-    - Accounting and tax preparers
-    - Business managers submitting expenses
+    - Operator capturing receipts on a phone
+    - Accountant consuming the monthly export
+    - Tax authority audit and retention requirements
 use_case_ja:
-  summary: 財務・業務チームは、手動レビュー時間を増やさずに、月次取引の信頼できる照合と分類を必要としていました。
+  summary: 一人法人とその会計士は、手間をかけずに信頼でき、数年後の税務調査にも耐えられる月次の経費突合を必要としていました。
   stakeholders:
-    - 財務オペレーションアナリスト
-    - 経理担当および税務準備担当
-    - 経費申請を行う事業部マネージャー
+    - スマホでレシートを取り込む運用担当
+    - 月次エクスポートを受け取る会計士
+    - 税務当局の監査・保管要件
 architecture:
-  overview: Statement rows and receipt text are normalized, candidate matches are scored, and ambiguous vendors are sent through LLM-assisted classification before final review.
+  overview: Receipts and AMEX data flow through an isolated, Cloudflare-Access-protected route group. Images land immutably in R2, records in D1, and finalized months export as hashed CSV bundles into a separate archive bucket.
   diagram:
-    - "[Credit Card Statement CSV/PDF]"
+    - "[iPhone capture · /receipts/capture]"
     - "           |"
-    - "   OCR + normalization"
+    - "  Upload API -> R2 original (never overwritten)"
     - "           |"
-    - "  Candidate match scoring"
+    - "  D1 receipt record + structured extraction"
     - "           |"
-    - "Ambiguous vendor? -> LLM classifier"
+    - "[AMEX CSV import · /receipts/amex]"
     - "           |"
-    - "  Human review queue + export"
+    - "  Reconciliation matching -> review queue"
+    - "           |"
+    - "[Monthly export · /receipts/export]"
+    - "           |"
+    - "  SHA-256 manifest -> R2 archive (10y, legal hold)"
 architecture_ja:
-  overview: 明細行とレシートテキストを正規化し、候補マッチをスコアリングした後、曖昧なベンダーをLLM支援分類に回して最終レビューに接続します。
+  overview: レシートとAMEXデータは、Cloudflare Accessで保護された独立ルートグループを通ります。画像はR2に不変で保存され、レコードはD1に、確定した月はハッシュ化CSVバンドルとして別のアーカイブバケットにエクスポートされます。
   diagram:
-    - "[クレジットカード明細 CSV/PDF]"
+    - "[iPhone取り込み · /receipts/capture]"
     - "           |"
-    - "   OCR + 正規化"
+    - "  アップロードAPI -> R2オリジナル(上書き不可)"
     - "           |"
-    - "  候補マッチのスコアリング"
+    - "  D1レシートレコード + 構造化抽出"
     - "           |"
-    - "ベンダーが曖昧? -> LLM分類器"
+    - "[AMEX CSV取り込み · /receipts/amex]"
     - "           |"
-    - "  人手レビューキュー + エクスポート"
+    - "  突合マッチング -> レビューキュー"
+    - "           |"
+    - "[月次エクスポート · /receipts/export]"
+    - "           |"
+    - "  SHA-256マニフェスト -> R2アーカイブ(10年・リーガルホールド)"
 tech_details:
   rag_prompt_patterns:
-    - Prompted ambiguity resolver with vendor-name and merchant-context hints.
-    - Structured output template for category labels and confidence.
-    - Lightweight fallback rules when model confidence drops.
+    - Pluggable OCR/LLM extraction provider — swap models without touching capture or reconcile.
+    - Structured field extraction (vendor, date, total, tax) with per-field confidence scoring.
+    - Confidence thresholds route low-certainty receipts into the human review queue.
   tools:
-    - Gemini Colab notebook runtime
-    - Python data cleaning and matching logic
-    - Free LLM endpoints for classification support
+    - Next.js 16 (App Router) on Cloudflare Workers via OpenNext
+    - Cloudflare D1 for records, R2 for immutable images and the archive bucket
+    - Cloudflare Access (zero-trust) with HTTP Basic-auth local fallback
   constraints:
-    - Inconsistent receipt quality and OCR noise.
-    - Merchant aliases and truncated statement descriptors.
-    - Limited budget for model/API usage.
+    - Tax records require ~10-year retention and a defensible audit trail.
+    - Receipt originals must never be mutated or silently deleted.
+    - The module must stay invisible to the public site and to search engines.
   tradeoffs:
-    - Higher recall matching can increase false positives in edge cases.
-    - More aggressive categorization automation reduces manual effort but requires tighter audit checks.
+    - Fail-closed auth (deny when unconfigured) chosen over convenience.
+    - Immutable storage and retention locks raise storage cost but protect the statutory copy.
+    - Assisted, not fully automated, reconciliation keeps a human in the loop for finance trust.
 tech_details_ja:
   rag_prompt_patterns:
-    - ベンダー名と加盟店コンテキストのヒントを使った曖昧性解消プロンプト。
-    - カテゴリラベルと信頼度を返す構造化出力テンプレート。
-    - モデル信頼度が低下した場合の軽量フォールバックルール。
+    - プラガブルなOCR/LLM抽出プロバイダ — 取り込みや突合に触れずモデルを差し替え可能。
+    - 構造化フィールド抽出(ベンダー・日付・合計・税額)とフィールド単位の信頼度スコア。
+    - 信頼度しきい値により、確度の低いレシートを人手レビューキューへ振り分け。
   tools:
-    - Gemini Colabノートブック実行環境
-    - Pythonによるデータクレンジングと照合ロジック
-    - 分類支援のための無料LLMエンドポイント
+    - Next.js 16(App Router)を OpenNext 経由で Cloudflare Workers 上に
+    - レコードに Cloudflare D1、不変画像とアーカイブに R2
+    - Cloudflare Access(ゼロトラスト)とローカルの HTTP Basic 認証フォールバック
   constraints:
-    - レシート品質のばらつきとOCRノイズ。
-    - 加盟店別名や明細説明の省略表記。
-    - モデル/API利用予算の制約。
+    - 税務記録には約10年の保管と、説明可能な監査証跡が必要。
+    - レシートのオリジナルは改変も暗黙削除も不可。
+    - モジュールは公開サイトと検索エンジンから不可視を維持。
   tradeoffs:
-    - 再現率を高める照合は、境界ケースで誤検出を増やす可能性がある。
-    - 分類自動化を強めるほど手作業は減るが、監査チェックを厳密にする必要がある。
+    - 利便性より、未設定時は拒否する fail-closed 認証を選択。
+    - 不変ストレージと保管ロックは保管コストを上げるが、法定コピーを保護。
+    - 完全自動ではなく支援型の突合とし、財務の信頼のため人手を介在。
 screenshots:
   - src: /assets/images/receipt_img.pdf
     alt: Receipt sample PDF document
     alt_ja: レシートのサンプルPDF
-    caption: PDF receipt sample used for OCR extraction and line-item matching checks.
-    caption_ja: OCR抽出と明細行照合チェックに使用したPDFレシートサンプル。
-  - src: /assets/images/recceipt_sample.html
-    alt: Receipt sample HTML export
-    alt_ja: レシートのサンプルHTML出力
-    caption: HTML receipt representation used to validate parser and structured extraction behavior.
-    caption_ja: パーサーと構造化抽出挙動を検証するためのHTMLレシート表現。
+    caption: PDF receipt sample used to validate capture, structured extraction, and confidence scoring.
+    caption_ja: 取り込み・構造化抽出・信頼度スコアの検証に使用したPDFレシートサンプル。
 lessons_learned:
-  - Confidence thresholds and review queues are essential for finance trust.
-  - Merchant alias dictionaries dramatically improve initial matching quality.
-  - Prompt schema enforcement prevents downstream parsing issues.
+  - Fail-closed auth and immutable originals matter more than slick UI for finance trust.
+  - One-receipt-per-record beats composite scans for both capture ergonomics and auditability.
+  - SHA-256 export manifests turn "a folder of PDFs" into a verifiable statutory archive.
 lessons_learned_ja:
-  - 信頼度しきい値とレビューキューは、財務業務での信頼確保に不可欠。
-  - 加盟店別名辞書は初期照合品質を大幅に改善する。
-  - プロンプトスキーマの厳格化は後段の解析不具合を防ぐ。
+  - 財務の信頼では、洗練されたUIより fail-closed 認証と不変オリジナルが重要。
+  - 1レシート＝1レコードは、取り込みの操作性と監査性の両面で一括スキャンに勝る。
+  - SHA-256エクスポートマニフェストは「PDFの寄せ集め」を検証可能な法定アーカイブに変える。
 improve_next:
-  - Add active-learning loops from reviewer corrections.
-  - Add document-level anomaly detection for missing receipts.
-  - Add monthly quality scorecards by category and vendor type.
+  - Add active-learning loops feeding reviewer corrections back into the extraction provider.
+  - Add anomaly detection for missing or duplicate receipts against the statement.
+  - Add monthly close scorecards (match rate, exceptions, category drift).
 improve_next_ja:
-  - レビュー修正を取り込むアクティブラーニングループを追加する。
-  - レシート欠落を検知する文書レベル異常検知を追加する。
-  - カテゴリ別・ベンダー種別の月次品質スコアカードを追加する。
+  - レビュー修正を抽出プロバイダに還元するアクティブラーニングループを追加する。
+  - 明細に対するレシートの欠落・重複を検知する異常検知を追加する。
+  - 月次クローズのスコアカード(マッチ率・例外・カテゴリのドリフト)を追加する。
 repro:
   runnable: false
   steps:
-    - Open the notebook flow and review sample statement/receipt inputs.
-    - Walk through matching score logic and ambiguity classifier prompts.
-    - Inspect exception-routing outputs and final categorized export format.
+    - Authenticate through Cloudflare Access — the module is private and noindexed.
+    - Capture a receipt from the phone and confirm the immutable R2 original plus the D1 record.
+    - Import an AMEX CSV, reconcile against captured receipts, and clear the review queue.
+    - Run the monthly export and verify the SHA-256 manifest written to the archive bucket.
 repro_ja:
   steps:
-    - ノートブックフローを開き、明細／レシートのサンプル入力を確認する。
-    - マッチングスコアロジックと曖昧性分類プロンプトを確認する。
-    - 例外ルーティング結果と最終分類エクスポート形式を確認する。
+    - Cloudflare Access で認証する — モジュールは非公開かつ noindex。
+    - スマホからレシートを取り込み、不変のR2オリジナルとD1レコードを確認する。
+    - AMEXのCSVを取り込み、取り込み済みレシートと突合し、レビューキューを処理する。
+    - 月次エクスポートを実行し、アーカイブバケットに書き込まれたSHA-256マニフェストを検証する。
+links:
+  - label: Dazbeez — build-in-public site
+    label_ja: Dazbeez — ビルド・イン・パブリックのサイト
+    url: https://dazbeez.com
