@@ -1,0 +1,152 @@
+id: networking_card
+detail_page: /projects/nfc-networking-card-contact-capture/
+name: NFC Networking Card — Contact Capture
+name_ja: NFCネットワーキングカード — コンタクト取得
+one_line_value: A physical NFC card tap that turns into a low-friction digital handshake — one-tap Google sign-in or manual fallback — with CSRF-hardened OAuth on Cloudflare's edge.
+one_line_value_ja: 物理NFCカードのタップを、摩擦の少ないデジタルな名刺交換に変換。ワンタップのGoogleサインインまたは手動入力に対応し、CloudflareエッジでCSRF対策済みのOAuthを実装。
+icon: contact
+tags:
+  - Cloudflare Pages
+  - OAuth / Google GIS
+  - Edge / D1
+tags_ja:
+  - Cloudflare Pages
+  - OAuth / Google GIS
+  - エッジ / D1
+impact_bullets:
+  - Turns a physical card tap into an immediate save-my-contact plus fast self-registration.
+  - Logs every tap before sign-in, so engagement is captured even when contacts do not register.
+  - Notifies in real time (Discord) and sends a return-link acknowledgment email on every capture.
+impact_bullets_ja:
+  - 物理カードのタップを、即時の連絡先保存と素早いセルフ登録に変換。
+  - サインイン前にすべてのタップを記録し、未登録でもエンゲージメントを取得。
+  - 取得ごとにDiscordへリアルタイム通知し、戻りリンク付きの受領メールを送信。
+executive_summary:
+  problem: A paper business card is a dead end — no capture, no follow-up, no idea whether it ever got typed into a phone. David wanted a card tap that works both in the moment and days later, without forcing anyone through a heavy sign-up.
+  solution: A tokenized NFC landing system on Cloudflare Pages + D1. Each card carries a random token at /hi/:token; the tap is logged, then the visitor gets an immediate vCard save, a one-tap Google Identity Services path, and a manual fallback — all bound together by a per-page nonce that hardens the OAuth flow against CSRF and token replay.
+  outcome: A working build-in-public networking flow where physical taps convert to structured contacts, every registration method is preserved, and follow-up is automatic — running at the edge with no server to babysit.
+executive_summary_ja:
+  problem: 紙の名刺は行き止まりで、取得も追跡もできず、相手のスマホに入力されたかも分かりません。Davidは、重い登録を強いることなく、その場でも数日後でも機能するカードのタップを求めていました。
+  solution: Cloudflare Pages + D1 上のトークン化NFCランディング。各カードは /hi/:token にランダムトークンを持ち、タップを記録した上で、即時のvCard保存、ワンタップのGoogle Identity Servicesパス、手動フォールバックを提示。これらをページ単位のnonceで束ね、OAuthフローをCSRFとトークン再利用から保護します。
+  outcome: 物理タップが構造化された連絡先に変換され、すべての登録方法が保持され、フォローアップが自動化される、稼働中のビルド・イン・パブリックなネットワーキングフロー。サーバー運用なしでエッジ上で動作します。
+use_case:
+  summary: At a networking event, hand over a card; the contact taps it, saves David's details, and shares their own in one tap — with a path back to services or an inquiry later.
+  stakeholders:
+    - New contact tapping the card at an event
+    - David capturing and following up on leads
+    - Admin reviewing taps, contacts, and conversion metrics
+use_case_ja:
+  summary: ネットワーキングイベントでカードを手渡すと、相手がタップしてDavidの情報を保存し、自分の情報もワンタップで共有。後からサービスや問い合わせへ戻る導線も用意。
+  stakeholders:
+    - イベントでカードをタップする新規コンタクト
+    - リードを取得しフォローするDavid
+    - タップ・コンタクト・コンバージョン指標を確認する管理者
+architecture:
+  overview: A tap hits a Cloudflare Pages Function at /hi/:token. The tap is logged non-blocking, a nonce is issued in a __Host-oauth_state cookie, and the page offers vCard, Google GIS, and a manual form. Google and manual paths both insert a contact in D1, fire Discord + acknowledgment email, and redirect to /thanks.
+  diagram:
+    - "[Physical NFC card / QR]"
+    - "           |"
+    - "GET /hi/:token -> log tap (waitUntil)"
+    - "           |"
+    - "  issue nonce -> __Host-oauth_state cookie"
+    - "           |"
+    - "  +-- vCard save (immediate)"
+    - "  +-- Google GIS one-tap --> POST /auth/google/callback"
+    - "  +-- manual form ---------> POST /submit"
+    - "           |"
+    - "  verify nonce + JWT -> insert contact (D1)"
+    - "           |"
+    - "  Discord notify + ack email (waitUntil)"
+    - "           |"
+    - "       GET /thanks -> vCard + next steps"
+architecture_ja:
+  overview: タップは Cloudflare Pages Function の /hi/:token に到達。タップは非ブロッキングで記録され、nonce が __Host-oauth_state クッキーで発行され、ページは vCard・Google GIS・手動フォームを提示します。Googleと手動の両パスがD1に連絡先を挿入し、Discordと受領メールを送信して /thanks にリダイレクトします。
+  diagram:
+    - "[物理NFCカード / QR]"
+    - "           |"
+    - "GET /hi/:token -> タップ記録 (waitUntil)"
+    - "           |"
+    - "  nonce発行 -> __Host-oauth_state クッキー"
+    - "           |"
+    - "  +-- vCard保存 (即時)"
+    - "  +-- Google GIS ワンタップ --> POST /auth/google/callback"
+    - "  +-- 手動フォーム ----------> POST /submit"
+    - "           |"
+    - "  nonce + JWT検証 -> 連絡先挿入 (D1)"
+    - "           |"
+    - "  Discord通知 + 受領メール (waitUntil)"
+    - "           |"
+    - "       GET /thanks -> vCard + 次のステップ"
+tech_details:
+  rag_prompt_patterns:
+    - State encodes {nonce, cardToken}; the nonce must match both the __Host-oauth_state cookie and the JWT nonce claim.
+    - Google ID token verified RS256 against Google JWKS with aud, iss, exp, and nonce checks.
+    - A JavaScript GIS callback submits the credential on the main page so the SameSite=Lax cookie is always sent.
+  tools:
+    - Cloudflare Pages Functions (Workers v8 isolate) + D1 (SQLite at edge)
+    - Google Identity Services for one-tap sign-in (Client ID only, no server secret)
+    - Resend for acknowledgment email, Discord webhook for real-time notifications
+  constraints:
+    - The fast path must never be blocked by the sign-in path.
+    - Tokens must resist enumeration and a credential must not be replayable to a different card.
+    - Secrets stay in Cloudflare Pages secrets, never in the repo.
+  tradeoffs:
+    - GIS as the primary path with a manual fallback — speed without locking anyone out.
+    - LinkedIn kept as a destination CTA, not a sign-in dependency.
+    - Tap logging before registration trades some noise for never losing engagement signal.
+tech_details_ja:
+  rag_prompt_patterns:
+    - stateは{nonce, cardToken}をエンコードし、nonceは __Host-oauth_state クッキーとJWTのnonceクレームの両方に一致する必要がある。
+    - Google IDトークンはGoogle JWKSに対してRS256で検証し、aud・iss・exp・nonceを確認。
+    - JavaScriptのGISコールバックがメインページで資格情報を送信するため、SameSite=Laxクッキーが常に送られる。
+  tools:
+    - Cloudflare Pages Functions(Workers v8アイソレート)+ D1(エッジのSQLite)
+    - ワンタップサインインに Google Identity Services(Client IDのみ、サーバーシークレット不要)
+    - 受領メールに Resend、リアルタイム通知に Discord Webhook
+  constraints:
+    - 高速パスがサインインパスにブロックされてはならない。
+    - トークンは列挙耐性を持ち、資格情報を別カードに再利用できてはならない。
+    - シークレットは Cloudflare Pages secrets に置き、リポジトリには入れない。
+  tradeoffs:
+    - GISを主パス、手動をフォールバックとし、誰も締め出さずに高速化。
+    - LinkedInはサインイン依存ではなく遷移先CTAとして維持。
+    - 登録前のタップ記録は多少のノイズと引き換えにエンゲージメント信号を失わない。
+lessons_learned:
+  - Binding the credential to a per-page nonce is what makes one-tap OAuth safe against CSRF and replay.
+  - Logging the tap before sign-in means you measure interest even when nobody registers.
+  - A JS callback that submits on the main page (not a popup) keeps the SameSite cookie intact.
+lessons_learned_ja:
+  - 資格情報をページ単位のnonceに束ねることが、ワンタップOAuthをCSRF・再利用から守る鍵。
+  - サインイン前にタップを記録すれば、誰も登録しなくても関心を計測できる。
+  - ポップアップではなくメインページで送信するJSコールバックが、SameSiteクッキーを保つ。
+improve_next:
+  - Per-contact vCard personalization (the route already threads a contact_id through).
+  - Richer admin conversion analytics per card and per event.
+  - Optional double opt-in before adding contacts to any follow-up sequence.
+improve_next_ja:
+  - 連絡先ごとのvCardパーソナライズ(ルートは既に contact_id を引き回している)。
+  - カード別・イベント別のより詳細な管理者向けコンバージョン分析。
+  - フォローアップ追加前の任意のダブルオプトイン。
+repro:
+  runnable: false
+  steps:
+    - Tap an NFC card or open /hi/<token>; the tap is logged before any sign-in.
+    - Save David's vCard immediately, or register via Google one-tap or the manual form.
+    - Land on /thanks with the contact saved, a vCard download, and links onward to services or inquiry.
+    - See the public-facing explainer at /business-card and the generic tap page at /nfc.
+repro_ja:
+  steps:
+    - NFCカードをタップ、または /hi/<token> を開く。サインイン前にタップが記録される。
+    - Davidのカードを即保存するか、Googleワンタップまたは手動フォームで登録する。
+    - 連絡先が保存され、vCardダウンロードとサービス・問い合わせへの導線がある /thanks に到達。
+    - 公開向け説明ページ /business-card と汎用タップページ /nfc を確認する。
+links:
+  - label: NFC card explainer (public)
+    label_ja: NFCカード説明ページ(公開)
+    url: https://dazbeez.com/business-card
+  - label: Generic NFC tap page (public)
+    label_ja: 汎用NFCタップページ(公開)
+    url: https://dazbeez.com/nfc
+  - label: Dazbeez — build-in-public site
+    label_ja: Dazbeez — ビルド・イン・パブリックのサイト
+    url: https://dazbeez.com
