@@ -36,6 +36,12 @@ permalink: /kinokomon/projects/
       </div>
 
       <div class="kinokomon-section__project-item">
+        <h3>Keibamon - Horse Racing Analysis & Betting Agent</h3>
+        <p class="kinokomon-section__project-desc">AI-powered horse racing agent (競馬モン) that analyzes races, calculates odds, and provides betting strategies for Japanese horse racing (JRA/NAR). Blue cat-like agent character with professional keiba agent styling.</p>
+        <a href="https://github.com/davidklan-png/keibamon" class="kinokomon-section__link">View repo →</a>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>Japanese Tax Expert System (JTES)</h3>
         <p class="kinokomon-section__project-desc">Specialized retrieval-augmented assistant for Japanese tax workflows with citation grounding and evidence-backed answers</p>
         <a href="{{ '/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">View project →</a>

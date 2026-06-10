@@ -168,6 +168,44 @@
       ]
     },
     {
+      "name": "Keibamon - Horse Racing Analysis & Betting Agent",
+      "capability_tags": [
+        "LLM foundations",
+        "Agentic workflows",
+        "Python & Integrations"
+      ],
+      "domain_tags": [
+        "Sports Analytics",
+        "Horse Racing",
+        "Gambling"
+      ],
+      "tags": [
+        "Horse racing",
+        "Odds analysis",
+        "Betting strategy",
+        "JRA",
+        "NAR"
+      ],
+      "summary": "AI-powered horse racing agent (競馬モン) that analyzes races, calculates odds, and provides betting strategies for Japanese horse racing.",
+      "outcomes": [
+        "Race analysis with structured data processing",
+        "Odds calculation and probability estimation",
+        "Betting strategy recommendations for JRA/NAR races"
+      ],
+      "stack": [
+        "Python",
+        "LLM APIs",
+        "Data analytics"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/davidklan-png/keibamon",
+          "label": "Keibamon Repository",
+          "snippet": "Horse racing analysis and betting agent"
+        }
+      ]
+    },
+    {
       "name": "Japanese Tax Expert System (JTES)",
       "capability_tags": [
         "LLM foundations",
