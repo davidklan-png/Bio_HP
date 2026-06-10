@@ -1,0 +1,19 @@
+name: Homepage -MON family sync
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  mon-family-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fail if homepage grid is stale vs shared/profile.json
+        run: python3 scripts/sync_mon_family.py --check
+      - name: Run generator unit tests
+        run: python3 tests/test_sync_mon_family.py
