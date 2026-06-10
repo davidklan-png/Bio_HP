@@ -36,8 +36,8 @@ permalink: /kinokomon/projects/
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Keibamon - Horse Racing Analysis & Betting Agent</h3>
-        <p class="kinokomon-section__project-desc">AI-powered horse racing agent (競馬モン) that analyzes races, calculates odds, and provides betting strategies for Japanese horse racing (JRA/NAR). Blue cat-like agent character with professional keiba agent styling.</p>
+        <h3>Keibamon - Horse Racing Data & ML Platform</h3>
+        <p class="kinokomon-section__project-desc">Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis. Medallion lake architecture (bronze/silver/gold/marts) with Parquet storage, point-in-time features, Netkeiba odds polling, and walk-forward backtesting. Stack: Polars, DuckDB, Dagster, Pandera, MLflow, FastAPI, React/TypeScript.</p>
         <a href="https://github.com/davidklan-png/keibamon" class="kinokomon-section__link">View repo →</a>
       </div>
 

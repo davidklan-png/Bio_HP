@@ -186,16 +186,25 @@
         "JRA",
         "NAR"
       ],
-      "summary": "AI-powered horse racing agent (競馬モン) that analyzes races, calculates odds, and provides betting strategies for Japanese horse racing.",
+      "summary": "Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis. Medallion lake architecture with Parquet storage, point-in-time features, and walk-forward backtesting.",
       "outcomes": [
-        "Race analysis with structured data processing",
-        "Odds calculation and probability estimation",
-        "Betting strategy recommendations for JRA/NAR races"
+        "Full bronze/silver/gold/marts data pipeline with immutable source snapshots",
+        "Point-in-time feature validation and available-at integrity checks",
+        "Walk-forward backtesting engine with predictor scoring",
+        "Netkeiba odds polling with announcement-to-post curve capture",
+        "FastAPI service layer and React analyzer UI"
       ],
       "stack": [
         "Python",
-        "LLM APIs",
-        "Data analytics"
+        "Polars",
+        "DuckDB",
+        "Dagster",
+        "Pandera",
+        "MLflow",
+        "FastAPI",
+        "React",
+        "TypeScript",
+        "Parquet"
       ],
       "evidence": [
         {
