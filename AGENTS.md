@@ -103,6 +103,30 @@ attribute and the matching JA entry. No JS change required.
 Internal links from the homepage must use **pretty Jekyll permalinks**
 (`/kinokomon/`, `/projects/<slug>/`), not flat `.html` paths.
 
+## Generated: Homepage -MON Family Grid
+
+The homepage `-MON family` grid is **generated**, not hand-edited. Its single
+source of truth is the `mon_family` array in `shared/profile.json` (the same
+file the orchestrator already syncs the Kinokomon page from).
+
+To add or change a family agent:
+
+1. Edit the `mon_family` entry in `shared/profile.json` (fields: `slug`, `name`,
+   `name_ja`, `icon`, `href`, `external`, `desc_en`, `tag_en`, `desc_ja`, `tag_ja`).
+2. Run `python3 scripts/sync_mon_family.py`. This rewrites the AUTOGEN region in
+   `index.html` and the per-card `fam.<slug>.desc` / `fam.<slug>.tag` keys in
+   `i18n/strings.ja.json`.
+3. Commit the regenerated files together with the data change.
+
+Do **not** hand-edit the `<!-- AUTOGEN:mon-family:start --> ... :end -->` region
+in `index.html`, or the generated `fam.<slug>.*` keys in the JA bundle — they
+will be overwritten. CI (`.github/workflows/homepage-mon-family.yml`) runs
+`sync_mon_family.py --check` and fails the build if the committed grid drifts
+from `shared/profile.json`.
+
+> Scope note: only the family grid is generated. The curated "FEATURED PROJECTS"
+> cards are an intentional editorial selection and remain hand-maintained.
+
 ## TDD Requirement
 
 For code changes (Worker TS, site JS, workflow Python), use Red -> Green -> Refactor:

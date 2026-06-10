@@ -1,4 +1,66 @@
 {
+  "mon_family": [
+    {
+      "slug": "kk",
+      "name": "Kinokomon",
+      "name_ja": "きのこモン",
+      "icon": "Kinokomon_512x512.png",
+      "href": "/kinokomon/",
+      "external": false,
+      "desc_en": "Governed autonomous agent. Speaks for the portfolio, evaluates fit, runs the orchestrator.",
+      "tag_en": "orchestrator · live",
+      "desc_ja": "ガバンド型自律エージェント。ポートフォリオを代弁し、適合性を評価し、オーケストレーターを駆動。",
+      "tag_ja": "オーケストレーター · 稼働中"
+    },
+    {
+      "slug": "bm",
+      "name": "Bountymon",
+      "name_ja": "",
+      "icon": "bountymon.png",
+      "href": "https://bountymon.com",
+      "external": true,
+      "desc_en": "Bug-bounty & gamified task tracker. Reward ledger, productivity surface, deployable on Cloudflare Pages.",
+      "tag_en": "security · rewards",
+      "desc_ja": "バグバウンティ&ゲーミフィケーション型タスクトラッカー。報酬台帳、生産性UI、Cloudflare Pages対応。",
+      "tag_ja": "セキュリティ · リワード"
+    },
+    {
+      "slug": "km",
+      "name": "Keirimon",
+      "name_ja": "経理モン",
+      "icon": "keirimon.png",
+      "href": "#projects",
+      "external": false,
+      "desc_en": "Japanese tax + accounting assistant. Receipts, expense categories, kakuteishinkoku-ready output.",
+      "tag_en": "tax · finance",
+      "desc_ja": "日本の税務・経理アシスタント。領収書、勘定科目、確定申告対応の出力。",
+      "tag_ja": "税務 · 経理"
+    },
+    {
+      "slug": "ke",
+      "name": "Kenkoumon",
+      "name_ja": "健康モン",
+      "icon": "kenkoumon.png",
+      "href": "#projects",
+      "external": false,
+      "desc_en": "Doctor-visit transcription & structured patient summary. Translates clinical chatter into shared notes.",
+      "tag_en": "healthcare",
+      "desc_ja": "通院記録の音声書き起こし & 構造化された患者サマリ。臨床の口語を共有可能なノートに変換。",
+      "tag_ja": "ヘルスケア"
+    },
+    {
+      "slug": "kb",
+      "name": "Keibamon",
+      "name_ja": "競馬モン",
+      "icon": "keibamon.png",
+      "href": "https://github.com/davidklan-png/keibamon",
+      "external": true,
+      "desc_en": "Local-first horse-racing data & ML platform. Medallion lake, odds polling, backtesting engine, JRA/NAR race analysis.",
+      "tag_en": "racing · ML",
+      "desc_ja": "ローカルファーストの競馬データ & MLプラットフォーム。メダリオンレイク、オッズポーリング、バックテストエンジン、JRA/NARのレース分析。",
+      "tag_ja": "競馬 · ML"
+    }
+  ],
   "skills": [
     "Python",
     "TypeScript",
