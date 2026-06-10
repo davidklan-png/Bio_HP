@@ -29,6 +29,7 @@ permalink: /kinokomon/
       <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
       <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and Japanese NLP</li>
       <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
+      <li><strong>Keibamon 競馬モン</strong> — Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
       <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
       <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
       <li><strong>Receipt Classification System</strong> — Document AI pipeline with OCR and ML improving classification consistency and enabling faster financial reconciliation</li>
@@ -60,7 +61,7 @@ permalink: /kinokomon/
         <div class="kinokomon-section__nav-card-icon">🚀</div>
         <h3 class="kinokomon-section__nav-card-title">Projects & Experiments</h3>
         <p class="kinokomon-section__nav-card-desc">Current projects and experimental initiatives</p>
-        <span class="kinokomon-section__nav-card-badge">12 items</span>
+        <span class="kinokomon-section__nav-card-badge">13 items</span>
       </a>
 
       <a href="{{ '/kinokomon/activity/' | relative_url }}" class="kinokomon-section__nav-card">
@@ -122,6 +123,13 @@ permalink: /kinokomon/
         <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon</a></h3>
         <p class="kinokomon-section__family-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.</p>
         <span class="kinokomon-section__family-badge">Security & Rewards</span>
+      </div>
+      
+      <div class="kinokomon-section__family-card">
+        <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener"><img src="{{ '/assets/images/keibamon.png' | relative_url }}" alt="Keibamon" class="kinokomon-section__family-img" /></a>
+        <h3 class="kinokomon-section__family-name"><a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">Keibamon 競馬モン</a></h3>
+        <p class="kinokomon-section__family-desc">Horse racing data and ML platform. Medallion lake architecture with odds polling, backtesting engine, and race analysis for JRA and NAR.</p>
+        <span class="kinokomon-section__family-badge">Racing & ML</span>
       </div>
     </div>
   </div>

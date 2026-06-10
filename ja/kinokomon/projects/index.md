@@ -37,6 +37,12 @@ lang: ja
       </div>
 
       <div class="kinokomon-section__project-item">
+        <h3>競馬モン - 競馬データ・MLプラットフォーム</h3>
+        <p class="kinokomon-section__project-desc">日本の競馬研究・バックテスト・レース分析のためのローカルファーストデータおよびMLプラットフォーム。メダリオンレイクアーキテクチャ（ブロンズ/シルバー/ゴールド/マート）、Parquetストレージ、時点機能、Netkeibaオッズポーリング、ウォークフォワードバックテスト。スタック：Polars, DuckDB, Dagster, Pandera, MLflow, FastAPI, React/TypeScript。</p>
+        <a href="https://github.com/davidklan-png/keibamon" class="kinokomon-section__link">リポジトリを見る →</a>
+      </div>
+
+      <div class="kinokomon-section__project-item">
         <h3>日本税務エキスパートシステム（JTES）</h3>
         <p class="kinokomon-section__project-desc">引用の根拠と証拠に基づいた回答を持つ日本の税務専門家向けの専門RAGシステム</p>
         <a href="{{ '/ja/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
