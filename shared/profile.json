@@ -53,7 +53,7 @@
       "name": "Keibamon",
       "name_ja": "競馬モン",
       "icon": "keibamon.png",
-      "href": "https://github.com/davidklan-png/keibamon",
+      "href": "https://keibamon.com",
       "external": true,
       "desc_en": "Local-first horse-racing data & ML platform. Medallion lake, odds polling, backtesting engine, JRA/NAR race analysis.",
       "tag_en": "racing · ML",
