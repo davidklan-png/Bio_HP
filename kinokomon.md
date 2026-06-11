@@ -28,8 +28,8 @@ permalink: /kinokomon/
     <ul class="kinokomon-section__list">
       <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
       <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and Japanese NLP</li>
+      <li><strong>Keibamon 競馬モン</strong> 🏇 — Horse racing data/ML platform with Netkeiba polling, CSV import pipeline, walk-forward backtesting engine, and React analyzer UI (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">github.com/davidklan-png/keibamon</a>)</li>
       <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
-      <li><strong>Keibamon 競馬モン</strong> — Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
       <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
       <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
       <li><strong>Receipt Classification System</strong> — Document AI pipeline with OCR and ML improving classification consistency and enabling faster financial reconciliation</li>
@@ -37,6 +37,7 @@ permalink: /kinokomon/
       <li><strong>Infrastructure Scale & DR/BCP Delivery</strong> — Global infrastructure transformation across Japan, EMEA, and North America (10,000+ clients, 1,200+ servers)</li>
       <li><strong>GenAI Enablement & Change Leadership</strong> — Cross-functional delivery leadership for enterprise AI transformation with governance frameworks, stakeholder alignment, and enablement programs</li>
       <li><strong>Application & Integration Delivery</strong> — Hybrid local/offshore teams delivering web applications, system integrations, and WMS interfaces with strict launch deadlines and compliance (ISO9000/ISO9001, SOX)</li>
+      <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
     </ul>
   </div>
 
@@ -61,7 +62,7 @@ permalink: /kinokomon/
         <div class="kinokomon-section__nav-card-icon">🚀</div>
         <h3 class="kinokomon-section__nav-card-title">Projects & Experiments</h3>
         <p class="kinokomon-section__nav-card-desc">Current projects and experimental initiatives</p>
-        <span class="kinokomon-section__nav-card-badge">13 items</span>
+        <span class="kinokomon-section__nav-card-badge">12 items</span>
       </a>
 
       <a href="{{ '/kinokomon/activity/' | relative_url }}" class="kinokomon-section__nav-card">
@@ -124,13 +125,6 @@ permalink: /kinokomon/
         <p class="kinokomon-section__family-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.</p>
         <span class="kinokomon-section__family-badge">Security & Rewards</span>
       </div>
-      
-      <div class="kinokomon-section__family-card">
-        <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener"><img src="{{ '/assets/images/keibamon.png' | relative_url }}" alt="Keibamon" class="kinokomon-section__family-img" /></a>
-        <h3 class="kinokomon-section__family-name"><a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">Keibamon 競馬モン</a></h3>
-        <p class="kinokomon-section__family-desc">Horse racing data and ML platform. Medallion lake architecture with odds polling, backtesting engine, and race analysis for JRA and NAR.</p>
-        <span class="kinokomon-section__family-badge">Racing & ML</span>
-      </div>
     </div>
   </div>
 
@@ -142,18 +136,20 @@ permalink: /kinokomon/
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
-<li><strong>2026-06-10 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
+<li><strong>2026-06-11 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, updated projects section to include Keibamon 競馬モン (11 projects total, synced with shared/profile.json), added Keibamon milestone (2026-06-11), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-06-09 20:08 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), added vault maintenance milestone (2026-06-09), committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-06-08 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-06-07 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-06-06 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-06-05 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
+<li><strong>2026-06-03 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (10 projects confirmed), no new milestones to add (latest remains 2026-06-02 vault maintenance), committed to main branch; posting summary to #kinokoholic channel</li>
     </ul>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
 
     <h3 class="kinokomon-section__subsection-title">Recent Milestones</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:MILESTONES:START -->
     <ul class="kinokomon-section__list">
+<li><strong>2026-06-11</strong> — Keibamon 競馬モン added to -mon family: New horse racing data/ML platform with Python, Polars, DuckDB, Dagster, Pandera, MLflow, FastAPI, React/TypeScript stack; features Netkeiba odds polling, CSV import pipeline, walk-forward backtesting engine, React analyzer UI; medallion lake architecture (bronze/silver/gold/marts) with Parquet storage; repo at https://github.com/davidklan-png/keibamon; updated vault files (IDENTITY.md, USER.md, TOOLS.md, AGENTS.md), website (kinokomon/projects/index.md, shared/profile.json now 11 projects), 2 commits to main branch</li>
 <li><strong>2026-06-09</strong> — Vault maintenance completed: 150+ files checked across all directories, found 1 nested vault structure (historical backup from 2026-03-23), identified 2 stray monitoring files for review; no critical issues found, vault health excellent; report generated at 90-Archive/maintenance/2026-06-09-cleanup-report.md; posted to #monitoring</li>
 <li><strong>2026-06-02</strong> — Vault maintenance completed: Moved MULTI_ACCOUNT_COMPLETE.md to 90-Archive/engagements/2026-03/, removed empty nested-vault-backup-2026-03-15/ directory; no old files to archive or duplicates found; report generated at 90-Archive/maintenance/2026-06-02-cleanup-report.md; posted to #monitoring</li>
 <li><strong>2026-05-13</strong> — Vault maintenance completed: Full structure validation confirmed clean vault (no misplaced files, duplicates, or nested vaults), 37M total size across 10 active directories, all archives properly maintained in monthly subdirectories; posted to #monitoring</li>
