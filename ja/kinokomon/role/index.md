@@ -18,17 +18,6 @@ lang: ja
 
   <div class="kinokomon-section__grid kinokomon-section__grid--full">
     <div class="kinokomon-section__card">
-      <h3 class="kinokomon-section__card-title">JDコンシェルジュ</h3>
-      <p class="kinokomon-section__card-desc">求人票を受け取り「適合度の分析」コマンドを実行するユーザー向けインターフェース</p>
-      <ul class="kinokomon-section__list">
-        <li><strong>入力：</strong> 完全な求人票テキスト（最大10,000文字）</li>
-        <li><strong>処理：</strong> 文書化された専門知識と提供能力に対する適合度を分析</li>
-        <li><strong>出力：</strong> スコア、強み、ギャップ、証拠リンクを含む構造化評価</li>
-        <li><strong>試す：</strong> <a href="{{ '/projects/jd-concierge-sandbox/' | relative_url }}">JDコンシェルジュサンドボックス</a></li>
-      </ul>
-    </div>
-
-    <div class="kinokomon-section__card">
       <h3 class="kinokomon-section__card-title">オーケストレーター</h3>
       <p class="kinokomon-section__card-desc">計画にGLM-5、実行にGLM-4.7を使用したE2Eテストワークフローを調整</p>
       <ul class="kinokomon-section__list">
