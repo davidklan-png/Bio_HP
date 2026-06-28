@@ -76,7 +76,8 @@ ENGLISH_PAGES = [
     "/about/",
     "/kinokomon/",
     "/work-history/",
-    "/projects/jd-concierge-sandbox/",
+    # NOTE: JD Concierge sandbox page was deprecated 2026-05-09
+    # "/projects/jd-concierge-sandbox/",
     "/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
     "/projects/receipt-classification-and-matching-system/",
     "/projects/bilingual-ceremony-script-generator-notebooklm-collaboration/",
@@ -94,8 +95,8 @@ JAPANESE_PAGES = [
     "/ja/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
 ]
 
-# JD Concierge Sandbox has no Japanese counterpart
-PAGES_WITHOUT_JA_PARITY = ["/projects/jd-concierge-sandbox/"]
+# JD Concierge Sandbox has no Japanese counterpart (deprecated 2026-05-09)
+PAGES_WITHOUT_JA_PARITY = []
 
 
 def log(msg: str, level: str = "INFO"):
@@ -257,6 +258,10 @@ def feature_3_navigation_consistency(result: HealthCheckResult):
 def feature_4_jd_widget_render(result: HealthCheckResult):
     """Feature 4: JD Concierge Widget Render."""
     log("Running Feature 4: JD Concierge Widget Render")
+    # NOTE: JD Concierge sandbox page was deprecated 2026-05-09
+    # Skip widget check since the page no longer exists
+    log("  Skipped - JD Concierge sandbox page deprecated")
+    return
     url = "/projects/jd-concierge-sandbox/"
     full_url = f"{BASE_URL}{url}"
     

@@ -17,17 +17,6 @@ permalink: /kinokomon/role/
 
   <div class="kinokomon-section__grid kinokomon-section__grid--full">
     <div class="kinokomon-section__card">
-      <h3 class="kinokomon-section__card-title">JD Concierge</h3>
-      <p class="kinokomon-section__card-desc">User-facing interface that receives job descriptions and executes "Analyze fit" commands</p>
-      <ul class="kinokomon-section__list">
-        <li><strong>Input:</strong> Full job description text (up to 10,000 characters)</li>
-        <li><strong>Process:</strong> Analyzes fit against documented expertise and delivery capability</li>
-        <li><strong>Output:</strong> Structured assessment with score, strengths, gaps, and evidence links</li>
-        <li><strong>Try it:</strong> <a href="{{ '/projects/jd-concierge-sandbox/' | relative_url }}">JD Concierge Sandbox</a></li>
-      </ul>
-    </div>
-
-    <div class="kinokomon-section__card">
       <h3 class="kinokomon-section__card-title">Orchestrator</h3>
       <p class="kinokomon-section__card-desc">Coordinates E2E testing workflow using GLM-5 for planning and GLM-4.7 for execution</p>
       <ul class="kinokomon-section__list">
