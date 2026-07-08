@@ -61,7 +61,7 @@ permalink: /kinokomon/
         <div class="kinokomon-section__nav-card-icon">🚀</div>
         <h3 class="kinokomon-section__nav-card-title">Projects & Experiments</h3>
         <p class="kinokomon-section__nav-card-desc">Current projects and experimental initiatives</p>
-        <span class="kinokomon-section__nav-card-badge">13 items</span>
+        <span class="kinokomon-section__nav-card-badge">12 items</span>
       </a>
 
       <a href="{{ '/kinokomon/activity/' | relative_url }}" class="kinokomon-section__nav-card">
@@ -142,13 +142,12 @@ permalink: /kinokomon/
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
     <ul class="kinokomon-section__list">
+<li><strong>2026-07-08 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (12 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-07 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 7 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-05 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 7 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-03 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 7 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-02 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 7 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-01 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 7 most recent autonomous actions, trimmed milestone list to 10 most recent, committed to main branch; posting summary to #kinokoholic channel</li>
-<li><strong>2026-06-30 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
-<li><strong>2026-06-29 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, committed to main branch; posting summary to #kinokoholic channel</li>
     </ul>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
 
