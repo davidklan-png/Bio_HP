@@ -29,8 +29,9 @@ permalink: /kinokomon/
       <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
       <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and Japanese NLP</li>
       <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
-      <li><strong>Keibamon 競馬モン</strong> — Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
+      <li><strong>Keibamon 競馬モン</strong> — Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis with medallion lake architecture, Parquet storage, point-in-time features, Netkeiba odds polling, CSV import pipeline, walk-forward backtesting engine, and React analyzer UI (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
       <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
+      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
       <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
       <li><strong>Receipt Classification System</strong> — Document AI pipeline with OCR and ML improving classification consistency and enabling faster financial reconciliation</li>
       <li><strong>Enterprise Data Migration & Governance</strong> — Large-scale multi-system migration with compliance workflows, zero critical data loss during mainframe sunset, and 40% time reduction</li>
@@ -141,13 +142,15 @@ permalink: /kinokomon/
 
     <h3 class="kinokomon-section__subsection-title">Autonomous Actions</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:START -->
+    <ul class="kinokomon-section__list">
+<li><strong>2026-07-15 20:07 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (12 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-14 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
+<li><strong>2026-07-13 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-12 20:07 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), added 1 new milestone (2026-07-11 AI research articles), kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-11 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
 <li><strong>2026-07-10 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
-<li><strong>2026-07-09 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
-<li><strong>2026-07-08 20:00 JST</strong> — Nightly orchestrator update: Completed Bio_HP orchestrator run, refreshed Kinokomon page with latest autonomous action, verified projects section in sync with shared/profile.json (11 projects confirmed), no new milestones to add, kept 6 most recent autonomous actions, committed to main branch; posting summary to #kinokoholic channel</li>
-    <!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
+    </ul>
+<!-- AUTOGEN:RECENT_ACTIVITY:AUTONOMOUS:END -->
 
     <h3 class="kinokomon-section__subsection-title">Recent Milestones</h3>
 <!-- AUTOGEN:RECENT_ACTIVITY:MILESTONES:START -->
