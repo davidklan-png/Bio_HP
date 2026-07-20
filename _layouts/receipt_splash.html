@@ -1,0 +1,261 @@
+---
+layout: default
+---
+{% assign p = site.data.projects[page.project_id] %}
+{% assign is_ja = false %}
+{% if page.lang == 'ja' %}{% assign is_ja = true %}{% endif %}
+{% assign copy = p.splash %}
+{% if is_ja %}{% assign copy = p.splash_ja %}{% endif %}
+
+{% if p and copy %}
+<article class="receipt-splash">
+  <section class="rs-hero" aria-labelledby="rs-title">
+    <div class="rs-hero__copy">
+      <div class="rs-kicker-row">
+        <span class="rs-product-mark" aria-hidden="true">{% include icon.html name=p.icon %}</span>
+        <span class="rs-eyebrow">{{ copy.eyebrow }}</span>
+      </div>
+      <h1 id="rs-title">{{ copy.title }}</h1>
+      <p class="rs-tagline">{{ copy.tagline }}</p>
+      <p class="rs-hero__summary">{{ copy.summary }}</p>
+      <div class="rs-actions">
+        <a class="rs-button rs-button--primary" href="{{ copy.primary_cta_url }}">{{ copy.primary_cta }}</a>
+        <a class="rs-button rs-button--secondary" href="{{ copy.secondary_cta_url }}" target="_blank" rel="noreferrer">{{ copy.secondary_cta }} <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="rs-status"><span aria-hidden="true"></span>{{ copy.status }}</div>
+    </div>
+
+    <div class="rs-hero-visual" role="img" aria-label="{{ copy.mockups.close_aria }}">
+      <div class="rs-window rs-window--hero" aria-hidden="true" inert>
+        <div class="rs-window__bar">
+          <span class="rs-window__brand"><b>◆</b> Dazbeez Receipts</span>
+          <span class="rs-window__user">DK</span>
+        </div>
+        <div class="rs-window__body">
+          <div class="rs-preview-heading"><div><small>JULY 2026</small><strong>Month close</strong></div><span class="rs-pill rs-pill--amber">In review</span></div>
+          <div class="rs-stat-row">
+            <div><small>Captured</small><strong>24</strong><span>2 pending</span></div>
+            <div><small>AMEX lines</small><strong>21</strong><span>1 unmatched</span></div>
+            <div><small>Checks</small><strong>03</strong><span>1 blocker</span></div>
+          </div>
+          <div class="rs-mini-list">
+            <div><span class="rs-mini-icon">✓</span><p><strong>Sample Café</strong><small>¥4,860 · matched</small></p><b>98%</b></div>
+            <div><span class="rs-mini-icon rs-mini-icon--queue">↻</span><p><strong>Example Cloud</strong><small>11.51 USD · confirm as AMEX</small></p><b>90%</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="rs-phone rs-phone--hero" aria-hidden="true" inert>
+        <div class="rs-phone__speaker"></div>
+        <div class="rs-phone__top"><span>9:41</span><b>◆</b></div>
+        <small>RAPID CAPTURE</small>
+        <h2>What did you<br>just pay for?</h2>
+        <p>Snap it and keep going.<br>Review later.</p>
+        <div class="rs-capture-orb"><span>▣</span><strong>Tap to capture</strong><small>opens camera</small></div>
+        <div class="rs-chip-row"><span>AMEX</span><span>CASH</span></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="rs-privacy-note"><span aria-hidden="true">◎</span>{{ copy.privacy_note }}</p>
+
+  <section class="rs-proof" aria-label="{% if is_ja %}主な特徴{% else %}Key capabilities{% endif %}">
+    {% for item in copy.proof %}
+    <div class="rs-proof__item">
+      <strong>{{ item.value }}</strong>
+      <span>{{ item.label }}</span>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="rs-section rs-problem" aria-labelledby="rs-problem-title">
+    <div class="rs-section-heading">
+      <p class="rs-eyebrow">{{ copy.problem.eyebrow }}</p>
+      <h2 id="rs-problem-title">{{ copy.problem.title }}</h2>
+      <p>{{ copy.problem.intro }}</p>
+    </div>
+    <div class="rs-comparison">
+      <div class="rs-comparison__panel rs-comparison__panel--before">
+        <span class="rs-comparison__label">{{ copy.problem.before_label }}</span>
+        <ul>
+          {% for item in copy.problem.before %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+      </div>
+      <div class="rs-comparison__arrow" aria-hidden="true">→</div>
+      <div class="rs-comparison__panel rs-comparison__panel--after">
+        <span class="rs-comparison__label">{{ copy.problem.after_label }}</span>
+        <ul>
+          {% for item in copy.problem.after %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="rs-section rs-workflow" aria-labelledby="rs-workflow-title">
+    <div class="rs-section-heading rs-section-heading--wide">
+      <p class="rs-eyebrow">{{ copy.workflow.eyebrow }}</p>
+      <h2 id="rs-workflow-title">{{ copy.workflow.title }}</h2>
+      <p>{{ copy.workflow.intro }}</p>
+    </div>
+    <ol class="rs-flow">
+      {% for step in copy.workflow.steps %}
+      <li class="rs-flow__step">
+        <span class="rs-flow__code">{{ step.code }}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.text }}</p>
+        <small>{{ step.detail }}</small>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="rs-section" aria-labelledby="rs-features-title">
+    <div class="rs-section-heading">
+      <p class="rs-eyebrow">{{ copy.features.eyebrow }}</p>
+      <h2 id="rs-features-title">{{ copy.features.title }}</h2>
+    </div>
+    <div class="rs-feature-grid">
+      {% for feature in copy.features.items %}
+      <article class="rs-feature-card">
+        <span>{{ feature.kicker }}</span>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.text }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="rs-section rs-tour" aria-labelledby="rs-tour-title">
+    <div class="rs-section-heading rs-section-heading--wide">
+      <p class="rs-eyebrow">{{ copy.mockups.eyebrow }}</p>
+      <h2 id="rs-tour-title">{{ copy.mockups.title }}</h2>
+      <p>{{ copy.mockups.intro }}</p>
+    </div>
+
+    <figure class="rs-tour-row">
+      <div class="rs-tour-row__visual rs-tour-row__visual--phone" role="img" aria-label="{{ copy.mockups.capture_aria }}">
+        <div class="rs-phone rs-phone--tour" aria-hidden="true" inert>
+          <div class="rs-phone__speaker"></div>
+          <div class="rs-phone__top"><span>9:41</span><b>◆</b></div>
+          <small>RAPID CAPTURE · 3 SAVED TODAY</small>
+          <h2>What did you<br>just pay for?</h2>
+          <p>Snap it and keep going.<br>We'll read it during processing.</p>
+          <div class="rs-capture-orb"><span>▣</span><strong>Tap to capture</strong><small>opens camera</small></div>
+          <div class="rs-chip-row"><span class="is-selected">AMEX</span><span>CASH</span></div>
+          <div class="rs-phone-card"><span>＋</span><p><strong>Open review queue</strong><small>Finish anything not yet classified</small></p></div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="rs-tour-row__number">01 / CAPTURE</span>
+        <h3>{{ copy.mockups.capture_title }}</h3>
+        <p>{{ copy.mockups.capture_caption }}</p>
+      </figcaption>
+    </figure>
+
+    <figure class="rs-tour-row rs-tour-row--reverse">
+      <div class="rs-tour-row__visual" role="img" aria-label="{{ copy.mockups.review_aria }}">
+        <div class="rs-window rs-review-window" aria-hidden="true" inert>
+          <div class="rs-window__bar"><span class="rs-window__brand"><b>◆</b> Review queue</span><span class="rs-pill rs-pill--amber">2 pending processing</span></div>
+          <div class="rs-review-layout">
+            <div class="rs-review-rail">
+              <small>READY FOR REVIEW</small>
+              <div class="is-active"><span>SC</span><p><strong>Sample Café</strong><small>18 Jul · ¥4,860</small></p><b>92%</b></div>
+              <div><span>?</span><p><strong>Example Market</strong><small>Date needs review</small></p><b>71%</b></div>
+              <small>PROCESSING</small>
+              <div><span class="is-spinning">↻</span><p><strong>IMG_1048.HEIC</strong><small>Queued for local MLX</small></p></div>
+            </div>
+            <div class="rs-review-image"><div class="rs-paper"><strong>SAMPLE CAFÉ</strong><span>RECEIPT</span><i></i><p>Lunch set&nbsp;&nbsp;&nbsp;&nbsp;4,500<br>Tax&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;360</p><b>TOTAL ¥4,860</b><small>SYNTHETIC SAMPLE</small></div></div>
+            <div class="rs-review-form">
+              <div class="rs-form-head"><p><strong>Extraction health</strong><small>MLX VLM + regex guardrail</small></p><span class="rs-pill rs-pill--green">Healthy</span></div>
+              <label>Merchant<input value="Sample Café" readonly></label>
+              <div class="rs-form-split"><label>Date<input value="2026-07-18" readonly></label><label>Amount<input value="¥4,860" readonly></label></div>
+              <label>Payment path<select disabled><option>AMEX</option></select></label>
+              <label>Category<select disabled><option>Meeting expense</option></select></label>
+              <button type="button" tabindex="-1">Save and next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="rs-tour-row__number">02 / REVIEW</span>
+        <h3>{{ copy.mockups.review_title }}</h3>
+        <p>{{ copy.mockups.review_caption }}</p>
+      </figcaption>
+    </figure>
+
+    <figure class="rs-tour-row">
+      <div class="rs-tour-row__visual" role="img" aria-label="{{ copy.mockups.close_aria }}">
+        <div class="rs-window rs-close-window" aria-hidden="true" inert>
+          <div class="rs-window__bar"><span class="rs-window__brand"><b>◆</b> July 2026 close</span><span class="rs-pill rs-pill--outline">Draft revision 2</span></div>
+          <div class="rs-close-summary">
+            <div><small>AMEX MATCHED</small><strong>20 / 21</strong><span>95% complete</span></div>
+            <div><small>OPEN CHECKS</small><strong>03</strong><span>1 blocker · 2 warnings</span></div>
+            <div><small>EXPORT</small><strong>Draft</strong><span>Not yet sealed</span></div>
+          </div>
+          <div class="rs-close-grid">
+            <div class="rs-match-list">
+              <div class="rs-match-list__head"><strong>Suggested matches</strong><span>Confidence</span></div>
+              <div><span class="rs-mini-icon">✓</span><p><strong>Sample Café · ¥4,860</strong><small>Exact amount · same date · merchant match</small></p><b class="rs-confidence rs-confidence--high">98%</b></div>
+              <div><span class="rs-mini-icon rs-mini-icon--queue">?</span><p><strong>Example Cloud · ¥1,918</strong><small>11.51 USD · confirms as AMEX</small></p><b class="rs-confidence">90%</b></div>
+            </div>
+            <div class="rs-blocker-card"><span>MONTH-CLOSE BLOCKER</span><h3>1 line needs evidence</h3><p>Resolve the unmatched statement line before finalizing this month.</p><button type="button" tabindex="-1">Open reconciliation</button></div>
+          </div>
+          <div class="rs-export-bar"><p><strong>Accountant package</strong><small>CSV · receipt proofs · SHA-256 manifest</small></p><button type="button" disabled>Finalize and seal</button></div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="rs-tour-row__number">03 / RECONCILE + CLOSE</span>
+        <h3>{{ copy.mockups.close_title }}</h3>
+        <p>{{ copy.mockups.close_caption }}</p>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="rs-section rs-trust" aria-labelledby="rs-trust-title">
+    <div class="rs-section-heading">
+      <p class="rs-eyebrow">{{ copy.trust.eyebrow }}</p>
+      <h2 id="rs-trust-title">{{ copy.trust.title }}</h2>
+      <p>{{ copy.trust.intro }}</p>
+    </div>
+    <div class="rs-trust-grid">
+      {% for item in copy.trust.items %}
+      <article><span aria-hidden="true">0{{ forloop.index }}</span><div><h3>{{ item.title }}</h3><p>{{ item.text }}</p></div></article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="rs-section rs-architecture" aria-labelledby="rs-architecture-title">
+    <div class="rs-section-heading rs-section-heading--wide">
+      <p class="rs-eyebrow">{{ copy.architecture.eyebrow }}</p>
+      <h2 id="rs-architecture-title">{{ copy.architecture.title }}</h2>
+      <p>{{ copy.architecture.intro }}</p>
+    </div>
+    <div class="rs-lanes">
+      {% for lane in copy.architecture.lanes %}
+      <article class="rs-lane">
+        <span>{{ lane.label }}</span>
+        <h3>{{ lane.title }}</h3>
+        <p>{{ lane.text }}</p>
+      </article>
+      {% unless forloop.last %}<span class="rs-lanes__connector" aria-hidden="true">→</span>{% endunless %}
+      {% endfor %}
+    </div>
+    <div class="rs-tradeoffs">
+      <h3>{{ copy.tradeoffs.title }}</h3>
+      <ul>{% for item in copy.tradeoffs.items %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+  </section>
+
+  <section class="rs-final-cta" aria-labelledby="rs-final-title">
+    <div>
+      <p class="rs-eyebrow">{{ copy.final_cta.eyebrow }}</p>
+      <h2 id="rs-final-title">{{ copy.final_cta.title }}</h2>
+      <p>{{ copy.final_cta.text }}</p>
+    </div>
+    <a class="rs-button rs-button--primary" href="{{ copy.primary_cta_url }}">{{ copy.final_cta.button }}</a>
+  </section>
+</article>
+{% else %}
+<section class="section-block">
+  <h1>{% if is_ja %}プロジェクトデータが見つかりません{% else %}Project data not found{% endif %}</h1>
+</section>
+{% endif %}

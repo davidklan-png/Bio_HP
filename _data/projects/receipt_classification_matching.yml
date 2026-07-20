@@ -1,148 +1,287 @@
 id: receipt_classification_matching
 detail_page: /projects/receipt-classification-and-matching-system/
-name: Receipt Capture & AMEX Reconciliation
-name_ja: レシート取り込み・AMEX突合システム
-one_line_value: Mobile-first receipt capture with AMEX statement reconciliation and audit-ready, 10-year-retention accountant export, running on Cloudflare's edge.
-one_line_value_ja: モバイルファーストのレシート取り込み、AMEX明細との突合、監査対応の10年保管エクスポートをCloudflareエッジ上で実現。
+name: Dazbeez Receipts
+name_ja: Dazbeez Receipts
+one_line_value: Photo-first receipt capture, local vision AI, AMEX reconciliation, and an audit-ready monthly close.
+one_line_value_ja: 写真優先のレシート取り込み、ローカル画像AI、AMEX突合、監査対応の月次クローズ。
 icon: receipt
 tags:
-  - Cloudflare Workers
-  - Document AI
-  - Compliance & Retention
+  - Cloudflare Platform
+  - Local Vision AI
+  - Compliance Workflow
 tags_ja:
-  - Cloudflare Workers
-  - ドキュメントAI
-  - コンプライアンス・保管
+  - Cloudflare Platform
+  - ローカル画像AI
+  - コンプライアンス業務
 impact_bullets:
-  - Replaced monthly composite paper-receipt scans with one-receipt-per-record mobile capture.
-  - Automated AMEX statement-to-receipt reconciliation behind a human review-and-correction queue.
-  - Hardened tax-record retention with immutable R2 originals and SHA-256-hashed export manifests.
+  - Replaced composite paper scans with one-receipt-per-record mobile and email capture.
+  - Separated always-on Cloudflare intake from private Mac MLX vision processing through a durable queue.
+  - Turned reconciliation and export into a gated, verifiable monthly close with immutable originals.
 impact_bullets_ja:
-  - 月次のレシート一括スキャンを、1レシート＝1レコードのモバイル取り込みに置き換え。
-  - AMEX明細とレシートの突合を自動化し、人手のレビュー・修正キューを後段に配置。
-  - 不変のR2オリジナルとSHA-256ハッシュ付きエクスポートで税務記録の保管を強化。
-executive_summary:
-  problem: Monthly expense prep meant scanning a composite sheet of paper receipts, hand-matching them to the AMEX statement, and trusting a fragile, non-auditable paper trail before company tax submission.
-  solution: Built an access-gated receipt module inside the Dazbeez Next.js/Cloudflare Workers app — iPhone capture, structured extraction, AMEX CSV import and reconciliation, and a monthly accountant export — backed by D1 records and immutable R2 image storage carrying conservative retention metadata.
-  outcome: A repeatable, audit-ready monthly close where every receipt is a first-class record, reconciliation is assisted rather than manual, and the statutory archive is hashed and retention-locked.
-executive_summary_ja:
-  problem: 月次の経費処理は、紙のレシートを一括スキャンしてAMEX明細と手作業で突合し、監査に耐えない脆い紙の証跡に頼ったまま会社の税務申告を行う状態でした。
-  solution: Dazbeezの Next.js／Cloudflare Workers アプリ内にアクセス制限付きのレシートモジュールを構築。iPhone取り込み、構造化抽出、AMEXのCSV取り込みと突合、月次の会計士向けエクスポートを、D1レコードと保管メタデータ付き不変R2ストレージで支えています。
-  outcome: すべてのレシートが第一級のレコードとなり、突合は手作業ではなく支援型となり、法定アーカイブはハッシュ化・保管ロックされた、再現可能で監査対応の月次クローズを実現しました。
-use_case:
-  summary: A solo consultancy and its accountant need trustworthy, low-effort monthly expense reconciliation that still stands up to a tax audit years later.
-  stakeholders:
-    - Operator capturing receipts on a phone
-    - Accountant consuming the monthly export
-    - Tax authority audit and retention requirements
-use_case_ja:
-  summary: 一人法人とその会計士は、手間をかけずに信頼でき、数年後の税務調査にも耐えられる月次の経費突合を必要としていました。
-  stakeholders:
-    - スマホでレシートを取り込む運用担当
-    - 月次エクスポートを受け取る会計士
-    - 税務当局の監査・保管要件
-architecture:
-  overview: Receipts and AMEX data flow through an isolated, Cloudflare-Access-protected route group. Images land immutably in R2, records in D1, and finalized months export as hashed CSV bundles into a separate archive bucket.
-  diagram:
-    - "[iPhone capture · /receipts/capture]"
-    - "           |"
-    - "  Upload API -> R2 original (never overwritten)"
-    - "           |"
-    - "  D1 receipt record + structured extraction"
-    - "           |"
-    - "[AMEX CSV import · /receipts/amex]"
-    - "           |"
-    - "  Reconciliation matching -> review queue"
-    - "           |"
-    - "[Monthly export · /receipts/export]"
-    - "           |"
-    - "  SHA-256 manifest -> R2 archive (10y, legal hold)"
-architecture_ja:
-  overview: レシートとAMEXデータは、Cloudflare Accessで保護された独立ルートグループを通ります。画像はR2に不変で保存され、レコードはD1に、確定した月はハッシュ化CSVバンドルとして別のアーカイブバケットにエクスポートされます。
-  diagram:
-    - "[iPhone取り込み · /receipts/capture]"
-    - "           |"
-    - "  アップロードAPI -> R2オリジナル(上書き不可)"
-    - "           |"
-    - "  D1レシートレコード + 構造化抽出"
-    - "           |"
-    - "[AMEX CSV取り込み · /receipts/amex]"
-    - "           |"
-    - "  突合マッチング -> レビューキュー"
-    - "           |"
-    - "[月次エクスポート · /receipts/export]"
-    - "           |"
-    - "  SHA-256マニフェスト -> R2アーカイブ(10年・リーガルホールド)"
-tech_details:
-  rag_prompt_patterns:
-    - Pluggable OCR/LLM extraction provider — swap models without touching capture or reconcile.
-    - Structured field extraction (vendor, date, total, tax) with per-field confidence scoring.
-    - Confidence thresholds route low-certainty receipts into the human review queue.
-  tools:
-    - Next.js 16 (App Router) on Cloudflare Workers via OpenNext
-    - Cloudflare D1 for records, R2 for immutable images and the archive bucket
-    - Cloudflare Access (zero-trust) with HTTP Basic-auth local fallback
-  constraints:
-    - Tax records require ~10-year retention and a defensible audit trail.
-    - Receipt originals must never be mutated or silently deleted.
-    - The module must stay invisible to the public site and to search engines.
+  - 紙レシートの一括スキャンを、1レシート＝1レコードのモバイル・メール取り込みに置き換え。
+  - 常時稼働のCloudflare取り込みと、Mac MLXによる非公開の画像処理を耐久キューで分離。
+  - 突合とエクスポートを、不変オリジナルに基づく検証可能な月次クローズへ転換。
+
+splash:
+  eyebrow: Private finance operations module · shipping
+  title: Dazbeez Receipts
+  tagline: Capture now. Close the month with confidence.
+  summary: A photo-first receipt workflow that keeps capture effortless, runs vision extraction locally, assists AMEX reconciliation, and produces a retention-aware accountant package.
+  status: Private module · public case study
+  primary_cta: Request a private walkthrough
+  primary_cta_url: "mailto:admin@dazbeez.com?subject=Dazbeez%20Receipts%20walkthrough"
+  secondary_cta: View the source on GitHub
+  secondary_cta_url: https://github.com/davidklan-png/dazbeez
+  privacy_note: The live application is Clerk-protected and noindexed. Every interface shown here uses synthetic data.
+  proof:
+    - value: Photo first
+      label: Save the receipt before asking for accounting detail.
+    - value: Local AI
+      label: Mac MLX vision processing keeps receipt images inside the system's estate.
+    - value: Close with proof
+      label: Reconciliation gates, hashes, and retention metadata make the final package verifiable.
+  problem:
+    eyebrow: The operating problem
+    title: Month close should not begin with a scavenger hunt.
+    intro: The old workflow compressed many paper receipts into one monthly scan, then relied on manual matching and a fragile folder of files. Dazbeez Receipts separates the work into clear, recoverable states.
+    before_label: Before
+    before:
+      - Composite scans hide individual receipt history.
+      - Matching happens late and depends on memory.
+      - A folder of exports provides little integrity evidence.
+    after_label: With Dazbeez Receipts
+    after:
+      - Each receipt becomes an immutable, auditable record.
+      - Capture, processing, review, and reconciliation stay visibly distinct.
+      - Month close cannot finalize while required work remains.
+  workflow:
+    eyebrow: Product workflow
+    title: From one quick capture to one defensible close.
+    intro: Cloudflare stays available in the field. The private Mac does the vision work when it is ready. Human judgment remains in the financial decisions that matter.
+    steps:
+      - code: "01"
+        title: Capture
+        text: Take a photo, upload a digital file, or forward an attachment to the receipts inbox.
+        detail: Phone · desktop · email
+      - code: "02"
+        title: Buffer
+        text: Store the original in R2, write workflow state to D1, and enqueue extraction durably.
+        detail: R2 · D1 · Cloudflare Queue
+      - code: "03"
+        title: Extract locally
+        text: A Mac MLX vision-language model reads the image; deterministic parsing remains a guardrail.
+        detail: MLX VLM · regex validation
+      - code: "04"
+        title: Review
+        text: Confirm merchant, date, amount, category, attendees, and the payment path only when needed.
+        detail: Human-in-the-loop
+      - code: "05"
+        title: Reconcile
+        text: Match AMEX lines and receipts with confidence bands, foreign-currency context, and explicit confirmation.
+        detail: Assisted, never silent
+      - code: "06"
+        title: Close and export
+        text: Resolve blockers, finalize the month, and build the accountant package with integrity evidence.
+        detail: CSV · proofs · SHA-256 manifest
+  features:
+    eyebrow: Built around real operations
+    title: Automation where it removes friction. Guardrails where trust matters.
+    items:
+      - kicker: Rapid capture
+        title: A drop box, not an accounting form
+        text: One large mobile action saves the image immediately. AMEX or cash can be preselected, but missing metadata never prevents capture.
+      - kicker: Private processing
+        title: Store-and-forward local vision AI
+        text: Captures survive Mac downtime in a durable queue. Pending processing is shown as its own state instead of masquerading as a missing receipt.
+      - kicker: Review and reconcile
+        title: Confidence is visible and bounded
+        text: Suggested matches explain amount, date, merchant, and currency evidence. Unknown-payment matches require confirmation before they become AMEX.
+      - kicker: Email intake
+        title: Untrusted mail stops at triage
+        text: Attachments sent to the receipts aliases enter a separate inbox. A human must promote them before they become tax records.
+      - kicker: Accountant delivery
+        title: The close produces evidence, not just files
+        text: Finalized exports package reconciliation data and receipt proofs with hashes, archive metadata, and an audit trail.
+  mockups:
+    eyebrow: Privacy-safe product tour
+    title: The working states are visible at a glance.
+    intro: Illustrative interfaces reconstructed from the product source with synthetic merchants, dates, and amounts. No production receipt data is shown.
+    capture_aria: Illustrative mobile rapid-capture interface using synthetic data
+    capture_title: Save first. Classify later.
+    capture_caption: The mobile path opens the native camera, uploads immediately, and keeps optional payment hints lightweight.
+    review_aria: Illustrative extraction and review interface using synthetic data
+    review_title: Make uncertainty actionable.
+    review_caption: Queue state, extraction health, and editable fields keep model output reviewable instead of hiding it behind automation.
+    close_aria: Illustrative reconciliation and month-close interface using synthetic data
+    close_title: Know exactly what blocks close.
+    close_caption: Matching evidence, compliance checks, and export status converge before a month can be sealed.
+  trust:
+    eyebrow: Trust model
+    title: Financial automation that fails visibly.
+    intro: The system treats authentication, storage integrity, processing state, and month-close policy as product behavior—not deployment footnotes.
+    items:
+      - title: Separate human and machine gates
+        text: Clerk protects people-facing pages and APIs; the processor and paired capture devices use narrow, independent credentials.
+      - title: Originals are never overwritten
+        text: Receipt images retain immutable object keys, content hashes, and conservative retention metadata in R2.
+      - title: Pending work cannot disappear
+        text: Captured, queued, review-ready, reconciled, and finalized are explicit states with audit events around changes.
+      - title: Close is a hard gate
+        text: Processing backlog, incomplete records, reconciliation gaps, and compliance blockers prevent finalization instead of becoming warnings to ignore.
+  architecture:
+    eyebrow: Under the hood
+    title: Always-on capture. Private inference. Verifiable output.
+    intro: The architecture deliberately separates availability from inference so field capture stays reliable without sending financial images to a hosted OCR service.
+    lanes:
+      - label: Cloudflare edge
+        title: Capture and durable state
+        text: Next.js on Workers, Clerk, D1, immutable R2 storage, Email Routing, and a pull-based Queue keep intake available and recoverable.
+      - label: Private Mac
+        title: MLX vision processing
+        text: The queue consumer fetches an original, runs a local vision-language model, applies deterministic guardrails, and writes structured results back.
+      - label: Controlled close
+        title: Review, reconcile, retain
+        text: Human review, AMEX matching, compliance checks, export revisions, and the sealed archive share one auditable state model.
   tradeoffs:
-    - Fail-closed auth (deny when unconfigured) chosen over convenience.
-    - Immutable storage and retention locks raise storage cost but protect the statutory copy.
-    - Assisted, not fully automated, reconciliation keeps a human in the loop for finance trust.
-tech_details_ja:
-  rag_prompt_patterns:
-    - プラガブルなOCR/LLM抽出プロバイダ — 取り込みや突合に触れずモデルを差し替え可能。
-    - 構造化フィールド抽出(ベンダー・日付・合計・税額)とフィールド単位の信頼度スコア。
-    - 信頼度しきい値により、確度の低いレシートを人手レビューキューへ振り分け。
-  tools:
-    - Next.js 16(App Router)を OpenNext 経由で Cloudflare Workers 上に
-    - レコードに Cloudflare D1、不変画像とアーカイブに R2
-    - Cloudflare Access(ゼロトラスト)とローカルの HTTP Basic 認証フォールバック
-  constraints:
-    - 税務記録には約10年の保管と、説明可能な監査証跡が必要。
-    - レシートのオリジナルは改変も暗黙削除も不可。
-    - モジュールは公開サイトと検索エンジンから不可視を維持。
+    title: Deliberate tradeoffs
+    items:
+      - Local-only inference protects receipt data and enables bespoke models, but throughput depends on Mac availability.
+      - Immutable originals and long retention strengthen the statutory record, but increase storage and operational responsibility.
+      - Human confirmation limits silent financial errors, but intentionally prevents a fully autonomous month close.
+  final_cta:
+    eyebrow: Private by design · explainable in detail
+    title: Want to see the complete month-close workflow?
+    text: Request a private walkthrough of the capture, review, reconciliation, compliance, and export experience.
+    button: Request a walkthrough
+
+splash_ja:
+  eyebrow: 非公開の財務オペレーションモジュール · 稼働中
+  title: Dazbeez Receipts
+  tagline: 今すぐ取り込む。月次クローズは確信を持って。
+  summary: 写真優先の取り込み、ローカル画像AI、AMEX突合支援、保管要件に対応した会計士向けパッケージを、一つのワークフローにまとめます。
+  status: 非公開モジュール · 公開ケーススタディ
+  primary_cta: 個別ウォークスルーを依頼
+  primary_cta_url: "mailto:admin@dazbeez.com?subject=Dazbeez%20Receipts%20walkthrough"
+  secondary_cta: GitHubでソースを見る
+  secondary_cta_url: https://github.com/davidklan-png/dazbeez
+  privacy_note: 実際のアプリはClerkで保護され、noindexに設定されています。このページの画面例はすべて合成データです。
+  proof:
+    - value: 写真を先に
+      label: 経理情報を求める前に、レシートを確実に保存します。
+    - value: ローカルAI
+      label: Mac MLXの画像処理により、レシート画像をシステムの管理範囲内に保ちます。
+    - value: 証拠とクローズ
+      label: 突合ゲート、ハッシュ、保管メタデータにより最終成果物を検証可能にします。
+  problem:
+    eyebrow: 業務上の課題
+    title: 月次クローズを、レシート探しから始めない。
+    intro: 従来は多数の紙レシートを月1回の一括スキャンにまとめ、手作業の突合と脆いファイル置き場に依存していました。Dazbeez Receiptsは作業を明確で復旧可能な状態に分離します。
+    before_label: 導入前
+    before:
+      - 一括スキャンでは個々のレシート履歴が埋もれる。
+      - 突合が月末まで遅れ、記憶に依存する。
+      - ファイルの寄せ集めだけでは完全性を説明しにくい。
+    after_label: Dazbeez Receipts
+    after:
+      - 各レシートを不変かつ監査可能なレコードにする。
+      - 取り込み・処理・レビュー・突合を別々の状態として見せる。
+      - 必要な作業が残る月は確定できない。
+  workflow:
+    eyebrow: プロダクトワークフロー
+    title: 一度の素早い取り込みから、説明できる月次クローズへ。
+    intro: 現場の取り込みはCloudflareが常時受け付け、画像処理は準備ができた時に非公開Macで実行します。重要な財務判断には人の確認を残します。
+    steps:
+      - code: "01"
+        title: 取り込む
+        text: 写真撮影、デジタルファイルのアップロード、またはメール添付の転送で受け付けます。
+        detail: スマホ · デスクトップ · メール
+      - code: "02"
+        title: バッファする
+        text: オリジナルをR2に保存し、D1に状態を書き、抽出ジョブを耐久キューへ送ります。
+        detail: R2 · D1 · Cloudflare Queue
+      - code: "03"
+        title: ローカル抽出
+        text: Mac MLXの画像言語モデルが読み取り、決定論的パーサーがガードレールとして検証します。
+        detail: MLX VLM · regex検証
+      - code: "04"
+        title: レビュー
+        text: 店舗名、日付、金額、科目、出席者、支払経路を必要な時に確認します。
+        detail: Human-in-the-loop
+      - code: "05"
+        title: 突合する
+        text: 信頼度、外貨情報、明示的な確認を使い、AMEX明細とレシートを対応付けます。
+        detail: 支援型・暗黙確定なし
+      - code: "06"
+        title: 確定・出力
+        text: ブロッカーを解消して月を確定し、完全性を示す会計士向けパッケージを作成します。
+        detail: CSV · 証憑 · SHA-256マニフェスト
+  features:
+    eyebrow: 実運用を中心に設計
+    title: 摩擦を減らす場所は自動化し、信頼が必要な場所にはガードレールを。
+    items:
+      - kicker: 高速取り込み
+        title: 経理フォームではなく、まず投函箱
+        text: モバイルの大きな操作一つで画像を即時保存。AMEX・現金は事前選択できますが、メタデータ不足で取り込みを止めません。
+      - kicker: 非公開処理
+        title: Store-and-forward方式のローカル画像AI
+        text: Macが停止中でも取り込みは耐久キューに残ります。処理待ちは「レシート欠落」と混同せず、独立した状態で表示します。
+      - kicker: レビュー・突合
+        title: 信頼度を見せ、上限を設ける
+        text: 金額・日付・店舗・通貨の根拠を説明。支払経路が不明な候補は、人が確認するまでAMEXとして確定しません。
+      - kicker: メール取り込み
+        title: 未認証メールはトリアージで止める
+        text: 専用アドレスへの添付は別受信箱に入り、人が昇格させるまで税務レコードになりません。
+      - kicker: 会計士への納品
+        title: ファイルだけでなく証拠を出力
+        text: 確定エクスポートは、突合データと証憑をハッシュ、アーカイブメタデータ、監査ログとともにまとめます。
+  mockups:
+    eyebrow: プライバシーに配慮したプロダクトツアー
+    title: 作業状態を一目で把握。
+    intro: プロダクトのソースを基に、合成した店舗名・日付・金額で再構成した画面例です。本番レシートのデータは使用していません。
+    capture_aria: 合成データを使ったモバイル高速取り込み画面の例
+    capture_title: まず保存。分類は後から。
+    capture_caption: モバイルでは標準カメラを開いて即時アップロードし、支払方法のヒントは任意のまま軽量に保ちます。
+    review_aria: 合成データを使った抽出・レビュー画面の例
+    review_title: 不確実性を、次の操作につなげる。
+    review_caption: キュー状態、抽出状態、編集可能な項目により、モデル出力をブラックボックス化せず確認可能にします。
+    close_aria: 合成データを使った突合・月次クローズ画面の例
+    close_title: 何がクローズを止めているかを明確に。
+    close_caption: 月を封印する前に、突合根拠、コンプライアンスチェック、出力状態を一つの流れにまとめます。
+  trust:
+    eyebrow: 信頼モデル
+    title: 失敗を見える形で扱う財務自動化。
+    intro: 認証、保存の完全性、処理状態、月次確定ポリシーを、デプロイ上の注記ではなくプロダクトの挙動として扱います。
+    items:
+      - title: 人と機械の認証を分離
+        text: 人向け画面・APIはClerkで保護し、処理Macとペアリング済み端末には独立した限定資格情報を使用します。
+      - title: オリジナルを上書きしない
+        text: レシート画像は不変のオブジェクトキー、コンテンツハッシュ、保守的な保管メタデータをR2に保持します。
+      - title: 未処理作業を消さない
+        text: 取り込み済み、キュー待ち、レビュー可能、突合済み、確定済みを明示し、状態変更を監査イベントに残します。
+      - title: クローズはハードゲート
+        text: 処理待ち、不完全レコード、突合不足、コンプライアンス上のブロッカーが残る限り確定できません。
+  architecture:
+    eyebrow: 技術構成
+    title: 常時取り込み。非公開推論。検証可能な出力。
+    intro: 取り込みの可用性と推論処理を意図的に分離し、財務画像をホスト型OCRへ送らずに現場の信頼性を維持します。
+    lanes:
+      - label: Cloudflare edge
+        title: 取り込みと耐久状態
+        text: Workers上のNext.js、Clerk、D1、不変R2、Email Routing、pull型Queueで受付を常時利用可能かつ復旧可能にします。
+      - label: 非公開Mac
+        title: MLX画像処理
+        text: キューコンシューマーがオリジナルを取得し、ローカル画像言語モデルと決定論的ガードレールを実行して構造化結果を書き戻します。
+      - label: 管理されたクローズ
+        title: レビュー・突合・保管
+        text: 人手レビュー、AMEX突合、コンプライアンス確認、出力改訂、封印アーカイブを一つの監査可能な状態モデルで扱います。
   tradeoffs:
-    - 利便性より、未設定時は拒否する fail-closed 認証を選択。
-    - 不変ストレージと保管ロックは保管コストを上げるが、法定コピーを保護。
-    - 完全自動ではなく支援型の突合とし、財務の信頼のため人手を介在。
-screenshots:
-  - src: /assets/images/receipt_img.pdf
-    alt: Receipt sample PDF document
-    alt_ja: レシートのサンプルPDF
-    caption: PDF receipt sample used to validate capture, structured extraction, and confidence scoring.
-    caption_ja: 取り込み・構造化抽出・信頼度スコアの検証に使用したPDFレシートサンプル。
-lessons_learned:
-  - Fail-closed auth and immutable originals matter more than slick UI for finance trust.
-  - One-receipt-per-record beats composite scans for both capture ergonomics and auditability.
-  - SHA-256 export manifests turn "a folder of PDFs" into a verifiable statutory archive.
-lessons_learned_ja:
-  - 財務の信頼では、洗練されたUIより fail-closed 認証と不変オリジナルが重要。
-  - 1レシート＝1レコードは、取り込みの操作性と監査性の両面で一括スキャンに勝る。
-  - SHA-256エクスポートマニフェストは「PDFの寄せ集め」を検証可能な法定アーカイブに変える。
-improve_next:
-  - Add active-learning loops feeding reviewer corrections back into the extraction provider.
-  - Add anomaly detection for missing or duplicate receipts against the statement.
-  - Add monthly close scorecards (match rate, exceptions, category drift).
-improve_next_ja:
-  - レビュー修正を抽出プロバイダに還元するアクティブラーニングループを追加する。
-  - 明細に対するレシートの欠落・重複を検知する異常検知を追加する。
-  - 月次クローズのスコアカード(マッチ率・例外・カテゴリのドリフト)を追加する。
-repro:
-  runnable: false
-  steps:
-    - Authenticate through Cloudflare Access — the module is private and noindexed.
-    - Capture a receipt from the phone and confirm the immutable R2 original plus the D1 record.
-    - Import an AMEX CSV, reconcile against captured receipts, and clear the review queue.
-    - Run the monthly export and verify the SHA-256 manifest written to the archive bucket.
-repro_ja:
-  steps:
-    - Cloudflare Access で認証する — モジュールは非公開かつ noindex。
-    - スマホからレシートを取り込み、不変のR2オリジナルとD1レコードを確認する。
-    - AMEXのCSVを取り込み、取り込み済みレシートと突合し、レビューキューを処理する。
-    - 月次エクスポートを実行し、アーカイブバケットに書き込まれたSHA-256マニフェストを検証する。
-links:
-  - label: Dazbeez — build-in-public site
-    label_ja: Dazbeez — ビルド・イン・パブリックのサイト
-    url: https://dazbeez.com
+    title: 意図的なトレードオフ
+    items:
+      - ローカル推論はデータを保護し独自モデルを可能にする一方、処理量はMacの稼働状況に依存します。
+      - 不変オリジナルと長期保管は法定記録を強化する一方、保管コストと運用責任を増やします。
+      - 人の確認は財務上の暗黙エラーを抑える一方、完全自律の月次クローズを意図的に避けます。
+  final_cta:
+    eyebrow: 非公開設計 · 詳細は説明可能
+    title: 月次クローズ全体の流れをご覧になりますか？
+    text: 取り込み、レビュー、突合、コンプライアンス、エクスポートまでを個別にご案内します。
+    button: ウォークスルーを依頼
