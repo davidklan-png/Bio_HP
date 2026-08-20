@@ -59,6 +59,18 @@
       "tag_en": "racing · ML",
       "desc_ja": "ローカルファーストの競馬データ & MLプラットフォーム。メダリオンレイク、オッズポーリング、バックテストエンジン、JRA/NARのレース分析。",
       "tag_ja": "競馬 · ML"
+    },
+    {
+      "slug": "kan",
+      "name": "Kanrimon",
+      "name_ja": "管理モン",
+      "icon": "kanrimon.png",
+      "href": "#connect",
+      "external": false,
+      "desc_en": "Evidence-backed condominium management copilot for board continuity, compliance readiness, and archive onboarding.",
+      "tag_en": "property governance · research",
+      "desc_ja": "理事会の継続性、管理計画認定の準備、管理資料の引き継ぎを支援する、根拠重視のマンション管理コパイロット。",
+      "tag_ja": "マンション管理 · リサーチ"
     }
   ],
   "skills": [
