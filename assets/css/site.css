@@ -104,6 +104,7 @@ body {
   font-family: var(--sans);
   background: var(--bg);
   color: var(--ink);
+  overflow-x: hidden;
   line-height: 1.55;
   font-size: 15px;
   font-feature-settings: "ss01", "cv11";
@@ -419,7 +420,7 @@ code, .mono, .label {
 /* Hero side: operator card */
 .hero__side {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto;
   gap: 0.9rem;
 }
 .opcard {
@@ -586,11 +587,12 @@ code, .mono, .label {
 /* ============ Project cards ============ */
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 .project-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -630,6 +632,9 @@ code, .mono, .label {
 .project-card__status--ship { color: var(--amber); }
 .project-card__body {
   padding: 1.4rem 1.4rem 1.6rem;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 .project-card__title {
   font-size: 1.4rem;
@@ -644,6 +649,27 @@ code, .mono, .label {
   font-size: 0.93rem;
   text-wrap: pretty;
   margin-bottom: 1.1rem;
+}
+.project-card__proof {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+}
+.project-card__proof span {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.project-card__proof strong {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  font-weight: 500;
 }
 .project-card__why {
   display: grid;
@@ -674,10 +700,12 @@ code, .mono, .label {
   font-family: var(--sans);
 }
 .project-card__foot {
-  margin-top: 1.1rem;
+  margin-top: auto;
+  padding-top: 1.1rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.8rem;
   font-family: var(--mono);
   font-size: 0.78rem;
   color: var(--muted);
@@ -686,6 +714,7 @@ code, .mono, .label {
   display: flex;
   gap: 0.35rem;
   flex-wrap: wrap;
+  min-height: 2.3em;
 }
 .project-card__tags span {
   color: var(--ink-2);
@@ -697,13 +726,14 @@ code, .mono, .label {
 }
 .project-card__cta {
   color: var(--brand);
+  white-space: nowrap;
 }
 .project-card__cta::after { content: " ↗"; }
 
 /* ============ -mon family ============ */
 .mon-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
 }
 .mon-card {
