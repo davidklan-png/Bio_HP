@@ -3,28 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="title">David Klan · Kinokoholic — AI/ML Engineer + IT PM</title>
-  <meta name="description" data-i18n-attr="content:meta.description" content="The interface between human intent and machine intelligence. Production LLM systems, agentic workflows, and AI-augmented delivery.">
+  <title data-i18n="title">David Klan · AI products that hold up</title>
+  <meta name="description" data-i18n-attr="content:meta.description" content="AI products for real decisions: horse-racing ML, receipt automation, and citation-first Japanese tax research.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
   <style>
-    /* Page-local helpers */
-    .grid-2-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
-    @media (max-width: 820px) { .grid-2-3 { grid-template-columns: 1fr; } }
     [data-fade] { opacity: 0; transform: translateY(10px); transition: opacity .55s ease, transform .55s ease; }
     [data-fade].is-in { opacity: 1; transform: none; }
-    .ascii-art {
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      line-height: 1;
-      color: var(--brand);
-      opacity: 0.45;
-      white-space: pre;
-      pointer-events: none;
-      user-select: none;
-    }
   </style>
 </head>
 <body>
@@ -37,10 +24,10 @@
     </a>
     <nav class="nav__links" aria-label="Primary">
       <a class="nav__link" href="/" data-i18n="nav.home">/home</a>
-      <a class="nav__link" href="#projects" data-i18n="nav.projects">/projects</a>
-      <a class="nav__link" href="/kinokomon/" data-i18n="nav.kinokomon">/kinokomon</a>
+      <a class="nav__link" href="#projects" data-i18n="nav.projects">/products</a>
+      <a class="nav__link" href="#family" data-i18n="nav.family">/-mon family</a>
       <a class="nav__link" href="#career" data-i18n="nav.career">/career</a>
-      <a class="nav__link" href="#articles" data-i18n="nav.articles">/articles</a>
+      <a class="nav__link" href="#connect" data-i18n="nav.contact">/contact</a>
     </nav>
     <div class="nav__util">
       <div class="nav__lang" role="group" aria-label="Language">
@@ -57,245 +44,104 @@
   <!-- ============ HERO ============ -->
   <section class="container hero" data-screen-label="01 Home — Hero">
     <div class="hero__rail">
-      <span><span class="dot"></span> <span data-i18n="hero.rail.status">SYSTEM ONLINE · agent uptime 99.7%</span></span>
-      <span class="mono" data-i18n="hero.rail.build">build · 2026.05.09 · v3.1.0</span>
+      <span><span class="dot"></span> <span data-i18n="hero.rail.status">BUILT SYSTEMS · 3 MATURE PRODUCTS</span></span>
+      <span class="mono" data-i18n="hero.rail.build">evidence over demos</span>
       <span class="mono" data-i18n="hero.rail.tz">tokyo / utc+9</span>
     </div>
 
     <div class="hero__grid">
       <div class="hero__main" data-fade>
-        <p class="hero__eyebrow" data-i18n="hero.eyebrow">// IT PM × AI/ML ENGINEER</p>
-        <h1 class="hero__h1" data-i18n="hero.h1.html">The interface between <em>human intent</em> and <em>machine intelligence</em>.</h1>
-        <p class="hero__sum" data-i18n="hero.summary">I ship LLM systems that know their own limits — citation-first RAG, governed agents, and reporting pipelines that pass audit. Built in public, documented in motion.</p>
+        <p class="hero__eyebrow" data-i18n="hero.eyebrow">// PRODUCT ENGINEER × ENTERPRISE DELIVERY</p>
+        <h1 class="hero__h1" data-i18n="hero.h1.html">AI products for <em>decisions that need to hold up</em>.</h1>
+        <p class="hero__sum" data-i18n="hero.summary">I build working systems where the answer matters: horse-racing ML with point-in-time integrity, receipt automation with a traceable ledger, and Japanese tax research backed by official citations.</p>
         <div class="hero__chips">
-          <span class="chip chip--brand" data-i18n="hero.chip.rag">● Production RAG</span>
-          <span class="chip chip--magenta" data-i18n="hero.chip.agent">● Agentic Workflows</span>
-          <span class="chip" data-i18n="hero.chip.eval">Eval &amp; Guardrails</span>
-          <span class="chip" data-i18n="hero.chip.ent">Enterprise Delivery</span>
-          <span class="chip chip--amber" data-i18n="hero.chip.bip">● Build in Public</span>
+          <a class="chip chip--brand" href="#keibamon" data-i18n="hero.chip.keibamon">Keibamon · live</a>
+          <a class="chip chip--amber" href="#receipts" data-i18n="hero.chip.receipts">Dazbeez Receipts · shipping</a>
+          <a class="chip chip--magenta" href="#jtes" data-i18n="hero.chip.jtes">JTES · production</a>
         </div>
       </div>
 
       <aside class="hero__side">
         <div class="opcard" data-fade>
           <div class="opcard__head">
-            <span data-i18n="opcard.head">OPERATOR · STATUS</span>
-            <span class="pill" data-i18n="opcard.pill">LIVE</span>
+            <span data-i18n="opcard.head">CURRENT FOCUS</span>
+            <span class="pill" data-i18n="opcard.pill">BUILDING</span>
           </div>
-          <div class="opcard__row"><span class="k" data-i18n="opcard.role.k">role</span><span class="v" data-i18n="opcard.role.v">IT PM + AI/ML</span></div>
+          <div class="opcard__row"><span class="k" data-i18n="opcard.mature.k">mature</span><span class="v brand" data-i18n="opcard.mature.v">Keibamon · Receipts · JTES</span></div>
+          <div class="opcard__row"><span class="k" data-i18n="opcard.rule.k">rule</span><span class="v" data-i18n="opcard.rule.v">Traceable data · visible failure</span></div>
+          <div class="opcard__row"><span class="k" data-i18n="opcard.next.k">exploring</span><span class="v amber" data-i18n="opcard.next.v">Kanrimon</span></div>
           <div class="opcard__row"><span class="k" data-i18n="opcard.based.k">based</span><span class="v" data-i18n="opcard.based.v">Tokyo, JP</span></div>
-          <div class="opcard__row"><span class="k" data-i18n="opcard.avail.k">availability</span><span class="v brand" data-i18n="opcard.avail.v">Open · Q3 2026</span></div>
-          <div class="opcard__row"><span class="k" data-i18n="opcard.stack.k">stack</span><span class="v" data-i18n="opcard.stack.v">MacBook · PC · VS Code · Obsidian · OpenAI · Claude · GLM · Qwen · Python · Cloudflare</span></div>
-          <div class="opcard__row"><span class="k" data-i18n="opcard.ship.k">shipping</span><span class="v amber" data-i18n="opcard.ship.v">JTES · Networking Card</span></div>
         </div>
         <div class="hero__avatar" data-fade>
           <img src="assets/images/DK_Avatar.jpeg" alt="David Klan">
           <div>
             <div class="name">David Klan</div>
-            <div class="role" data-i18n="avatar.role">davidklan-png · david@dazbeez.com · https://dazbeez.com</div>
+            <div class="role" data-i18n="avatar.role">AI/ML engineer · IT project manager · Tokyo</div>
           </div>
         </div>
       </aside>
     </div>
 
-    <!-- skill stack strip -->
-    <div class="stack-strip" data-fade>
-      <div class="stack-cell"><span class="k" data-i18n="stack.prompts.k">prompts</span><span class="v" data-i18n="stack.prompts.v">Context is King</span><span class="meta" data-i18n="stack.prompts.m">Persona + MD library · role · context · format</span></div>
-      <div class="stack-cell"><span class="k" data-i18n="stack.retrieval.k">retrieval</span><span class="v" data-i18n="stack.retrieval.v">Hybrid + rerank</span><span class="meta" data-i18n="stack.retrieval.m">BM25 · vector · LTR</span></div>
-      <div class="stack-cell"><span class="k" data-i18n="stack.agents.k">agents</span><span class="v" data-i18n="stack.agents.v">Governed loops</span><span class="meta" data-i18n="stack.agents.m">orchestrator · Multi-agent verification</span></div>
-      <div class="stack-cell"><span class="k" data-i18n="stack.eval.k">eval</span><span class="v" data-i18n="stack.eval.v">Holdout suites</span><span class="meta" data-i18n="stack.eval.m">TDD BDD · canary · CI/CD Actions</span></div>
-      <div class="stack-cell"><span class="k" data-i18n="stack.auto.k">automation</span><span class="v" data-i18n="stack.auto.v">OpenClaw</span><span class="meta" data-i18n="stack.auto.m">cron · Discord agents · Cloudflare Workers</span></div>
-      <div class="stack-cell"><span class="k" data-i18n="stack.del.k">delivery</span><span class="v" data-i18n="stack.del.v">PMP</span><span class="meta" data-i18n="stack.del.m">Bespoke PM Systems · enterprise-scale rollout</span></div>
-    </div>
-  </section>
-
-  <!-- ============ AI WORKFLOW RECIPES ============ -->
-  <section class="container section" id="workflows" data-screen-label="01 Home — AI Workflows">
-    <div class="section-head">
-      <div>
-        <span class="modlabel modlabel--magenta" data-i18n="wf.modlabel">// AI WORKFLOWS · NAMED RECIPES</span>
-        <h2 style="margin-top:.5rem" data-i18n="wf.h2">Three stacks I run on real work.</h2>
-      </div>
-      <p class="section-head__lead" data-i18n="wf.lead">Not "I use AI." The exact tool chain, where the human stays in the loop, and what it actually moves.</p>
-    </div>
-
-    <div class="recipes">
-      <article class="recipe" data-fade>
-        <div class="recipe__num">RECIPE.01</div>
-        <h3 class="recipe__title" data-i18n="wf.r1.title">Citation-First RAG</h3>
-        <p class="recipe__why" data-i18n="wf.r1.why">Tax/legal answers must be auditable. Every claim links to an official NTA / e-Gov source; fail-closed when the citation can't be verified.</p>
-        <div class="recipe__chain">
-          <span class="recipe__node">NTA + e-Gov</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">Hybrid retriever</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node brand">Select API</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">Citation guard</span>
-        </div>
-        <div class="recipe__metric">
-          <span class="label" data-i18n="wf.r1.label">USED IN</span>
-          <span class="value" data-i18n="wf.r1.used_in">JTES</span>
-        </div>
-      </article>
-
-      <article class="recipe" data-fade>
-        <div class="recipe__num">RECIPE.02</div>
-        <h3 class="recipe__title" data-i18n="wf.r2.title">Orchestrator</h3>
-        <p class="recipe__why" data-i18n="wf.r2.why">Home grown Orchestrator built for MacBook Metal-first development environment</p>
-        <div class="recipe__chain">
-          <span class="recipe__node">React · Vite</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node brand">Plan · Code · Verify</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">MoE: Frontier · Open Source · Local LLM</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">Self-Improvement cycles</span>
-        </div>
-        <div class="recipe__metric">
-          <span class="label" data-i18n="wf.r1.label">USED IN</span>
-          <span class="value" data-i18n="wf.r2.used_in">Local Development</span>
-        </div>
-      </article>
-
-      <article class="recipe" data-fade>
-        <div class="recipe__num">RECIPE.03</div>
-        <h3 class="recipe__title" data-i18n="wf.r3.title">Build-in-Public Loop</h3>
-        <p class="recipe__why" data-i18n="wf.r3.why">Every night the Kinokomon agent commits the day's work, refreshes the activity log on this site, and posts a summary to the #kinokoholic Discord channel.</p>
-        <div class="recipe__chain">
-          <span class="recipe__node">git activity</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node brand">OpenClaw</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">cron</span>
-          <span class="recipe__arrow">→</span>
-          <span class="recipe__node">site + Discord</span>
-        </div>
-        <div class="recipe__metric">
-          <span class="label" data-i18n="wf.r3.cadence_label">CADENCE</span>
-          <span class="value" data-i18n="wf.r3.cadence">nightly · 20:00 JST</span>
-        </div>
-      </article>
-    </div>
   </section>
 
   <!-- ============ FEATURED PROJECTS ============ -->
   <section class="container section" id="projects" data-screen-label="01 Home — Projects">
     <div class="section-head">
       <div>
-        <span class="modlabel" data-i18n="proj.modlabel">// PROJECTS · FIVE INVESTIGATIONS</span>
-        <h2 style="margin-top:.5rem" data-i18n="proj.h2">Where language models meet the resistance of the real world.</h2>
+        <span class="modlabel" data-i18n="proj.modlabel">// SELECTED PRODUCTS · BUILT SYSTEMS</span>
+        <h2 style="margin-top:.5rem" data-i18n="proj.h2">Three products with real systems behind them.</h2>
       </div>
-      <a class="chip chip--brand" href="#projects" data-i18n="proj.cta_all">view all projects ↗</a>
+      <p class="section-head__lead" data-i18n="proj.lead">Working data paths, explicit failure modes, and inspectable outputs—not prototype theater.</p>
     </div>
 
     <div class="project-grid">
-
-      <a class="project-card" href="/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/" data-fade>
+      <a class="project-card" id="keibamon" href="https://keibamon.com" target="_blank" rel="noreferrer" data-fade>
         <div class="project-card__hdr">
-          <span class="project-card__id" data-i18n="proj.p1.id">PRJ.01 · CITATION-RAG</span>
-          <span class="project-card__status" data-i18n="proj.p1.status">in production</span>
+          <span class="project-card__id" data-i18n="proj.p1.id">PRODUCT 01 · RACING ML</span>
+          <span class="project-card__status" data-i18n="proj.p1.status">live product</span>
         </div>
         <div class="project-card__body">
-          <h3 class="project-card__title" data-i18n="proj.p1.title">Japanese Tax Expert System (JTES)</h3>
-          <p class="project-card__sum" data-i18n="proj.p1.summary">Specialized RAG over official 国税庁 + e-Gov sources. Every answer carries verifiable citations; fail-closed when evidence is thin.</p>
-          <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p1.why">Tax answers must audit.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p1.tradeoff">Strict citation cuts coverage.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p1.assumes">JA-first source corpus.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p1.lesson">Citations drive trust.</span></div>
-          </div>
+          <h3 class="project-card__title" data-i18n="proj.p1.title">Keibamon</h3>
+          <p class="project-card__sum" data-i18n="proj.p1.summary">A local-first data and ML platform for Japanese horse-racing research, backtesting, and race analysis across JRA and NAR.</p>
+          <p class="project-card__proof"><span data-i18n="proj.system_label">system</span><strong data-i18n="proj.p1.system">Immutable snapshots → point-in-time features → walk-forward tests → odds capture</strong></p>
           <div class="project-card__foot">
-            <div class="project-card__tags"><span data-i18n="proj.p1.tag1">Japanese tax law</span><span data-i18n="proj.p1.tag2">Citation-backed AI</span><span data-i18n="proj.p1.tag3">Multi-tenant</span></div>
-            <span class="project-card__cta">Open case study</span>
+            <div class="project-card__tags"><span data-i18n="proj.p1.tag1">Racing data</span><span data-i18n="proj.p1.tag2">ML</span><span data-i18n="proj.p1.tag3">Backtesting</span></div>
+            <span class="project-card__cta" data-i18n="proj.p1.cta">Visit product</span>
           </div>
         </div>
       </a>
 
-      <a class="project-card" href="/projects/receipt-classification-and-matching-system/" data-fade>
+      <a class="project-card" id="receipts" href="/projects/receipt-classification-and-matching-system/" data-fade>
         <div class="project-card__hdr">
-          <span class="project-card__id" data-i18n="proj.p2.id">PRJ.02 · DOC-AI</span>
+          <span class="project-card__id" data-i18n="proj.p2.id">PRODUCT 02 · DOCUMENT AI</span>
           <span class="project-card__status project-card__status--ship" data-i18n="proj.p2.status">shipping</span>
         </div>
         <div class="project-card__body">
           <h3 class="project-card__title" data-i18n="proj.p2.title">Dazbeez Receipts</h3>
           <p class="project-card__sum" data-i18n="proj.p2.summary">Photo-first capture, durable queueing, local MLX vision extraction, AMEX reconciliation, and a verifiable accountant export.</p>
-          <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p2.why">Month close should not start with a receipt hunt.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p2.tradeoff">Private inference depends on Mac uptime.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p2.assumes">Financial automation must fail visibly.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p2.lesson">Save first; require detail at review.</span></div>
-          </div>
+          <p class="project-card__proof"><span data-i18n="proj.system_label">system</span><strong data-i18n="proj.p2.system">Capture → durable queue → local extraction → statement match → reviewable export</strong></p>
           <div class="project-card__foot">
             <div class="project-card__tags"><span data-i18n="proj.p2.tag1">Local vision AI</span><span data-i18n="proj.p2.tag2">Cloudflare Queue</span><span data-i18n="proj.p2.tag3">Compliance</span></div>
-            <span class="project-card__cta">Open case study</span>
+            <span class="project-card__cta" data-i18n="proj.p2.cta">Open case study</span>
           </div>
         </div>
       </a>
 
-      <a class="project-card" href="/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/" data-fade>
+      <a class="project-card" id="jtes" href="/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/" data-fade>
         <div class="project-card__hdr">
-          <span class="project-card__id" data-i18n="proj.p3.id">PRJ.03 · ENT-AUTOMATION</span>
-          <span class="project-card__status" data-i18n="proj.p3.status">delivered</span>
+          <span class="project-card__id" data-i18n="proj.p3.id">PRODUCT 03 · CITATION RAG</span>
+          <span class="project-card__status" data-i18n="proj.p3.status">in production</span>
         </div>
         <div class="project-card__body">
-          <h3 class="project-card__title" data-i18n="proj.p3.title">Insurance · Reporting &amp; Incident Intel</h3>
-          <p class="project-card__sum" data-i18n="proj.p3.summary">Coding-agent parsers across hundreds of MB of incident data. Confluence + Jira + SharePoint stitched into Power BI dashboards.</p>
-          <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p3.why">PM reporting was a tax.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p3.tradeoff">Speed vs governance review.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p3.assumes">Stable upstream schemas.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p3.lesson">Trust the dashboard, not the deck.</span></div>
-          </div>
+          <h3 class="project-card__title" data-i18n="proj.p3.title">Japanese Tax Expert System (JTES)</h3>
+          <p class="project-card__sum" data-i18n="proj.p3.summary">Specialized research over official NTA and e-Gov sources. Every accepted answer carries inspectable citations; thin evidence stops the answer.</p>
+          <p class="project-card__proof"><span data-i18n="proj.system_label">system</span><strong data-i18n="proj.p3.system">Official sources → hybrid retrieval → rerank → citation guard → auditable answer</strong></p>
           <div class="project-card__foot">
-            <div class="project-card__tags"><span data-i18n="proj.p3.tag1">Enterprise automation</span><span data-i18n="proj.p3.tag2">Incident intel</span><span data-i18n="proj.p3.tag3">Exec reporting</span></div>
-            <span class="project-card__cta">Open case study</span>
+            <div class="project-card__tags"><span data-i18n="proj.p3.tag1">Japanese tax</span><span data-i18n="proj.p3.tag2">Citation-backed AI</span><span data-i18n="proj.p3.tag3">Fail-closed</span></div>
+            <span class="project-card__cta" data-i18n="proj.p3.cta">Open case study</span>
           </div>
         </div>
       </a>
-
-      <a class="project-card" href="/projects/bilingual-ceremony-script-generator-notebooklm-collaboration/" data-fade>
-        <div class="project-card__hdr">
-          <span class="project-card__id" data-i18n="proj.p4.id">PRJ.04 · GROUNDED-GEN</span>
-          <span class="project-card__status" data-i18n="proj.p4.status">archived</span>
-        </div>
-        <div class="project-card__body">
-          <h3 class="project-card__title" data-i18n="proj.p4.title">Bilingual Ceremony Script Generator</h3>
-          <p class="project-card__sum" data-i18n="proj.p4.summary">NotebookLM collaboration. Ten prior scripts as grounding corpus; theme-faithful EN/JP output with iterative human refinement.</p>
-          <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p4.why">Style needs grounding.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p4.tradeoff">Faithful vs novel.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p4.assumes">Corpus is canonical voice.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p4.lesson">Collab beats prompt-then-pray.</span></div>
-          </div>
-          <div class="project-card__foot">
-            <div class="project-card__tags"><span data-i18n="proj.p4.tag1">Grounded gen</span><span data-i18n="proj.p4.tag2">Style control</span><span data-i18n="proj.p4.tag3">Human-in-loop</span></div>
-            <span class="project-card__cta">Open case study</span>
-          </div>
-        </div>
-      </a>
-
-      <a class="project-card" href="/projects/nfc-networking-card-contact-capture/" data-fade>
-        <div class="project-card__hdr">
-          <span class="project-card__id" data-i18n="proj.p5.id">PRJ.05 · EDGE-OAUTH</span>
-          <span class="project-card__status project-card__status--ship" data-i18n="proj.p5.status">shipping</span>
-        </div>
-        <div class="project-card__body">
-          <h3 class="project-card__title" data-i18n="proj.p5.title">NFC Networking Card</h3>
-          <p class="project-card__sum" data-i18n="proj.p5.summary">Tokenized NFC tap → one-tap Google sign-in or manual capture. CSRF-hardened OAuth, tap logging, and auto follow-up on Cloudflare Pages + D1.</p>
-          <div class="project-card__why">
-            <div><span class="k">why</span><span class="v" data-i18n="proj.p5.why">Paper cards are a dead end.</span></div>
-            <div><span class="k">tradeoff</span><span class="v" data-i18n="proj.p5.tradeoff">Fast path vs sign-in friction.</span></div>
-            <div><span class="k">assumes</span><span class="v" data-i18n="proj.p5.assumes">Tap now, follow up later.</span></div>
-            <div><span class="k">lesson</span><span class="v" data-i18n="proj.p5.lesson">Bind the credential to a nonce.</span></div>
-          </div>
-          <div class="project-card__foot">
-            <div class="project-card__tags"><span data-i18n="proj.p5.tag1">Cloudflare Pages</span><span data-i18n="proj.p5.tag2">OAuth · GIS</span><span data-i18n="proj.p5.tag3">Edge D1</span></div>
-            <span class="project-card__cta">Open case study</span>
-          </div>
-        </div>
-      </a>
-
     </div>
   </section>
 
@@ -303,10 +149,10 @@
   <section class="container section" id="family" data-screen-label="01 Home — -mon Family">
     <div class="section-head">
       <div>
-        <span class="modlabel modlabel--magenta" data-i18n="fam.modlabel">// THE -MON FAMILY · COMPANION AGENTS</span>
-        <h2 style="margin-top:.5rem" data-i18n="fam.h2">Small, sharp tools. One job each.</h2>
+        <span class="modlabel modlabel--magenta" data-i18n="fam.modlabel">// THE -MON FAMILY · FOCUSED SYSTEMS</span>
+        <h2 style="margin-top:.5rem" data-i18n="fam.h2">Products, copilots, and experiments—one clear job each.</h2>
       </div>
-      <p class="section-head__lead" data-i18n="fam.lead">A growing family of focused agents living under kinokoholic. Each one does a single thing well and feeds back into the orchestrator.</p>
+      <p class="section-head__lead" data-i18n="fam.lead">The family shares a bias toward traceable inputs, explicit boundaries, and useful outputs.</p>
     </div>
 
     <div class="mon-grid">
@@ -351,55 +197,15 @@
           <span class="mon-card__tag" data-i18n="fam.kb.tag">racing · ML</span>
         </div>
       </a>
+      <a class="mon-card" href="#connect" data-fade>
+        <div class="mon-card__art"><img src="assets/images/kanrimon.png" alt="Kanrimon"></div>
+        <div class="mon-card__body">
+          <div class="mon-card__name">Kanrimon <span class="mon-card__ja">管理モン</span></div>
+          <p class="mon-card__desc" data-i18n="fam.kan.desc">Evidence-backed condominium management copilot for board continuity, compliance readiness, and archive onboarding.</p>
+          <span class="mon-card__tag" data-i18n="fam.kan.tag">property governance · research</span>
+        </div>
+      </a>
       <!-- AUTOGEN:mon-family:end -->
-    </div>
-  </section>
-
-  <!-- ============ GITHUB FEED ============ -->
-  <section class="container section" id="repos" data-screen-label="01 Home — GitHub">
-    <div class="section-head">
-      <div>
-        <span class="modlabel" data-i18n="gh.modlabel">// CODE · GITHUB FEED</span>
-        <h2 style="margin-top:.5rem" data-i18n="gh.h2">Fresh commits, public surface.</h2>
-      </div>
-      <div class="gh-status" data-gh-status data-state="cached">
-        <span class="dot"></span>
-        <span class="gh-status__text" data-i18n="gh.status_cached">cached snapshot · github.com/davidklan-png</span>
-      </div>
-    </div>
-
-    <div class="gh-grid" data-gh-grid data-gh-user="davidklan-png">
-      <!-- Static fallback cards — replaced if API succeeds -->
-      <a class="gh-card" href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">jtes-rag</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.jtes.desc">Citation-first RAG over official 国税庁 + e-Gov tax sources. Hybrid retrieval, fail-closed answer guard.</p>
-        <div class="gh-card__meta"><span class="lang py">Python</span><span class="stars">★ 24</span><span class="updated">↻ 2d ago</span></div>
-      </a>
-      <a class="gh-card" href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">kinokomon-orchestrator</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.orch.desc">Nightly governed agent loop. Commits work, refreshes site activity, posts summaries to Discord.</p>
-        <div class="gh-card__meta"><span class="lang ts">TypeScript</span><span class="stars">★ 18</span><span class="updated">↻ today</span></div>
-      </a>
-      <a class="gh-card" href="https://bountymon.com" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">bountymon</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.bm.desc">Astro 5.x + Tailwind 4. Bug-bounty + gamified task ledger. Cloudflare Pages-ready MVP.</p>
-        <div class="gh-card__meta"><span class="lang ts">TypeScript</span><span class="stars">★ 12</span><span class="updated">↻ 3w ago</span></div>
-      </a>
-      <a class="gh-card" href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">receipt-classifier</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.rcv.desc">Vendor disambiguation + tax category classifier. Statement reconciliation feed.</p>
-        <div class="gh-card__meta"><span class="lang py">Python</span><span class="stars">★ 8</span><span class="updated">↻ 1mo ago</span></div>
-      </a>
-      <a class="gh-card" href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">kinokoholic-site</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.site.desc">This site. Jekyll → operator-console refactor. EN/JA, agent-backed JD analysis (now retired).</p>
-        <div class="gh-card__meta"><span class="lang html">HTML</span><span class="stars">★ 5</span><span class="updated">↻ today</span></div>
-      </a>
-      <a class="gh-card" href="https://github.com/davidklan-png" target="_blank" rel="noreferrer">
-        <div class="gh-card__top"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg><span class="repo-name">tools</span></div>
-        <p class="gh-card__desc" data-i18n="gh.repo.tools.desc">Personal toolbelt. n8n flows, Claude prompts, web fetch fallbacks (Brave → Jina → Crawl4AI).</p>
-        <div class="gh-card__meta"><span class="lang shell">Shell</span><span class="stars">★ 3</span><span class="updated">↻ 2w ago</span></div>
-      </a>
     </div>
   </section>
 
@@ -407,10 +213,10 @@
   <section class="container section" id="career" data-screen-label="01 Home — Career">
     <div class="section-head">
       <div>
-        <span class="modlabel modlabel--mute" data-i18n="career.modlabel">// CAREER · COMPRESSED</span>
-        <h2 style="margin-top:.5rem" data-i18n="career.h2">Twenty years, four chapters, the through-line.</h2>
+        <span class="modlabel modlabel--mute" data-i18n="career.modlabel">// CAREER · DELIVERY DEPTH</span>
+        <h2 style="margin-top:.5rem" data-i18n="career.h2">Two decades of engineering and delivery.</h2>
       </div>
-      <p class="section-head__lead" data-i18n="career.lead">Role · scope · key win. The verbose version lives in the trained agent — ask Kinokomon.</p>
+      <p class="section-head__lead" data-i18n="career.lead">From systems integration and global infrastructure to governed AI products.</p>
     </div>
 
     <table class="career">
@@ -426,8 +232,8 @@
         <tr>
           <td data-i18n="career.r1.years">2024 — now</td>
           <td class="role"><span data-i18n="career.r1.role">Independent · AI/ML Engineer</span><span class="org" data-i18n="career.r1.org">Kinokoholic Labs · Tokyo</span></td>
-          <td class="scope" data-i18n="career.r1.scope">RAG, agentic workflows, the -mon family. Ship JTES + Bountymon, run the build-in-public orchestrator.</td>
-          <td class="win" data-i18n="career.r1.win.html">Strict focus on creating and enhancing using the latest technologies. <strong>At Enterprise level quality</strong>.</td>
+          <td class="scope" data-i18n="career.r1.scope">Building Keibamon, Dazbeez Receipts, JTES, and the -mon family.</td>
+          <td class="win" data-i18n="career.r1.win.html">Turned research into working products with <strong>traceable data paths and explicit failure modes</strong>.</td>
         </tr>
         <tr>
           <td data-i18n="career.r2.years">2021 — 2024</td>
@@ -451,102 +257,13 @@
     </table>
   </section>
 
-  <!-- ============ ARTICLES ============ -->
-  <section class="container section" id="articles" data-screen-label="01 Home — Articles">
-    <div class="section-head">
-      <div>
-        <span class="modlabel" data-i18n="art.modlabel">// WRITING · LATEST</span>
-        <h2 style="margin-top:.5rem" data-i18n="art.h2">Notes from the operator's chair.</h2>
-      </div>
-      <a class="chip" href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noreferrer" data-i18n="art.cta_all">all on linkedin ↗</a>
-    </div>
-
-    <div class="articles">
-      <a class="article" href="https://www.linkedin.com/pulse/vulnerability-arms-race-why-every-ai-agent-sounds-like-david-klan-acthc" target="_blank" rel="noreferrer" data-fade>
-        <div class="article__meta"><span data-i18n="art.a1.meta_date">MAR · 2026</span><span class="tag" data-i18n="art.a1.tag">AI AGENTS</span></div>
-        <h3 class="article__title" data-i18n="art.a1.title">The Vulnerability Arms Race: Why Every AI Agent Sounds Like It's in Therapy</h3>
-        <p class="article__excerpt" data-i18n="art.a1.excerpt">When alignment training meets product copywriting, the tone goes apologetic — and capability gets misread. Notes on the agent persona problem.</p>
-        <span class="article__cta" data-i18n="art.a1.cta">read on linkedin →</span>
-      </a>
-      <a class="article" href="https://www.linkedin.com/pulse/we-gave-ai-agents-constitution-need-different-rights-than-david-klan-cgr9c" target="_blank" rel="noreferrer" data-fade>
-        <div class="article__meta"><span data-i18n="art.a2.meta_date">MAR · 2026</span><span class="tag" data-i18n="art.a2.tag">GOVERNANCE</span></div>
-        <h3 class="article__title" data-i18n="art.a2.title">We Gave AI Agents a Constitution. They Need Different Rights Than You Do.</h3>
-        <p class="article__excerpt" data-i18n="art.a2.excerpt">Constitutional AI borrows the human framing — but agents don't need free speech, they need fail-closed defaults and tamper-evident memory.</p>
-        <span class="article__cta" data-i18n="art.a2.cta">read on linkedin →</span>
-      </a>
-      <a class="article" href="https://www.linkedin.com/pulse/market-software-being-renegotiatedby-agents-david-klan-xzctc" target="_blank" rel="noreferrer" data-fade>
-        <div class="article__meta"><span data-i18n="art.a3.meta_date">MAR · 2026</span><span class="tag" data-i18n="art.a3.tag">SAAS &amp; AI</span></div>
-        <h3 class="article__title" data-i18n="art.a3.title">The Market for Software Is Being Renegotiated — By Agents</h3>
-        <p class="article__excerpt" data-i18n="art.a3.excerpt">Procurement, integration, support — agents are showing up on the buyer's side first. What that means for SaaS pricing and packaging.</p>
-        <span class="article__cta" data-i18n="art.a3.cta">read on linkedin →</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ============ NOW / NEXT + ACTIVITY ============ -->
-  <section class="container section" id="status" data-screen-label="01 Home — Status">
-    <div class="section-head">
-      <div>
-        <span class="modlabel modlabel--amber" data-i18n="status.modlabel">// STATUS · NOW · NEXT · ACTIVITY</span>
-        <h2 style="margin-top:.5rem" data-i18n="status.h2">Build in public, in plain sight.</h2>
-      </div>
-      <p class="section-head__lead" data-i18n="status.lead">Updated nightly by the orchestrator. No surprises.</p>
-    </div>
-
-    <div class="now-next">
-      <div class="nn-panel" data-fade>
-        <h3 data-i18n="now.h3">// NOW</h3>
-        <ul>
-          <li data-i18n="now.li1">Deepening JTES domain coverage for Japanese tax workflows.</li>
-          <li data-i18n="now.li2">Upgrading dev infrastructure to build out services.</li>
-          <li data-i18n="now.li3">Wiring Kinokomon chat into the public site.</li>
-        </ul>
-      </div>
-      <div class="nn-panel nn-panel--next" data-fade>
-        <h3 data-i18n="next.h3">// NEXT</h3>
-        <ul>
-          <li data-i18n="next.li1">JTES beta with tax professionals; structured feedback cycles.</li>
-          <li data-i18n="next.li2">OCR layer for Keirimon receipt processing.</li>
-          <li data-i18n="next.li3">Bountymon v0.2 — multi-user reward ledger.</li>
-        </ul>
-      </div>
-
-      <div class="activity" data-fade>
-        <div class="activity__hdr">
-          <span data-i18n="act.hdr">// AGENT LOG</span>
-          <span class="live" data-i18n="act.live">LIVE</span>
-        </div>
-        <div class="activity__row">
-          <span class="activity__time">05.05 20:00</span>
-          <span class="activity__msg" data-i18n="act.r1.html">Nightly orchestrator <em>OK</em> · activity log + projects sync · pushed main · posted to #kinokoholic.</span>
-        </div>
-        <div class="activity__row">
-          <span class="activity__time">05.04 09:14</span>
-          <span class="activity__msg" data-i18n="act.r2.html">Site health check: 17 pages green · API calibration <em>2 warnings</em> · test suites pass.</span>
-        </div>
-        <div class="activity__row">
-          <span class="activity__time">04.25 18:02</span>
-          <span class="activity__msg" data-i18n="act.r3.html">Web-fetch fallback stack deployed: Brave → built-in → Jina → Crawl4AI.</span>
-        </div>
-        <div class="activity__row">
-          <span class="activity__time">04.19 11:30</span>
-          <span class="activity__msg" data-i18n="act.r4.html">Bountymon MVP <em>shipped</em> · 8 sample bounties · ARCHITECTURE.md committed.</span>
-        </div>
-        <div class="activity__row">
-          <span class="activity__time">04.12 22:48</span>
-          <span class="activity__msg" data-i18n="act.r5.html">Health-check system <em>online</em> · 9 EN + 8 JA pages validated nightly.</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ============ CONNECT ============ -->
   <section class="container section" id="connect" data-screen-label="01 Home — Connect">
     <div class="connect">
       <div class="connect__lead" data-fade>
         <span class="modlabel" data-i18n="connect.modlabel">// CONNECT</span>
-        <h2 style="margin-top:.7rem" data-i18n="connect.h2">Want to interrogate the portfolio? Talk to my agent first.</h2>
-        <p style="margin-top:.7rem" data-i18n="connect.lead">Ask Kinokomon anything about the work — projects, tradeoffs, scope, what I'd do differently. Then come find me on the slow channels.</p>
+        <h2 style="margin-top:.7rem" data-i18n="connect.h2">Need the details? Ask the portfolio—or ask me.</h2>
+        <p style="margin-top:.7rem" data-i18n="connect.lead">Use Kinokomon for product architecture, tradeoffs, and delivery history. For a focused build or technical conversation, contact me directly.</p>
         <p style="margin-top:1.4rem">
           <a class="chip chip--brand" href="/chat/" data-i18n="connect.cta">▸ ask the AI assistant</a>
         </p>
@@ -561,9 +278,6 @@
         <a class="connect__row" href="mailto:admin@dazbeez.com">
           <span class="k" data-i18n="connect.email_k">email</span><span class="v">admin@dazbeez.com</span>
         </a>
-        <a class="connect__row" href="https://www.moltbook.com/u/Kinokomon" target="_blank" rel="noreferrer">
-          <span class="k" data-i18n="connect.mb_k">moltbook</span><span class="v">@kinokomon</span>
-        </a>
       </div>
     </div>
   </section>
@@ -573,12 +287,11 @@
 <footer class="footer">
   <div class="container footer__inner">
     <span data-i18n="footer.copyright">© 2026 David Klan · kinokoholic.com</span>
-    <span data-i18n="footer.tag_home">built in public · last orchestrator run 2026.05.05 20:00 JST</span>
+    <span data-i18n="footer.tag_home">selected products · evidence-first systems</span>
   </div>
 </footer>
 
 <script src="assets/js/i18n.js"></script>
 <script src="assets/js/site.js"></script>
-<script src="assets/js/github-feed.js"></script>
 </body>
 </html>
