@@ -51,7 +51,7 @@
     "avatar.role": "AI/MLエンジニア · ITプロジェクトマネージャー · 東京",
 
     "proj.modlabel": "// 選抜プロダクト · 実装済みシステム",
-    "proj.h2": "実働する仕組みを持つ3つのプロダクト。",
+    "proj.h2": "実働する仕組みを持つ4つのプロダクト。",
     "proj.lead": "データ経路が動き、失敗条件が明示され、出力を検証できる。プロトタイプの演出ではなく実装で示します。",
     "proj.system_label": "システム",
 
@@ -84,6 +84,16 @@
     "proj.p3.tag2": "引用付きAI",
     "proj.p3.tag3": "Fail-closed",
     "proj.p3.cta": "ケーススタディを見る",
+
+    "proj.p4.id": "PRODUCT 04 · COLLABORATION PLATFORM",
+    "proj.p4.status": "招待制パイロット",
+    "proj.p4.title": "プロジェクト Kōsa（交差）",
+    "proj.p4.summary": "自律的でAIを活用したキャリアを築く、経験豊富なプロフェッショナルのための東京発ギルド。実課題を持ち寄り、一時的なCellを組成し、小さな実験で検証してから次に進みます。",
+    "proj.p4.system": "課題ボード → 一時的なCell → 小さな実験 → 検証結果 → 事業化または中止",
+    "proj.p4.tag1": "プロフェッショナルギルド",
+    "proj.p4.tag2": "Cloudflare + Clerk",
+    "proj.p4.tag3": "デフォルト拒否アクセス",
+    "proj.p4.cta": "プロダクトを見る",
 
     "fam.modlabel": "// -MON ファミリー · 特化型システム",
     "fam.h2": "プロダクト、コパイロット、実験。一つの仕事に一体ずつ。",
