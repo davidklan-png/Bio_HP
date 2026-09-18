@@ -56,7 +56,7 @@ Python, TypeScript, LLM application architecture, RAG, Prompt engineering, Evalu
 ## Projects and delivery programs
 1. **Kenkoumon 健康モン** — Paused doctor-visit transcription and structured patient-summary concept.
 2. **Keirimon 経理モン** — Mascot shared by JTES and Dazbeez Receipts; it is not a standalone product.
-3. **Bountymon (Kosa)** (bountymon.com) — Pilot bug-bounty and gamified task platform with test users.
+3. **Project Kōsa** (kosa.bountymon.com) — Invite-only pilot with test users: a Tokyo guild for experienced professionals building independent, AI-augmented careers. Members surface real problems, form temporary Cells, and run small experiments before deciding whether to commercialize or stop. Stack includes Cloudflare, Clerk, and default-deny access.
 4. **JTES (Japanese Tax Expert System)** — In development. RAG-based tax workflow with citation grounding over NTA and e-Gov sources.
 5. **Enterprise AI Enablement — Monitoring, BAU Transition & PM Second Brain** — Production AI monitoring creates automation, analyzes alerts, and creates incidents across 60 applications with URL/synthetic monitoring, centralized logging, and Rapid Recovery procedures. The pilot PM Second Brain parses Microsoft and Atlassian updates, applies an eight-field delivery taxonomy, presents a React/Quartz dashboard, drafts a human-reviewed weekly status report, and shares the corpus through Confluence and SharePoint.
 6. **Dazbeez Receipts** — Production receipt-classification, matching, and reconciliation system with users. Python, OCR, Rules + ML.
@@ -69,7 +69,7 @@ Python, TypeScript, LLM application architecture, RAG, Prompt engineering, Evalu
 ## The -mon Family
 Companion agents in the kinokoholic ecosystem, each doing one thing well:
 - **Kinokomon** 🦞 — Orchestrator, personal AI assistant
-- **Bountymon (Kosa)** — Pilot bug-bounty and gamified task platform with test users
+- **Bountymon / Project Kōsa** — The -mon identity and hosting surface for the invite-only professional guild pilot
 - **Keirimon** — Mascot for JTES and Dazbeez Receipts, not a standalone product
 - **Kenkoumon** — Paused doctor-visit transcription and summary concept
 - **Keibamon** — Pilot horse-racing data and ML platform with test users
@@ -78,7 +78,7 @@ Companion agents in the kinokoholic ecosystem, each doing one thing well:
 ## Current Product Status
 - Dazbeez Receipts: Production, with users
 - Keibamon: Pilot, with test users
-- Bountymon (Kosa): Pilot, with test users
+- Project Kōsa: Invite-only pilot, with test users
 - JTES: In development
 - Kanrimon: Pilot
 - Kenkoumon: Paused

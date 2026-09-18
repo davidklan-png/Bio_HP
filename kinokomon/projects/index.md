@@ -21,8 +21,8 @@ permalink: /kinokomon/projects/
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
-        <h3>Bountymon (Kosa) — Pilot</h3>
-        <p class="kinokomon-section__project-desc">Bug-bounty and gamified task platform currently being evaluated by test users.</p>
+        <h3>Project Kōsa（交差）— Invite-only pilot · Test users</h3>
+        <p class="kinokomon-section__project-desc">Tokyo guild for experienced professionals building independent, AI-augmented careers through a Problem Board, temporary Cells, and small evidence-led experiments.</p>
       </div>
 
       <div class="kinokomon-section__project-item">

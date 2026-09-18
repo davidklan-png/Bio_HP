@@ -28,7 +28,7 @@ permalink: /kinokomon/
     <ul class="kinokomon-section__list">
       <li><strong>Kenkoumon 健康モン — Paused</strong> — Doctor-visit transcription and structured patient-summary concept</li>
       <li><strong>Keirimon 経理モン — Mascot</strong> — Shared mascot for JTES and Dazbeez Receipts, not a standalone product</li>
-      <li><strong>Bountymon (Kosa) — Pilot</strong> — Bug-bounty and gamified task platform with test users (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
+      <li><strong>Project Kōsa（交差）— Invite-only pilot</strong> — Tokyo professional guild where test users surface real problems, form temporary Cells, and run small evidence-led experiments (see <a href="https://kosa.bountymon.com" target="_blank" rel="noopener">kosa.bountymon.com</a>)</li>
       <li><strong>Keibamon 競馬モン — Pilot</strong> — Horse-racing data and ML platform being evaluated by test users (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
       <li><strong>Japanese Tax Expert System (JTES) — In development</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding</li>
       <li><strong>Dazbeez Receipts — Production</strong> — Receipt classification, matching, and reconciliation system with users</li>
@@ -121,10 +121,10 @@ permalink: /kinokomon/
       </div>
       
       <div class="kinokomon-section__family-card">
-        <a href="https://bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" /></a>
-        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon (Kosa)</a></h3>
-        <p class="kinokomon-section__family-desc">Pilot bug-bounty and gamified task platform with test users.</p>
-        <span class="kinokomon-section__family-badge">Pilot · Test users</span>
+        <a href="https://kosa.bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon / Project Kōsa" class="kinokomon-section__family-img" /></a>
+        <h3 class="kinokomon-section__family-name"><a href="https://kosa.bountymon.com" target="_blank" rel="noopener">Bountymon / Project Kōsa</a></h3>
+        <p class="kinokomon-section__family-desc">Invite-only Tokyo guild where experienced professionals form temporary Cells around real problems and validate small experiments.</p>
+        <span class="kinokomon-section__family-badge">Invite-only pilot · Test users</span>
       </div>
       
       <div class="kinokomon-section__family-card">

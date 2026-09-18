@@ -14,15 +14,15 @@
     },
     {
       "slug": "bm",
-      "name": "Bountymon",
-      "name_ja": "",
+      "name": "Bountymon / Project Kōsa",
+      "name_ja": "バウンティモン／プロジェクト交差",
       "icon": "bountymon.png",
-      "href": "https://bountymon.com",
+      "href": "https://kosa.bountymon.com",
       "external": true,
-      "desc_en": "Bountymon (Kosa), a bug-bounty and gamified task tracker currently being tested by pilot users.",
-      "tag_en": "pilot · test users",
-      "desc_ja": "Bountymon（Kosa）。テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型タスクトラッカー。",
-      "tag_ja": "パイロット · テストユーザー"
+      "desc_en": "Project Kōsa, an invite-only Tokyo guild where experienced professionals form temporary Cells to test real problems with small, evidence-led experiments.",
+      "tag_en": "invite-only pilot · test users",
+      "desc_ja": "Project Kōsa（交差）。経験豊富なプロフェッショナルが一時的なCellを組み、実課題を小さな実験で検証する招待制の東京発ギルド。",
+      "tag_ja": "招待制パイロット · テストユーザー"
     },
     {
       "slug": "km",
@@ -212,43 +212,41 @@
       ]
     },
     {
-      "name": "Bountymon (Kosa) - Bug Bounty & Task Rewards Platform",
+      "name": "Project Kōsa - Professional Guild and Collaboration Platform",
       "capability_tags": [
-        "LLM foundations",
         "Agentic workflows",
-        "Python & Integrations"
+        "Stakeholder management",
+        "Governance & Delivery"
       ],
       "domain_tags": [
-        "Security",
-        "Bug Bounty",
-        "Gamification"
+        "Professional Network",
+        "Collaboration",
+        "Career Development"
       ],
       "tags": [
-        "Bug bounty",
-        "Task rewards",
-        "Gamification",
-        "Security research"
+        "Professional guild",
+        "Problem board",
+        "Temporary Cells",
+        "Evidence-led experiments"
       ],
-      "summary": "Bug bounty and gamified task platform that rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.",
-      "status": "Pilot",
+      "summary": "Invite-only Tokyo guild for experienced professionals building independent, AI-augmented careers by surfacing real problems, forming temporary Cells, and validating small experiments before committing further.",
+      "status": "Invite-only pilot",
       "user_validation": "Test users",
       "outcomes": [
-        "Gamified bug reporting with reward tracking",
-        "Security challenge completion with bounties",
-        "Productivity tracking with calendar and progress bars",
-        "Freelance task marketplace matching"
+        "Structured a problem-to-experiment flow through a shared Problem Board and temporary Cells",
+        "Used evidence from small experiments to decide whether to commercialize or stop",
+        "Created a default-deny collaboration space for invited pilot users"
       ],
       "stack": [
-        "Python",
-        "LLM APIs",
-        "Gamification",
-        "Security tools"
+        "Cloudflare",
+        "Clerk",
+        "Default-deny access control"
       ],
       "evidence": [
         {
-          "url": "https://kinokoholic.com/kinokomon/",
-          "label": "Bountymon Development",
-          "snippet": "Bug bounty and task rewards platform"
+          "url": "https://kosa.bountymon.com",
+          "label": "Project Kōsa",
+          "snippet": "Invite-only professional guild and collaboration platform"
         }
       ]
     },
