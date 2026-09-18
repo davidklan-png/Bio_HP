@@ -1,10 +1,10 @@
 ﻿David Klan, PMP     デイビット・クラン
  Nearest station:                                Higashi Nakano - Chuo-sen (Tokyo)
-  Mobile / email:                                090-8266-9210 / david.klan@gmail.com
-        Languages:                                English – (Native)        Japanese – (Business level)
+  Mobile / email:                                090-8266-9210 / dklan@dazbeez.com
+        Languages:                                English – (Native)        Japanese – (Conversational)
         Nationality:                                USA
         Date of birth:                                05/09/1975
-        Visa Status:                                Spousal Visa valid until Feb 15, 2016
+        Visa Status:                                Permanent Resident of Japan
 
 
 Profile
@@ -64,7 +64,7 @@ ________________
 DETAILED PROJECT LIST - Responsibilities
 
 
-Application Projects:  Client/Server application using the Drupal CMF on LAMP stack (1500 users). ETL using IBM DataStage with DB2 staging area (1.2GB of raw data transformation per business day).
+Application Projects:  Client/Server application using the Drupal CMF on LAMP stack. ETL using IBM DataStage with a DB2 staging area.
 
 
 Infrastructure Projects:  SBC/VDI Thin Client replacement (1000 client desktops), laptop replacement (3000 client laptops), client OS and middleware upgrades (10,000+ clients), Server software upgrades (400+ servers), Mainframe product upgrades, Call Center platform consolidation (300+ seats).

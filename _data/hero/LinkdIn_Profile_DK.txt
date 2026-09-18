@@ -26,7 +26,7 @@ Summary
 I’m a Tokyo-based IT project manager with 15+ years ofexperience delivering scalable infrastructure, data governance, andtransformation projects for global enterprises like AIG and Manulife.
 I specialize in:
 Data migrations and integrationsInfrastructure scale-ups and disaster recoveryCross-border team leadership and vendor coordinationI’m now exploring startup, scale-up, or consulting roles with moredynamic risk/reward potential—especially where infrastructurematurity, compliance, and delivery excellence intersect.
-Fluent in native English and business-level Japanese. Permanentresident in Japan. Open to fractional, freelance, or advisory rolesacross APAC and remote-friendly orgs.
+Native English and conversational Japanese. Permanent resident in Japan. Open to fractional, freelance, or advisory roles across APAC and remote-friendly organizations.
 
 Experience
 
@@ -100,7 +100,7 @@ Managed project lifecycle from charter through warranty using a phasedcommercial
 
 
 Facilitated weekly delivery meetings, program-level syncs, and executivesteering committees to ensure OTOBOS delivery (on time, on budget, onscope).
-Proactively mitigated risks through tight stakeholder engagement and issuetracking, achieving zero critical delays across multiple parallel workstreams.
+Managed risks across parallel workstreams through stakeholder engagement and issue tracking.
 
 
 
@@ -149,7 +149,7 @@ Education
 
 University of Hawaii at Manoa
 
-BBA, Mngt Info Systems · (1998 - 2002)
+BBA, Management Information Systems · (1998 - 2002)
 
 
 

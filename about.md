@@ -11,7 +11,7 @@ permalink: /about/
     <div class="about-section__intro-text">
       <h1 class="about-section__title">Hello, I'm David</h1>
       <p>I'm curious about how AI can help people do meaningful work. I don't believe in replacing humans with technology — I believe in building things that respect human expertise while making it easier to do what matters.</p>
-      <p>For 15+ years, I've been working at the intersection of technology, people, and change. I've led enterprise transformation programs, built AI tools that help experts do their jobs better, and learned that the most rewarding work happens when you truly understand what someone needs.</p>
+      <p>For more than 20 years, I've been working at the intersection of technology, people, and change. I've led enterprise transformation programs, built AI tools that help experts do their jobs better, and learned that the most rewarding work happens when you truly understand what someone needs.</p>
     </div>
   </div>
 
@@ -41,7 +41,7 @@ permalink: /about/
     <h3 class="about-section__section-title">Projects You Might Find Interesting</h3>
     <ul class="about-section__list">
       <li><a href="https://kinokoholic.com/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/" class="about-section__link"><strong>JTES</strong></a> — An AI assistant for Japanese tax professionals with citation grounding</li>
-      <li><a href="https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/" class="about-section__link"><strong>Insurance Reporting Automation</strong></a> — Making complex workflows less painful for insurance teams</li>
+      <li><a href="https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/" class="about-section__link"><strong>Enterprise AI Enablement</strong></a> — Production monitoring, governed BAU transition, and a pilot PM Second Brain at Manulife Japan</li>
     </ul>
   </div>
 
@@ -50,8 +50,8 @@ permalink: /about/
     <p>I'm always curious to learn about interesting problems and interesting people. If you're working on something that matters, I'd love to hear about it.</p>
     <ul class="about-section__list about-section__contact-list">
       <li><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/davidklan" class="about-section__link" target="_blank" rel="noreferrer">davidklan</a></li>
-      <li><strong>Email:</strong> <a href="mailto:kinokomon@kinokoholic.com" class="about-section__link">kinokomon@kinokoholic.com</a></li>
-      <li><strong>Location:</strong> Japan & US (open to remote, hybrid, or on-site)</li>
+      <li><strong>Email:</strong> <a href="mailto:dklan@dazbeez.com" class="about-section__link">dklan@dazbeez.com</a></li>
+      <li><strong>Location:</strong> Tokyo, Japan (permanent resident)</li>
     </ul>
   </div>
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   MODELS,
+  SYSTEM_PROMPT,
   _resetRateMap,
   buildAnthropicPayload,
   buildCacheControl,
@@ -14,6 +15,84 @@ import {
   resolveModel,
   validateRequest,
 } from './worker.js';
+
+test('portfolio prompt reflects the current employment model and retired metrics', () => {
+  assert.match(SYSTEM_PROMPT, /Dazbeez GK/);
+  assert.match(SYSTEM_PROMPT, /Dazbeez GK.*(?:February 1, 2020|1 February 2020)/is);
+  assert.match(SYSTEM_PROMPT, /from inception.*Smart Partners.*AIG.*Manulife/is);
+  assert.match(SYSTEM_PROMPT, /Smart Partners/);
+  assert.match(SYSTEM_PROMPT, /Manulife Japan.*December 2021/is);
+  assert.match(SYSTEM_PROMPT, /dklan@dazbeez\.com/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /admin@dazbeez\.com/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /hundreds of MB/i);
+  assert.doesNotMatch(SYSTEM_PROMPT, /40% time-to-launch/i);
+});
+
+test('portfolio prompt reflects the corrected client chronology and drops unattributed outcomes', () => {
+  assert.match(SYSTEM_PROMPT, /April 2011–June 2012.*AXA/s);
+  assert.match(SYSTEM_PROMPT, /2013–2015.*AIG Business Partners/s);
+  assert.match(SYSTEM_PROMPT, /2015–2021.*AIG Technology/s);
+  assert.doesNotMatch(SYSTEM_PROMPT, /zero critical data loss/i);
+  assert.doesNotMatch(SYSTEM_PROMPT, /1,200\+ servers/i);
+  assert.doesNotMatch(SYSTEM_PROMPT, /three days to under one/i);
+  assert.match(SYSTEM_PROMPT, /January–September 2003.*Asano Taiko/is);
+  assert.match(SYSTEM_PROMPT, /September 2003–2004.*Com-One/is);
+});
+
+test('portfolio prompt attributes the AIG and Manulife programs correctly', () => {
+  assert.match(SYSTEM_PROMPT, /PEGA/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /Pegasus/i);
+  assert.match(SYSTEM_PROMPT, /AIU\/FFM merger/);
+  assert.match(SYSTEM_PROMPT, /Optimization Program/);
+  assert.match(SYSTEM_PROMPT, /Manulife.*data migration stream.*mainframe/is);
+  assert.match(SYSTEM_PROMPT, /Hong Kong to Japan/);
+  assert.match(SYSTEM_PROMPT, /July 2012–January 2013.*PMP/s);
+});
+
+test('portfolio prompt preserves attributed scale, ownership, and merger outcomes', () => {
+  assert.match(SYSTEM_PROMPT, /active policy data migration stream/i);
+  assert.match(SYSTEM_PROMPT, /200-person.*full SDLC/i);
+  assert.match(SYSTEM_PROMPT, /data quality and integration testing/i);
+  assert.match(SYSTEM_PROMPT, /entire cutover week/i);
+  assert.match(SYSTEM_PROMPT, /150 optimization targets/i);
+  assert.match(SYSTEM_PROMPT, /60% reduction in infrastructure costs/i);
+  assert.match(SYSTEM_PROMPT, /Japan.*APAC.*Global/s);
+});
+
+test('portfolio prompt describes incident intelligence as a governed BAU transition', () => {
+  assert.match(SYSTEM_PROMPT, /Production AI Monitoring/i);
+  assert.match(SYSTEM_PROMPT, /Japan to Global Operations/i);
+  assert.match(SYSTEM_PROMPT, /runbooks and documentation/i);
+  assert.match(SYSTEM_PROMPT, /shadowing.*reverse-shadowing.*operational handover/is);
+  assert.doesNotMatch(SYSTEM_PROMPT, /Replaced manual reporting/i);
+});
+
+test('portfolio prompt distinguishes the two Manulife AI systems and their maturity', () => {
+  assert.match(SYSTEM_PROMPT, /AI monitoring.*production/is);
+  assert.match(SYSTEM_PROMPT, /60 applications/i);
+  assert.match(SYSTEM_PROMPT, /URL.*synthetic monitoring.*centralized logging.*Rapid Recovery/is);
+  assert.match(SYSTEM_PROMPT, /PM Second Brain.*pilot/is);
+  assert.match(SYSTEM_PROMPT, /Objective.*Key Result.*Workstream.*Task.*Owner.*Team.*Risk\/Issue.*Priority/is);
+  assert.match(SYSTEM_PROMPT, /React\/Quartz dashboard/i);
+  assert.match(SYSTEM_PROMPT, /human review.*weekly status report/is);
+  assert.match(SYSTEM_PROMPT, /Confluence and SharePoint/i);
+  assert.match(SYSTEM_PROMPT, /handover is in progress/i);
+});
+
+test('portfolio prompt reflects confirmed education, languages, training, and project maturity', () => {
+  assert.match(SYSTEM_PROMPT, /Bachelor of Business Administration.*Management Information Systems.*University of Hawaiʻi at Mānoa/is);
+  assert.match(SYSTEM_PROMPT, /English.*Native/is);
+  assert.match(SYSTEM_PROMPT, /Japanese.*Conversational/is);
+  assert.match(SYSTEM_PROMPT, /2024–2025.*SAFe Scrum Master.*Leading SAFe.*Release Train Engineer/is);
+  assert.match(SYSTEM_PROMPT, /JTES.*In development/is);
+  assert.match(SYSTEM_PROMPT, /Keibamon.*Pilot.*test users/is);
+  assert.match(SYSTEM_PROMPT, /Dazbeez Receipts.*Production.*users/is);
+  assert.match(SYSTEM_PROMPT, /Bountymon.*Kosa.*Pilot.*test users/is);
+  assert.match(SYSTEM_PROMPT, /Kenkoumon.*Paused/is);
+  assert.match(SYSTEM_PROMPT, /Kanrimon.*Pilot/is);
+  assert.match(SYSTEM_PROMPT, /Keirimon.*mascot.*JTES.*Dazbeez Receipts/is);
+  assert.doesNotMatch(SYSTEM_PROMPT, /Keirimon.*assistant/i);
+});
 
 test('validateRequest rejects missing/empty messages', () => {
   assert.equal(validateRequest({}, 50).ok, false);

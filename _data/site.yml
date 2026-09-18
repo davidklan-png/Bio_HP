@@ -1,8 +1,8 @@
 site_title: LLM Project Portfolio - David Klan
 site_title_ja: LLMプロジェクトポートフォリオ - David Klan
 owner_name: David Klan
-owner_role: IT PM + AI/ML Engineer
-owner_role_ja: ITプロジェクトマネージャー + AI/MLエンジニア
+owner_role: IT Consultant + Application PM + AI/Data Builder
+owner_role_ja: ITコンサルタント + アプリケーションPM + AI／データビルダー
 hero_tagline: The interface between human intent and machine intelligence
 hero_tagline_ja: 人間の意志と機械知性の接点
 summary: I build the systems where human judgment meets artificial cognition — practical LLM architectures that know their own limits.
@@ -12,8 +12,8 @@ about_short_ja: エージェント、プロンプト、検索アーキテクチ�
 contacts:
   github: https://github.com/davidklan-png
   linkedin: https://www.linkedin.com/in/david-klan/
-  website: 
-  email: admin@dazbeez.com
+  website: https://kinokoholic.com
+  email: dklan@dazbeez.com
 skills:
   - name: Prompt Engineering
     name_ja: プロンプトエンジニアリング
@@ -35,17 +35,17 @@ skills:
     icon: evaluation
 now_next:
   now:
-    - Deepening JTES domain coverage for Japanese tax workflows.
-    - Upgrade development infrastructure to build out services
+    - Operating Dazbeez Receipts in production with users.
+    - Developing JTES and piloting Keibamon, Bountymon (Kosa), and Kanrimon.
   now_ja:
-    - 日本の税務ワークフロー向けJTESドメインカバレッジの拡張。
-    - サービス構築のための開発インフラのアップグレード
+    - 利用者向けにDazbeez Receiptsを本番運用。
+    - JTESを開発し、Keibamon、Bountymon（Kosa）、Kanrimonをパイロット運用。
   next:
-    - JTES beta with tax professionals and structured feedback cycles.
-    - Implement OCR for automated receipt processing.
+    - Use pilot and test-user feedback to guide the next product changes.
+    - Keep project maturity labels aligned with verified use.
   next_ja:
-    - 税理士との構造化されたフィードバックサイクルによるJTESベータ版。
-    - レシート処理の自動化のためのOCR実装。
+    - パイロットとテストユーザーのフィードバックを次の改善へ反映。
+    - 検証済みの利用状況に合わせて成熟度表示を更新。
 project_order:
   - receipt_classification_matching
   - jtes_specialized_rag

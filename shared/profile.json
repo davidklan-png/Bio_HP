@@ -19,10 +19,10 @@
       "icon": "bountymon.png",
       "href": "https://bountymon.com",
       "external": true,
-      "desc_en": "Bug-bounty & gamified task tracker. Reward ledger, productivity surface, deployable on Cloudflare Pages.",
-      "tag_en": "security · rewards",
-      "desc_ja": "バグバウンティ&ゲーミフィケーション型タスクトラッカー。報酬台帳、生産性UI、Cloudflare Pages対応。",
-      "tag_ja": "セキュリティ · リワード"
+      "desc_en": "Bountymon (Kosa), a bug-bounty and gamified task tracker currently being tested by pilot users.",
+      "tag_en": "pilot · test users",
+      "desc_ja": "Bountymon（Kosa）。テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型タスクトラッカー。",
+      "tag_ja": "パイロット · テストユーザー"
     },
     {
       "slug": "km",
@@ -31,10 +31,10 @@
       "icon": "keirimon.png",
       "href": "#projects",
       "external": false,
-      "desc_en": "Japanese tax + accounting assistant. Receipts, expense categories, kakuteishinkoku-ready output.",
-      "tag_en": "tax · finance",
-      "desc_ja": "日本の税務・経理アシスタント。領収書、勘定科目、確定申告対応の出力。",
-      "tag_ja": "税務 · 経理"
+      "desc_en": "Mascot shared by JTES and Dazbeez Receipts; not a standalone product.",
+      "tag_en": "mascot · JTES · receipts",
+      "desc_ja": "JTESとDazbeez Receiptsで共用するマスコット。単独製品ではありません。",
+      "tag_ja": "マスコット · JTES · Receipts"
     },
     {
       "slug": "ke",
@@ -43,10 +43,10 @@
       "icon": "kenkoumon.png",
       "href": "#projects",
       "external": false,
-      "desc_en": "Doctor-visit transcription & structured patient summary. Translates clinical chatter into shared notes.",
-      "tag_en": "healthcare",
-      "desc_ja": "通院記録の音声書き起こし & 構造化された患者サマリ。臨床の口語を共有可能なノートに変換。",
-      "tag_ja": "ヘルスケア"
+      "desc_en": "Paused doctor-visit transcription and structured patient-summary concept.",
+      "tag_en": "healthcare · paused",
+      "desc_ja": "通院記録の音声書き起こしと構造化患者サマリの構想。現在休止中。",
+      "tag_ja": "ヘルスケア · 休止中"
     },
     {
       "slug": "kb",
@@ -55,10 +55,10 @@
       "icon": "keibamon.png",
       "href": "https://keibamon.com",
       "external": true,
-      "desc_en": "Local-first horse-racing data & ML platform. Medallion lake, odds polling, backtesting engine, JRA/NAR race analysis.",
-      "tag_en": "racing · ML",
-      "desc_ja": "ローカルファーストの競馬データ & MLプラットフォーム。メダリオンレイク、オッズポーリング、バックテストエンジン、JRA/NARのレース分析。",
-      "tag_ja": "競馬 · ML"
+      "desc_en": "Pilot horse-racing data and ML platform for test users, with point-in-time research and backtesting.",
+      "tag_en": "pilot · test users",
+      "desc_ja": "テストユーザー向けパイロット競馬データ／MLプラットフォーム。時点整合性を保つ分析とバックテストに対応。",
+      "tag_ja": "パイロット · テストユーザー"
     },
     {
       "slug": "kan",
@@ -68,9 +68,9 @@
       "href": "#connect",
       "external": false,
       "desc_en": "Evidence-backed condominium management copilot for board continuity, compliance readiness, and archive onboarding.",
-      "tag_en": "property governance · research",
+      "tag_en": "property governance · pilot",
       "desc_ja": "理事会の継続性、管理計画認定の準備、管理資料の引き継ぎを支援する、根拠重視のマンション管理コパイロット。",
-      "tag_ja": "マンション管理 · リサーチ"
+      "tag_ja": "マンション管理 · パイロット"
     }
   ],
   "skills": [
@@ -100,7 +100,7 @@
     "Governance Management",
     "Closure Management",
     "Vendor Management",
-    "Project Management Professional (PMP)"
+    "Project Management Professional (PMP), earned 2012"
   ],
   "capability_tags": [
     "Prompt engineering",
@@ -121,7 +121,19 @@
     {
       "name": "Project Management Professional (PMP)",
       "issuer": "Project Management Institute",
-      "year": "2012"
+      "year": "2012",
+      "status": "Earned in 2012; not maintained or represented as current"
+    },
+    {
+      "name": "SAFe Agile training",
+      "provider": "SAFe",
+      "period": "2024-2025",
+      "courses": [
+        "SAFe Scrum Master",
+        "Leading SAFe",
+        "Release Train Engineer"
+      ],
+      "status": "Training completed; not presented as a current or renewed certification"
     }
   ],
   "projects": [
@@ -144,6 +156,7 @@
         "Doctor assistance"
       ],
       "summary": "AI-powered patient/doctor application for transcribing and summarizing doctor visits.",
+      "status": "Paused",
       "outcomes": [
         "Automated doctor visit transcription with structured output",
         "Generated patient-friendly visit summaries",
@@ -164,7 +177,7 @@
       ]
     },
     {
-      "name": "Keirimon - Japanese Tax & Accounting Assistant",
+      "name": "Keirimon - JTES and Dazbeez Receipts Mascot",
       "capability_tags": [
         "LLM foundations",
         "Python & Integrations",
@@ -181,29 +194,25 @@
         "Receipt categorization",
         "Tax preparation"
       ],
-      "summary": "Japanese tax and accounting assistant that automates expense tracking, receipt categorization, and tax preparation for Japanese filers.",
+      "summary": "Shared mascot for JTES and Dazbeez Receipts; not a standalone software product.",
+      "status": "Mascot",
       "outcomes": [
-        "Automated expense tracking and categorization",
-        "Receipt OCR and data extraction",
-        "Tax preparation workflow optimization",
-        "Japanese tax law compliance checking"
+        "Provides a shared visual identity across the JTES and Dazbeez Receipts projects"
       ],
       "stack": [
-        "Python",
-        "LLM APIs",
-        "OCR",
-        "Japanese NLP"
+        "Brand identity",
+        "Character design"
       ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/kinokomon/",
-          "label": "Keirimon Development",
-          "snippet": "Japanese tax and accounting assistant application"
+          "label": "Keirimon Mascot",
+          "snippet": "Mascot shared by JTES and Dazbeez Receipts"
         }
       ]
     },
     {
-      "name": "Bountymon - Bug Bounty & Task Rewards Platform",
+      "name": "Bountymon (Kosa) - Bug Bounty & Task Rewards Platform",
       "capability_tags": [
         "LLM foundations",
         "Agentic workflows",
@@ -221,6 +230,8 @@
         "Security research"
       ],
       "summary": "Bug bounty and gamified task platform that rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.",
+      "status": "Pilot",
+      "user_validation": "Test users",
       "outcomes": [
         "Gamified bug reporting with reward tracking",
         "Security challenge completion with bounties",
@@ -261,6 +272,8 @@
         "NAR"
       ],
       "summary": "Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis. Medallion lake architecture with Parquet storage, point-in-time features, and walk-forward backtesting.",
+      "status": "Pilot",
+      "user_validation": "Test users",
       "outcomes": [
         "Full bronze/silver/gold/marts data pipeline with immutable source snapshots",
         "Point-in-time feature validation and available-at integrity checks",
@@ -305,6 +318,7 @@
         "Citation grounding"
       ],
       "summary": "Specialized retrieval-augmented assistant for Japanese tax workflows.",
+      "status": "In development",
       "outcomes": [
         "Built evidence-grounded answer flow with citations",
         "Improved retrieval relevance using domain-specific chunking"
@@ -324,40 +338,89 @@
       ]
     },
     {
-      "name": "Insurance Reporting & Incident Intelligence",
+      "name": "Kanrimon - Condominium Management Copilot",
+      "capability_tags": [
+        "LLM foundations",
+        "RAG",
+        "Governance & Delivery"
+      ],
+      "domain_tags": [
+        "Property Governance",
+        "Condominium Management"
+      ],
+      "tags": [
+        "Evidence-backed research",
+        "Board continuity",
+        "Compliance readiness",
+        "Archive onboarding"
+      ],
+      "summary": "Evidence-backed condominium-management copilot for board continuity, compliance readiness, and archive onboarding.",
+      "status": "Pilot",
+      "outcomes": [],
+      "stack": [],
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/kinokomon/",
+          "label": "Kanrimon Portfolio Entry",
+          "snippet": "Pilot condominium-management copilot"
+        }
+      ]
+    },
+    {
+      "name": "Enterprise AI Enablement - Monitoring, BAU Transition, and PM Second Brain",
       "capability_tags": [
         "Python & Integrations"
       ],
       "domain_tags": [
         "Insurance",
-        "Finance",
-        "Risk Management"
+        "Application Operations",
+        "Production Support",
+        "Project Management"
       ],
       "tags": [
-        "Enterprise AI",
-        "Reporting automation",
-        "Incident analysis"
+        "AI-assisted monitoring",
+        "Operations transition",
+        "Runbooks",
+        "Shadowing",
+        "Reverse-shadowing",
+        "Operational handover",
+        "Second Brain",
+        "Status reporting"
       ],
-      "summary": "Workflow automation for insurance reporting and incident intelligence tasks.",
+      "summary": "Two Manulife AI systems: production monitoring and incident automation across 60 applications, plus a pilot PM Second Brain that turns Microsoft and Atlassian updates into structured delivery intelligence and human-reviewed weekly reporting.",
+      "status": {
+        "ai_monitoring": "Production",
+        "pm_second_brain": "Pilot",
+        "operational_handover": "In progress"
+      },
       "outcomes": [
-        "Reduced manual report preparation through structured AI assistance",
-        "Standardized triage flow for faster analyst handoff"
+        "Used production AI to help create automation, analyze alerts, and create incidents across 60 applications",
+        "Covered URL monitoring, synthetic monitoring, centralized logging, and Rapid Recovery procedures",
+        "Governed an in-progress BAU transition through discovery, verified runbooks, shadowing, reverse-shadowing, and readiness validation",
+        "Built a pilot PM Second Brain that parses Microsoft and Atlassian updates through a delivery taxonomy",
+        "Presented the project corpus in a React/Quartz dashboard and drafted weekly reports for human review before distribution",
+        "Shared the governed working-group corpus through Confluence and SharePoint"
       ],
       "stack": [
-        "Python",
-        "Automation",
-        "Data pipelines"
+        "AI-assisted application monitoring",
+        "URL and synthetic monitoring",
+        "Centralized logging",
+        "Microsoft and Atlassian APIs",
+        "React",
+        "Quartz",
+        "Confluence",
+        "SharePoint"
       ],
       "evidence": [
         {
           "url": "https://kinokoholic.com/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/",
-          "label": "Enterprise AI Case Study",
-          "snippet": "AI-powered reporting automation and incident intelligence for insurance workflows"
+          "label": "Enterprise AI Enablement Case Study",
+          "snippet": "Production AI monitoring, governed BAU transition, and a pilot PM Second Brain"
         }
       ]
     },
     {
-      "name": "Receipt Classification and Matching System",
+      "name": "Dazbeez Receipts - Receipt Classification and Matching System",
       "capability_tags": [
         "Python & Integrations"
       ],
@@ -372,6 +435,8 @@
         "Matching"
       ],
       "summary": "Receipt ingestion pipeline with categorization and matching support.",
+      "status": "Production",
+      "user_validation": "Has users",
       "outcomes": [
         "Improved classification consistency",
         "Enabled faster financial reconciliation workflows"
@@ -390,7 +455,7 @@
       ]
     },
     {
-      "name": "Enterprise Data Migration and Governance (AIG / Smart Partners)",
+      "name": "Enterprise Data Consolidation (AIG Business Partners / Smart Partners)",
       "capability_tags": [
         "Governance & Delivery",
         "Risk & Issue Management",
@@ -405,16 +470,15 @@
         "Data migration",
         "Data governance",
         "Compliance",
-        "Mainframe sunset",
+        "Common data model",
         "Stakeholder management",
         "Risk-based reporting"
       ],
-      "summary": "Led large-scale enterprise data migration and governance delivery across insurance platforms. Managed customer data migration project during mainframe sunset, ensuring zero critical data loss across multiple systems.",
+      "summary": "Led enterprise data consolidation and governance delivery across insurance platforms, including coordination of 45 Japanese source systems into a common global data model.",
       "outcomes": [
-        "Supported multi-system migration with zero critical data loss during mainframe sunset",
         "Built compliance-ready governance workflows and risk-based reporting",
-        "Reduced manual data correction time by 40% through workflow optimizations",
-        "Coordinated with internal IS/IT teams, external vendors, and business units"
+        "Coordinated application, data, architecture, infrastructure, vendor, and business stakeholders",
+        "Supported consolidation of policy, claim, party, and object data from 45 Japanese source systems into a common global data model"
       ],
       "stack": [
         "Data architecture",
@@ -426,8 +490,57 @@
       "evidence": [
         {
           "url": "https://kinokoholic.com/work-history/",
-          "label": "Data Migration & Governance",
-          "snippet": "Multi-system data migration with compliance workflows and zero critical data loss"
+          "label": "AIG Business Partners Data Consolidation",
+          "snippet": "45-source-system data consolidation with compliance-oriented governance workflows"
+        }
+      ]
+    },
+    {
+      "name": "Legacy Mainframe Migration and Application Infrastructure (Manulife Japan / Dazbeez GK)",
+      "capability_tags": [
+        "Governance & Delivery",
+        "Risk & Issue Management",
+        "Infrastructure Management",
+        "Data Governance"
+      ],
+      "domain_tags": [
+        "Insurance",
+        "Enterprise IT",
+        "Data Migration"
+      ],
+      "tags": [
+        "Mainframe decommissioning",
+        "Data migration",
+        "Active Directory",
+        "Operating systems",
+        "System relocation",
+        "Monitoring",
+        "Automation"
+      ],
+      "summary": "Owned the active-policy data-migration stream within Manulife Japan's enterprise-scale legacy-mainframe migration and decommissioning program, involving approximately 200 contributors across the full SDLC, then continued with infrastructure and application-operations projects.",
+      "outcomes": [
+        "Owned the active-policy data-migration stream within the legacy-mainframe migration and decommissioning program",
+        "Delivered functional improvements and new features within the migration scope",
+        "Focused program delivery on data quality and integration testing across an approximately 200-person full-SDLC organization",
+        "Delivered infrastructure consolidation and standardization covering Active Directory and operating-system versions",
+        "Managed migration of critical systems from Hong Kong to Japan",
+        "Introduced production AI monitoring across 60 applications to support automation creation, alert analysis, and incident creation",
+        "Governed an in-progress BAU transfer from Japan to Global Operations through discovery, verified runbooks, shadowing, reverse-shadowing, and readiness validation",
+        "Built a pilot PM Second Brain using Microsoft and Atlassian APIs, a structured delivery taxonomy, React/Quartz, and human-reviewed weekly reporting"
+      ],
+      "stack": [
+        "Data migration",
+        "Active Directory",
+        "Operating-system infrastructure",
+        "Application monitoring",
+        "Automation",
+        "Program governance"
+      ],
+      "evidence": [
+        {
+          "url": "https://kinokoholic.com/work-history/",
+          "label": "Manulife Japan Assignment",
+          "snippet": "Mainframe data migration and decommissioning followed by infrastructure consolidation, system relocation, monitoring, and automation"
         }
       ]
     },
@@ -451,12 +564,13 @@
         "Program governance",
         "DR/BCP policy"
       ],
-      "summary": "Delivered infrastructure transformation programs across global, high-availability enterprise environments. Managed infrastructure programs including merger and build-out of 1,200+ servers across global environments.",
+      "summary": "Delivered AXA infrastructure transformation and three Japan-based AIG Technology programs enabling the AIU/FFM merger, coordinating APAC operations under global direction.",
       "outcomes": [
         "Managed infrastructure refresh for 10,000+ clients and 400+ servers",
-        "Directed post-merger infrastructure standardization and DR/BCP implementation",
-        "Coordinated multi-region delivery teams across Japan, EMEA, and North America",
-        "Delivered automated onboarding workflow system - reduced setup time from 3 days to under 1",
+        "Managed PEGA infrastructure buildout and the 2018 AIU/FFM system rollout and migration",
+        "Stayed on site throughout the cutover week to monitor implementation, report infrastructure status, and organize triage and recovery plans",
+        "Tracked 150 cross-team optimization targets and helped facilitate a 60% reduction in infrastructure costs",
+        "Coordinated internal, vendor, and global delivery teams",
         "Aligned infrastructure delivery with strict DR/BCP standards"
       ],
       "stack": [
@@ -551,6 +665,145 @@
       ]
     }
   ],
+  "current_employment_model": {
+    "employer": "Dazbeez GK",
+    "established": "February 1, 2020",
+    "employment_period": "February 1, 2020-present",
+    "management": "Run by David Klan and his business manager",
+    "employment_title": "IT Consultant",
+    "contracting_channel": "Smart Partners",
+    "contracting_history": "Dazbeez GK contracted through Smart Partners from its inception on February 1, 2020, initially for the continuing AIG Technology assignment and then for Manulife Japan from December 2021.",
+    "current_client": "Manulife Japan",
+    "assignment_title": "Application Project Manager",
+    "assignment_period": "December 2021-present",
+    "location": "Tokyo, Japan",
+    "work_status": "Permanent resident of Japan",
+    "parallel_portfolio": "Kinokoholic showcases AI, data, and automation projects developed since 2024; it is a portfolio and project surface, not a separate employer."
+  },
+  "experience": [
+    {
+      "period": "February 1, 2020-present",
+      "employer": "Dazbeez GK",
+      "title": "IT Consultant",
+      "contracting_channel": "Smart Partners",
+      "client": "Manulife Japan",
+      "assignment_title": "Application Project Manager",
+      "assignment_period": "December 2021-present",
+      "assignments": [
+        {
+          "client": "AIG Technology KK",
+          "period": "February 1, 2020-2021",
+          "relationship": "Continuation of the existing AIG assignment through Smart Partners using Dazbeez GK as the contracting vehicle"
+        },
+        {
+          "client": "Manulife Japan",
+          "period": "December 2021-present",
+          "role": "Application Project Manager"
+        }
+      ],
+      "location": "Tokyo, Japan",
+      "summary": "Owned the active-policy data-migration stream in an approximately 200-person full-SDLC legacy-mainframe program, including functional improvements, new features, data quality, and integration testing; followed by Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain."
+    },
+    {
+      "period": "2024-present",
+      "organization": "Kinokoholic",
+      "relationship": "Parallel portfolio research and product development; not a separate employer",
+      "roles": [
+        "Forward-Deployed Engineer (FDE)",
+        "Data wrangler",
+        "Role automation specialist"
+      ],
+      "location": "Tokyo, Japan",
+      "summary": "Builds and documents practical AI, data, and automation systems, including Keibamon, Dazbeez Receipts, JTES, and the -mon project family."
+    },
+    {
+      "period": "2015-2021",
+      "contracting_channel": "Smart Partners",
+      "client": "AIG Technology KK",
+      "assignment_title": "Infrastructure Project Manager",
+      "contracting_note": "From February 1, 2020, the continuing assignment was contracted through Smart Partners using Dazbeez GK as David's contracting and employment vehicle.",
+      "location": "Tokyo, Japan",
+      "summary": "Managed and worked on three high-profile AIU/FFM merger-enablement programs: the PEGA policy-administration infrastructure buildout; the full 2018 merger system rollout, including on-site cutover monitoring, infrastructure status reporting, and triage/recovery planning; and a post-merger Optimization Program tracking 150 targets that helped facilitate a 60% reduction in infrastructure costs. Programs were delivered in Japan with APAC operations teams under global direction."
+    },
+    {
+      "period": "2013-2015",
+      "contracting_channel": "Smart Partners",
+      "client": "AIG Business Partners KK",
+      "assignment_title": "Technology Lead - Application/Data",
+      "location": "Tokyo, Japan",
+      "summary": "Led application, data, architecture, and infrastructure coordination for consolidation of policy, claim, party, and object data from 45 Japanese source systems into a common global data model. Transitioned to AIG Technology around 2015 with little or no gap."
+    },
+    {
+      "period": "February-June 2013",
+      "organization": "Fusion Systems Japan",
+      "title": "SMB Project Manager",
+      "location": "Tokyo, Japan",
+      "summary": "Initiated and planned a 500-seat Salesforce office move, negotiated delivery contracts, and provided PMO reporting across 25 additional projects."
+    },
+    {
+      "period": "July 2012-January 2013",
+      "relationship": "Professional development and job search",
+      "location": "Japan",
+      "summary": "Prepared for and earned the Project Management Professional (PMP) credential in 2012 while pursuing the next project-management engagement."
+    },
+    {
+      "period": "April 2011-June 2012",
+      "organization": "AXA Technologies Japan",
+      "title": "Infrastructure Project Manager",
+      "location": "Tokyo, Japan",
+      "summary": "Delivered data-center migration, browser, Windows OS, Microsoft Office, middleware, antivirus, hardware, laptop, server-software, virtual test-environment, and call-center projects across 10,000+ client PCs and 400+ servers."
+    },
+    {
+      "period": "June 2010-March 2011",
+      "organization": "Network Information Center",
+      "client": "Japan Institute for Educational Measurement (JIEM)",
+      "title": "Application Project Manager",
+      "location": "Tokyo, Japan",
+      "summary": "Led delivery of a web-based university entrance-examination system with four local engineers and an offshore development team in Vietnam."
+    },
+    {
+      "period": "March 2009-June 2010",
+      "organization": "Study Buddy",
+      "title": "Investor and Co-founder",
+      "location": "Tokyo, Japan",
+      "summary": "Co-founded and sponsored a web-based learning venture using spaced repetition."
+    },
+    {
+      "period": "July 2004-March 2009",
+      "organization": "Hitachi Construction Machinery",
+      "title": "Bridge System Engineer",
+      "location": "Ibaraki, Japan",
+      "summary": "Bridged Japanese business users, offshore teams, and vendors across AS/400 applications, global depot systems, compliance updates, and system integrations."
+    },
+    {
+      "period": "January-September 2003",
+      "organization": "Asano Taiko",
+      "title": "Lathe Operations",
+      "location": "Ishikawa, Japan",
+      "summary": "Worked full-time in lathe operations before returning to technology work."
+    },
+    {
+      "period": "September 2003-2004",
+      "organization": "Com-One KK",
+      "client": "Higashi-Matsuyama City Office",
+      "title": "Programmer",
+      "location": "Ishikawa and Saitama, Japan",
+      "summary": "Developed a financial module and reporting for a municipal administrative-evaluation system."
+    },
+    {
+      "period": "1995-2003",
+      "relationship": "Part-time and freelance work while studying",
+      "summary": "Network and PC support, repair, computer assembly, systems operations, and programming."
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Hawaii at Manoa",
+      "degree": "Bachelor of Business Administration",
+      "field": "Management Information Systems",
+      "year": "2002"
+    }
+  ],
   "project_management_responsibilities": {
     "scope_management": "Deliver projects and programs on scope. Define program scope objectives, goals and success criteria. Control scope through change management. Provide weekly reports to stakeholders on scope performance.",
     "budget_management": "Deliver projects and programs on budget. Ensure all project resources and materials are accounted for in the budget. Reconcile actual and commitment costs. Obtain formal sponsor funding approval by creating commercial documentation. Provide weekly reports to stakeholders on budget performance.",
@@ -564,22 +817,35 @@
   "project_scales": {
     "infrastructure_clients": "10,000+ client PCs",
     "infrastructure_servers": "400+ servers",
-    "infrastructure_servers_global": "1,200+ servers across global environments",
     "office_move": "500-seat office move",
     "team_sizes": "Teams of 6-10 members",
+    "mainframe_program_participants": "Approximately 200 contributors across the full SDLC",
+    "aig_optimization_targets": "150 cross-team targets",
+    "aig_infrastructure_cost_reduction": "60%",
     "multi_region": "Japan, EMEA, and North America"
   },
   "constraints": {
-    "location": "United States and Japan (open to remote and hybrid)",
+    "location": "Tokyo, Japan",
+    "work_status": "Permanent resident of Japan",
     "languages": [
       "English (Native)",
-      "Japanese (Business)"
+      "Japanese (Conversational)"
     ],
-    "availability": "Open to full-time, consulting, or advisory AI/IT delivery roles"
+    "availability": "Currently employed by Dazbeez GK and assigned to Manulife Japan through Smart Partners"
   },
+  "contact": {
+    "email": "dklan@dazbeez.com",
+    "github": "https://github.com/davidklan-png",
+    "linkedin": "https://www.linkedin.com/in/david-klan/",
+    "website": "https://kinokoholic.com"
+  },
+  "known_gaps": [
+    "The ending month for Com-One KK in 2004 is not remembered; retain the end date as year-only."
+  ],
   "source_documents": [
     "_data/hero/LinkdIn_Profile_DK.txt",
     "_data/hero/Resume_detail_Klan.David.txt",
-    "Portfolio project pages under /projects/"
+    "Portfolio project pages under /projects/",
+    "User-confirmed career updates through 2026-09-18"
   ]
 }
