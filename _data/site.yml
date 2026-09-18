@@ -36,10 +36,10 @@ skills:
 now_next:
   now:
     - Operating Dazbeez Receipts in production with users.
-    - Developing JTES and piloting Keibamon, Bountymon (Kosa), and Kanrimon.
+    - Developing JTES and piloting Keibamon, Project Kōsa, and Kanrimon.
   now_ja:
     - 利用者向けにDazbeez Receiptsを本番運用。
-    - JTESを開発し、Keibamon、Bountymon（Kosa）、Kanrimonをパイロット運用。
+    - JTESを開発し、Keibamon、Project Kōsa（交差）、Kanrimonをパイロット運用。
   next:
     - Use pilot and test-user feedback to guide the next product changes.
     - Keep project maturity labels aligned with verified use.

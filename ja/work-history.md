@@ -56,7 +56,7 @@ lang: ja
 - 引用に基づくリサーチ、文書処理、ワークフローオーケストレーション、ローカルファーストのデータプロダクトを含む実用的なAI・データ・自動化システムを構築。
 - Kinokoholicでプロジェクト、設計判断、トレードオフ、開発活動を公開。
 - Dazbeez Receiptsは利用者がいる本番システム。
-- KeibamonとBountymon（Kosa）はテストユーザー付きパイロット、Kanrimonもパイロット段階。
+- KeibamonとProject Kōsa（交差）はテストユーザー付きパイロット。Kōsaは招待制で、Kanrimonもパイロット段階。
 - JTESは開発中、Kenkoumonは休止中。KeirimonはJTESとDazbeez Receiptsの共用マスコットであり、単独製品ではない。
 
 ### Smart Partnersコンサルティング案件 — AIG Technology KK

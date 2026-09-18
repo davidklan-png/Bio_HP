@@ -102,10 +102,10 @@ lang: ja
       </div>
       
       <div class="kinokomon-section__family-card">
-        <a href="https://bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" /></a>
-        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon（Kosa）</a></h3>
-        <p class="kinokomon-section__family-desc">テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型パイロット。</p>
-        <span class="kinokomon-section__family-badge">パイロット · テストユーザー</span>
+        <a href="https://kosa.bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon／Project Kōsa" class="kinokomon-section__family-img" /></a>
+        <h3 class="kinokomon-section__family-name"><a href="https://kosa.bountymon.com" target="_blank" rel="noopener">Bountymon／Project Kōsa（交差）</a></h3>
+        <p class="kinokomon-section__family-desc">経験豊富なプロフェッショナルが実課題を持ち寄り、一時的なCellで小さな実験を検証する招待制の東京発ギルド。</p>
+        <span class="kinokomon-section__family-badge">招待制パイロット · テストユーザー</span>
       </div>
     </div>
   </div>

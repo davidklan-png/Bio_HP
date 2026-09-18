@@ -55,7 +55,7 @@ Roles: Forward-Deployed Engineer (FDE), data wrangler, and role-automation speci
 - Build practical AI, data, and automation systems, including citation-grounded research, document processing, workflow orchestration, and local-first data products.
 - Use Kinokoholic to document projects, architectural decisions, tradeoffs, and build-in-public activity.
 - Dazbeez Receipts is in production with users.
-- Keibamon and Bountymon (Kosa) are pilots with test users; Kanrimon is also in pilot.
+- Keibamon and Project Kōsa are pilots with test users; Kōsa is invite-only, and Kanrimon is also in pilot.
 - JTES is in development, Kenkoumon is paused, and Keirimon is the shared mascot for JTES and Dazbeez Receipts rather than a standalone product.
 
 ### Smart Partners Consulting Assignment — AIG Technology KK

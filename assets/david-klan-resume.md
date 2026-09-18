@@ -22,7 +22,7 @@ I believe in learning by doing. I don't just read about new technologies — I b
 
 ## Things I've Built
 
-Current maturity is stated conservatively: Dazbeez Receipts is in production with users; Keibamon and Bountymon (Kosa) are pilots with test users; Kanrimon is a pilot; JTES is in development; Kenkoumon is paused; and Keirimon is the shared mascot for JTES and Dazbeez Receipts rather than a standalone product.
+Current maturity is stated conservatively: Dazbeez Receipts is in production with users; Keibamon and the invite-only Project Kōsa are pilots with test users; Kanrimon is a pilot; JTES is in development; Kenkoumon is paused; and Keirimon is the shared mascot for JTES and Dazbeez Receipts rather than a standalone product.
 
 ### Japanese Tax Expert System (JTES)
 **In development — helping tax professionals find answers they can trust**

@@ -87,11 +87,12 @@ test('portfolio prompt reflects confirmed education, languages, training, and pr
   assert.match(SYSTEM_PROMPT, /JTES.*In development/is);
   assert.match(SYSTEM_PROMPT, /Keibamon.*Pilot.*test users/is);
   assert.match(SYSTEM_PROMPT, /Dazbeez Receipts.*Production.*users/is);
-  assert.match(SYSTEM_PROMPT, /Bountymon.*Kosa.*Pilot.*test users/is);
+  assert.match(SYSTEM_PROMPT, /Project Kōsa.*invite-only pilot.*test users/is);
   assert.match(SYSTEM_PROMPT, /Kenkoumon.*Paused/is);
   assert.match(SYSTEM_PROMPT, /Kanrimon.*Pilot/is);
   assert.match(SYSTEM_PROMPT, /Keirimon.*mascot.*JTES.*Dazbeez Receipts/is);
   assert.doesNotMatch(SYSTEM_PROMPT, /Keirimon.*assistant/i);
+  assert.doesNotMatch(SYSTEM_PROMPT, /bug-bounty|bug bounty/i);
 });
 
 test('validateRequest rejects missing/empty messages', () => {

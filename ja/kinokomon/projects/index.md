@@ -22,8 +22,8 @@ lang: ja
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
-        <h3>Bountymon（Kosa）— パイロット</h3>
-        <p class="kinokomon-section__project-desc">テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型タスクプラットフォーム。</p>
+        <h3>Project Kōsa（交差）— 招待制パイロット · テストユーザー</h3>
+        <p class="kinokomon-section__project-desc">経験豊富なプロフェッショナルがProblem Boardで実課題を共有し、一時的なCellを組成して小さな実験を検証する東京発ギルド。</p>
       </div>
 
       <div class="kinokomon-section__project-item">
