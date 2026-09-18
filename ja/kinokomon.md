@@ -44,7 +44,7 @@ lang: ja
         <div class="kinokomon-section__nav-card-icon">🚀</div>
         <h3 class="kinokomon-section__nav-card-title">プロジェクトと実験</h3>
         <p class="kinokomon-section__nav-card-desc">現在のプロジェクトと実験的取り組み</p>
-        <span class="kinokomon-section__nav-card-badge">12項目</span>
+        <span class="kinokomon-section__nav-card-badge">ポートフォリオ</span>
       </a>
 
       <a href="{{ '/ja/kinokomon/activity/' | relative_url }}" class="kinokomon-section__nav-card">
@@ -90,22 +90,22 @@ lang: ja
       <div class="kinokomon-section__family-card">
         <img src="{{ '/assets/images/kenkoumon.png' | relative_url }}" alt="健康モン" class="kinokomon-section__family-img" />
         <h3 class="kinokomon-section__family-name">健康モン</h3>
-        <p class="kinokomon-section__family-desc">医師訪問議事録と要約アプリケーション。AIによる患者/医師コミュニケーション、構造化された診察メモ、患者向け要約。</p>
-        <span class="kinokomon-section__family-badge">ヘルスケア</span>
+        <p class="kinokomon-section__family-desc">通院記録の音声書き起こしと構造化患者サマリの構想。現在休止中。</p>
+        <span class="kinokomon-section__family-badge">休止中</span>
       </div>
       
       <div class="kinokomon-section__family-card">
         <img src="{{ '/assets/images/keirimon.png' | relative_url }}" alt="経理モン" class="kinokomon-section__family-img" />
         <h3 class="kinokomon-section__family-name">経理モン</h3>
-        <p class="kinokomon-section__family-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備を自動化。</p>
-        <span class="kinokomon-section__family-badge">税務・金融</span>
+        <p class="kinokomon-section__family-desc">JTESとDazbeez Receiptsで共用するマスコット。単独製品ではありません。</p>
+        <span class="kinokomon-section__family-badge">マスコット</span>
       </div>
       
       <div class="kinokomon-section__family-card">
         <a href="https://bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" /></a>
-        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon バウンティモン</a></h3>
-        <p class="kinokomon-section__family-desc">バグバウンティとゲーミフィケーションタスクプラットフォーム。ソフトウェアのバグ発見、セキュリティチャレンジ完了、生産性追跡で報酬を獲得。</p>
-        <span class="kinokomon-section__family-badge">セキュリティ・報酬</span>
+        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon（Kosa）</a></h3>
+        <p class="kinokomon-section__family-desc">テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型パイロット。</p>
+        <span class="kinokomon-section__family-badge">パイロット · テストユーザー</span>
       </div>
     </div>
   </div>

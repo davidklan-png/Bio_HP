@@ -5,6 +5,8 @@ name_ja: 日本税務エキスパートシステム（JTES）- プロフェッ�
 one_line_value: AI-powered Japanese tax analysis built on official NTA and e-Gov sources, with verifiable citations for every answer.
 one_line_value_ja: 国税庁およびe-Govの公式データに基づく、すべての回答で検証可能な引用を提供する日本の税務分析AI。
 icon: rag
+status: In development
+status_ja: 開発中
 tags:
   - Japanese Tax Law
   - Citation-Backed AI

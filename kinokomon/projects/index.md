@@ -17,56 +17,66 @@ permalink: /kinokomon/projects/
 
   <div class="kinokomon-section__projects">
     <h2 class="kinokomon-section__section-title">Current Projects</h2>
-    <p class="kinokomon-section__section-desc">Production systems and active development work</p>
+    <p class="kinokomon-section__section-desc">Production, pilot, development, and paused work</p>
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
-        <h3>Bountymon - Bug Bounty & Task Rewards Platform</h3>
-        <p class="kinokomon-section__project-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme. Features calendar tracking, progress bars, and reward systems.</p>
+        <h3>Bountymon (Kosa) — Pilot</h3>
+        <p class="kinokomon-section__project-desc">Bug-bounty and gamified task platform currently being evaluated by test users.</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Keirimon - Japanese Tax & Accounting Assistant</h3>
-        <p class="kinokomon-section__project-desc">Japanese tax and accounting assistant. Automates expense tracking, receipt categorization, and tax preparation for Japanese filers with LLM-powered OCR and compliance checking.</p>
+        <h3>Keirimon — Mascot</h3>
+        <p class="kinokomon-section__project-desc">Shared mascot for JTES and Dazbeez Receipts; not a standalone product.</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Kenkoumon - Doctor Visit Transcription & Summary</h3>
-        <p class="kinokomon-section__project-desc">AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</p>
+        <h3>Kenkoumon — Paused</h3>
+        <p class="kinokomon-section__project-desc">Doctor-visit transcription and structured patient-summary concept.</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Keibamon - Horse Racing Data & ML Platform</h3>
+        <h3>Keibamon — Pilot · Test users</h3>
         <p class="kinokomon-section__project-desc">Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis. Medallion lake architecture (bronze/silver/gold/marts) with Parquet storage, point-in-time features, Netkeiba odds polling, and walk-forward backtesting. Stack: Polars, DuckDB, Dagster, Pandera, MLflow, FastAPI, React/TypeScript.</p>
         <a href="https://github.com/davidklan-png/keibamon" class="kinokomon-section__link">View repo →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Japanese Tax Expert System (JTES)</h3>
+        <h3>Japanese Tax Expert System (JTES) — In development</h3>
         <p class="kinokomon-section__project-desc">Specialized retrieval-augmented assistant for Japanese tax workflows with citation grounding and evidence-backed answers</p>
         <a href="{{ '/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Insurance Reporting & Incident Intelligence</h3>
-        <p class="kinokomon-section__project-desc">Workflow automation for insurance reporting and incident intelligence tasks with structured AI assistance</p>
+        <h3>Kanrimon — Pilot</h3>
+        <p class="kinokomon-section__project-desc">Evidence-backed condominium-management copilot for board continuity, compliance readiness, and archive onboarding.</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
+        <h3>Enterprise AI Enablement — Monitoring, BAU Transition & PM Second Brain</h3>
+        <p class="kinokomon-section__project-desc">Production AI monitoring across 60 applications, an in-progress BAU transition to Global Operations, and a pilot PM Second Brain that structures Microsoft and Atlassian updates in a React/Quartz dashboard</p>
         <a href="{{ '/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Receipt Classification and Matching System</h3>
-        <p class="kinokomon-section__project-desc">Receipt ingestion pipeline with categorization and matching support for financial reconciliation workflows</p>
+        <h3>Dazbeez Receipts — Production · Users</h3>
+        <p class="kinokomon-section__project-desc">Production receipt ingestion, classification, matching, and financial-reconciliation workflow with users.</p>
         <a href="{{ '/projects/receipt-classification-and-matching-system/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Enterprise Data Migration & Governance</h3>
-        <p class="kinokomon-section__project-desc">Led large-scale enterprise data migration and governance delivery across insurance platforms with compliance-ready workflows</p>
+        <h3>Enterprise Data Consolidation & Governance</h3>
+        <p class="kinokomon-section__project-desc">Coordinated application, data, architecture, security, and infrastructure inputs for consolidation from 45 Japanese source systems at AIG Business Partners</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>Infrastructure Scale & DR/BCP Delivery</h3>
-        <p class="kinokomon-section__project-desc">Delivered infrastructure transformation programs across global, high-availability enterprise environments with DR/BCP implementation</p>
+        <h3>Legacy Mainframe Migration & Application Infrastructure</h3>
+        <p class="kinokomon-section__project-desc">Owned Manulife's active-policy migration stream in an approximately 200-person full-SDLC program, followed by Active Directory and OS standardization, Hong Kong-to-Japan system migration, monitoring, and automation</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
+        <h3>Infrastructure Scale & Merger Enablement</h3>
+        <p class="kinokomon-section__project-desc">Delivered AXA infrastructure transformation and AIG merger-enablement work spanning PEGA, the on-site 2018 AIU/FFM cutover, and a 150-target optimization program that helped facilitate a 60% infrastructure-cost reduction</p>
       </div>
 
       <div class="kinokomon-section__project-item">

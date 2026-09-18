@@ -18,45 +18,50 @@ lang: ja
 
   <div class="kinokomon-section__projects">
     <h2 class="kinokomon-section__section-title">現在のプロジェクト</h2>
-    <p class="kinokomon-section__section-desc">本番システムとアクティブな開発作業</p>
+    <p class="kinokomon-section__section-desc">本番、パイロット、開発中、休止中の取り組み</p>
 
     <div class="kinokomon-section__project-list">
       <div class="kinokomon-section__project-item">
-        <h3>バウンティモン - バグバウンティ & タスク報酬プラットフォーム</h3>
-        <p class="kinokomon-section__project-desc">バグバウンティとゲーミフィケーションタスクプラットフォーム。ソフトウェアのバグ発見、セキュリティチャレンジ完了、生産性追跡で報酬を獲得。カレンダー追跡、プログレスバー、報酬システムを搭載。</p>
+        <h3>Bountymon（Kosa）— パイロット</h3>
+        <p class="kinokomon-section__project-desc">テストユーザーが検証中のバグバウンティ／ゲーミフィケーション型タスクプラットフォーム。</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>経理モン - 日本の税務・会計アシスタント</h3>
-        <p class="kinokomon-section__project-desc">日本の税務・会計アシスタント。経費追跡、領収書分類、日本の確定申告準備をLLM搭載OCRとコンプライアンスチェックで自動化。</p>
+        <h3>経理モン — マスコット</h3>
+        <p class="kinokomon-section__project-desc">JTESとDazbeez Receiptsで共用するマスコット。単独製品ではありません。</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>健康モン - 医師訪問議事録と要約</h3>
-        <p class="kinokomon-section__project-desc">医師と患者のコミュニケーションのための医師訪問議事録と要約アプリケーション。AIによる構造化出力と患者向け要約</p>
+        <h3>健康モン — 休止中</h3>
+        <p class="kinokomon-section__project-desc">通院記録の音声書き起こしと構造化患者サマリの構想。</p>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>競馬モン - 競馬データ・MLプラットフォーム</h3>
+        <h3>競馬モン — パイロット · テストユーザー</h3>
         <p class="kinokomon-section__project-desc">日本の競馬研究・バックテスト・レース分析のためのローカルファーストデータおよびMLプラットフォーム。メダリオンレイクアーキテクチャ（ブロンズ/シルバー/ゴールド/マート）、Parquetストレージ、時点機能、Netkeibaオッズポーリング、ウォークフォワードバックテスト。スタック：Polars, DuckDB, Dagster, Pandera, MLflow, FastAPI, React/TypeScript。</p>
         <a href="https://github.com/davidklan-png/keibamon" class="kinokomon-section__link">リポジトリを見る →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>日本税務エキスパートシステム（JTES）</h3>
+        <h3>日本税務エキスパートシステム（JTES）— 開発中</h3>
         <p class="kinokomon-section__project-desc">引用の根拠と証拠に基づいた回答を持つ日本の税務専門家向けの専門RAGシステム</p>
         <a href="{{ '/ja/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>保険レポートとインシデントインテリジェンス</h3>
-        <p class="kinokomon-section__project-desc">保険業務向けのAI駆動のレポート自動化とインシデントインテリジェンスワークフロー</p>
+        <h3>管理モン — パイロット</h3>
+        <p class="kinokomon-section__project-desc">理事会の継続性、認定準備、管理資料の引き継ぎを支援する、根拠重視のマンション管理コパイロット。</p>
+      </div>
+
+      <div class="kinokomon-section__project-item">
+        <h3>エンタープライズAI活用 — 監視・BAU移管・PM Second Brain</h3>
+        <p class="kinokomon-section__project-desc">60アプリの本番AI監視、Global Operationsへの進行中BAU移管、Microsoft・Atlassian更新をReact／Quartzで構造化するパイロットPM Second Brain。</p>
         <a href="{{ '/ja/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
       </div>
 
       <div class="kinokomon-section__project-item">
-        <h3>レシート分類と照合システム</h3>
-        <p class="kinokomon-section__project-desc">分類と照合機能を持つ財務調整のためのドキュメントAI</p>
+        <h3>Dazbeez Receipts — 本番稼働 · 利用者あり</h3>
+        <p class="kinokomon-section__project-desc">利用者がいる、レシート取り込み・分類・照合・財務調整の本番ワークフロー。</p>
         <a href="{{ '/ja/projects/receipt-classification-and-matching-system/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
       </div>
 

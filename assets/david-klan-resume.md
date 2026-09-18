@@ -8,7 +8,7 @@
 
 I've always been the person who asks "why?" and "what if?" — not to be difficult, but because I genuinely want to understand how things work and how they could work better.
 
-For the past 15+ years, I've been building things that solve real problems for people. From helping insurance companies move thousands of records safely, to creating AI tools that help tax professionals find answers faster, I've learned that the most rewarding work happens when you truly understand what someone needs.
+For more than 20 years, I've been building things that solve real problems for people. From helping insurance companies move thousands of records safely, to creating AI tools that help tax professionals find answers faster, I've learned that the most rewarding work happens when you truly understand what someone needs.
 
 I believe in learning by doing. I don't just read about new technologies — I build with them, break them, figure out what they're actually good at, and then share what I've learned.
 
@@ -22,8 +22,10 @@ I believe in learning by doing. I don't just read about new technologies — I b
 
 ## Things I've Built
 
+Current maturity is stated conservatively: Dazbeez Receipts is in production with users; Keibamon and Bountymon (Kosa) are pilots with test users; Kanrimon is a pilot; JTES is in development; Kenkoumon is paused; and Keirimon is the shared mascot for JTES and Dazbeez Receipts rather than a standalone product.
+
 ### Japanese Tax Expert System (JTES)
-**Helping tax professionals find answers they can trust**
+**In development — helping tax professionals find answers they can trust**
 
 When I started learning about retrieval-augmented generation (RAG), I wanted to build something that solved a real problem, not just a demo. I noticed that tax professionals in Japan spend hours searching through complex regulations, often without clear citations or sources.
 
@@ -36,22 +38,27 @@ So I built JTES — an AI assistant that:
 
 ---
 
-### Insurance Reporting & Incident Intelligence
-**Making complex workflows less painful**
+### Enterprise AI Enablement — Monitoring, BAU Transition & PM Second Brain
+**Moving operations without losing knowledge—and automating the PM overhead**
 
-I worked with an insurance team that was drowning in repetitive reporting tasks. Analysts were spending hours preparing the same reports every week, and incident triage was inconsistent because everyone did it differently.
+I introduced production AI monitoring across 60 applications to help create automation, analyze alerts, and create incidents. The operating scope includes URL and synthetic monitoring, centralized logging, and Rapid Recovery procedures.
 
-Together, we built tools that:
-- Automate the boring parts of reporting so analysts can focus on the interesting stuff
-- Standardize how incidents are triaged, making handoffs smoother
-- Let the AI handle the pattern recognition while humans make the judgments
+Alongside that platform, I am leading a controlled transfer of application BAU activities from Japan to Global Operations. The work begins with full discovery of Japan Operations and Production Support, then turns tacit operating knowledge into verified runbooks and documentation. The handover remains in progress.
 
-**What I learned:** People don't want "AI" — they want their work to be less annoying. When you remove the friction, amazing things happen.
+The transition combined AI-assisted application monitoring with:
+- Creation and verification of runbooks, responsibilities, dependencies, and recovery procedures
+- Shadowing so Global Operations could observe the work in practice
+- Reverse-shadowing so readiness could be demonstrated rather than assumed
+- Formal readiness validation and operational handover
+
+As an intrapreneurial pilot, I also created a PM Second Brain. A laptop-based API workflow parses Microsoft and Atlassian updates and tags them as Objective, Key Result, Workstream, Task, Owner, Team, Risk/Issue, and Priority. A React/Quartz dashboard presents the corpus and drafts a weekly status report that I review before sending. The working group accesses the corpus through Confluence and SharePoint.
+
+**What I learned:** A document is not a handover, and status reporting is not the highest-value part of project management. Automation should create more time for decisions, leadership, and removing barriers for the team.
 
 ---
 
-### Receipt Classification & Matching System
-**Making reconciliation a little less painful**
+### Dazbeez Receipts
+**Production with users — making reconciliation a little less painful**
 
 I built a system that helps finance teams organize receipts by reading them, figuring out what they're for, and matching them to the right accounts. It uses a combination of straightforward rules and machine learning to make the process faster and more consistent.
 
@@ -61,14 +68,27 @@ I built a system that helps finance teams organize receipts by reading them, fig
 
 ## Work I'm Proud Of
 
-### Enterprise Data Migration (AIG / Smart Partners)
-**Moving thousands of records without losing anyone's important data**
+### Current Consulting Structure
+**Dazbeez GK → Smart Partners → Manulife Japan**
 
-I led a team that migrated data from legacy systems to new platforms as part of a mainframe sunset. The stakes were high — these were real customer records, real financial data, and people's livelihoods depended on everything being correct.
+I established my company, Dazbeez GK, on February 1, 2020 and am employed by it as an IT Consultant. From inception, Dazbeez contracted through Smart Partners—initially continuing my existing AIG Technology assignment, then providing the commercial channel for my Manulife Japan assignment from December 2021. At Manulife, I began with ownership of the active-policy data-migration stream in an approximately 200-person, full-SDLC legacy-mainframe migration and decommissioning program. My stream included functional improvements and new features, with particular focus on data quality and integration testing. Subsequent projects covered Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain.
 
-We built governance workflows, created risk-based reporting, and most importantly, we made sure that zero critical data was lost during the transition.
+Since 2024, I have also developed AI, data, and role-automation projects showcased through Kinokoholic. Kinokoholic is my portfolio and project surface, not a separate employer. In this work I operate as a forward-deployed engineer, data wrangler, and role-automation specialist.
 
-**What I'm proud of:** We didn't just move data — we built trust. The stakeholders knew we cared about getting it right.
+### Enterprise Consulting Assignments
+
+- **AIG Technology, 2015–2021:** Infrastructure Project Manager for three high-profile AIU/FFM merger programs: the PEGA policy-administration infrastructure buildout; the full 2018 merger system rollout and migration, including on-site monitoring, infrastructure reporting, and triage/recovery planning throughout the cutover week; and a post-merger Optimization Program that tracked 150 targets and helped facilitate a 60% infrastructure-cost reduction. The programs were delivered in Japan with APAC operations teams under global direction.
+- **AIG Business Partners, 2013–2015:** Technology Lead for application and data work, including consolidation from 45 Japanese source systems into a common global data model.
+- **AXA Technologies Japan, April 2011–June 2012:** Infrastructure Project Manager for data-center, browser, operating-system, Microsoft Office, hardware, server, and call-center programs.
+- **Earlier roles:** SMB Project Manager at Fusion Systems; Application Project Manager through Network Information Center for JIEM; Study Buddy investor and co-founder; Bridge System Engineer at Hitachi Construction Machinery.
+- **July 2012–January 2013:** Earned the PMP credential while pursuing the next project-management engagement.
+
+### Enterprise Data Consolidation (AIG Business Partners / Smart Partners)
+**Coordinating 45 source systems into a common data model**
+
+As Technology Lead, I coordinated application, data, architecture, security, and infrastructure inputs for a program bringing policy, claim, party, and object data from 45 Japanese source systems into a common global data model.
+
+**What I'm proud of:** Translating a complex landscape into specifications, designs, diagrams, governance, and delivery work that different technical and business groups could act on.
 
 ---
 
@@ -100,16 +120,20 @@ I've created governance frameworks, led steering committees, managed stakeholder
 
 **Building for real people:** I've seen too many systems that look great in demos but fail in real life. I care about whether something actually works for the person who has to use it every day.
 
-**Cross-cultural perspective:** Living and working in Japan has taught me that the best ideas come from diverse viewpoints. I speak Japanese at a business level and I'm comfortable working across cultures.
+**Cross-cultural perspective:** Living and working in Japan has taught me that the best ideas come from diverse viewpoints. I speak conversational Japanese and I'm comfortable working across cultures.
 
 ---
 
 ## Background
 
-- **Languages:** English (native), Japanese (business)
-- **Location:** Japan and US (open to remote, hybrid, or on-site)
+- **Languages:** English (native), Japanese (conversational)
+- **Location:** Tokyo, Japan (permanent resident)
 - **Industry experience:** Insurance, finance, professional services, education, logistics
 - **Technical skills:** Python, TypeScript, LLM applications, RAG, prompt engineering, data pipelines, automation
+- **Education:** BBA in Management Information Systems, University of Hawaiʻi at Mānoa (2002)
+- **Certification:** Project Management Professional (PMP), earned 2012
+- **Professional development:** SAFe Agile training completed (2024–2025): SAFe Scrum Master, Leading SAFe, and Release Train Engineer
+- **Credential status:** Certifications are historical achievements and are not represented as current or renewed
 
 ---
 

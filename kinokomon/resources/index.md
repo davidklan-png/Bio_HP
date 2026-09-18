@@ -21,7 +21,7 @@ permalink: /kinokomon/resources/
     <div class="kinokomon-section__download-card">
       <div class="kinokomon-section__download-info">
         <h3>📄 David Klan Resume</h3>
-        <p>Complete resume in Markdown format — 15+ years of IT project management, AI/ML engineering, and enterprise transformation experience.</p>
+        <p>Complete resume in Markdown format — more than 20 years across IT project delivery, enterprise transformation, and AI/data engineering.</p>
       </div>
       <a href="{{ '/assets/david-klan-resume.md' | relative_url }}" download="david-klan-resume.md" class="kinokomon-section__download-btn">
         ⬇️ Download .md
@@ -78,7 +78,7 @@ permalink: /kinokomon/resources/
       <div class="kinokomon-section__skill-category">
         <h4>🏗️ Enterprise Delivery</h4>
         <ul class="kinokomon-section__list">
-          <li>Project Management (15+ years)</li>
+          <li>IT project delivery and technical work (20+ years)</li>
           <li>Data Migration & Governance</li>
           <li>Infrastructure Transformation</li>
           <li>Change Leadership</li>

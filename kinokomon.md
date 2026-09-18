@@ -24,18 +24,19 @@ permalink: /kinokomon/
 
   <div class="kinokomon-section__projects-summary">
     <h2 class="kinokomon-section__section-title">Current Projects</h2>
-    <p class="kinokomon-section__section-desc">Active development and production systems</p>
+    <p class="kinokomon-section__section-desc">Production, pilot, development, and paused work—status stated explicitly</p>
     <ul class="kinokomon-section__list">
-      <li><strong>Kenkoumon 健康モン</strong> — AI-powered patient/doctor application for transcribing and summarizing doctor visits with structured output and patient-friendly summaries</li>
-      <li><strong>Keirimon 経理モン</strong> — Japanese tax and accounting assistant automating expense tracking, receipt categorization, and tax preparation with OCR and Japanese NLP</li>
-      <li><strong>Bountymon</strong> — Bug bounty and gamified task platform with security challenge completion, bounty tracking, and productivity monitoring (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
-      <li><strong>Keibamon 競馬モン</strong> — Local-first data and ML platform for Japanese horse racing research, backtesting, and race analysis with medallion lake architecture, Parquet storage, point-in-time features, Netkeiba odds polling, CSV import pipeline, walk-forward backtesting engine, and React analyzer UI (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
-      <li><strong>Japanese Tax Expert System (JTES)</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding for tax professionals</li>
-      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
-      <li><strong>Insurance Reporting & Incident Intelligence</strong> — AI-powered workflow automation reducing manual report preparation and standardizing triage flows for insurance workflows</li>
-      <li><strong>Receipt Classification System</strong> — Document AI pipeline with OCR and ML improving classification consistency and enabling faster financial reconciliation</li>
-      <li><strong>Enterprise Data Migration & Governance</strong> — Large-scale multi-system migration with compliance workflows, zero critical data loss during mainframe sunset, and 40% time reduction</li>
-      <li><strong>Infrastructure Scale & DR/BCP Delivery</strong> — Global infrastructure transformation across Japan, EMEA, and North America (10,000+ clients, 1,200+ servers)</li>
+      <li><strong>Kenkoumon 健康モン — Paused</strong> — Doctor-visit transcription and structured patient-summary concept</li>
+      <li><strong>Keirimon 経理モン — Mascot</strong> — Shared mascot for JTES and Dazbeez Receipts, not a standalone product</li>
+      <li><strong>Bountymon (Kosa) — Pilot</strong> — Bug-bounty and gamified task platform with test users (see <a href="https://bountymon.com" target="_blank" rel="noopener">bountymon.com</a>)</li>
+      <li><strong>Keibamon 競馬モン — Pilot</strong> — Horse-racing data and ML platform being evaluated by test users (see <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">GitHub</a>)</li>
+      <li><strong>Japanese Tax Expert System (JTES) — In development</strong> — RAG-based tax workflow assistant with domain-specific chunking and citation grounding</li>
+      <li><strong>Dazbeez Receipts — Production</strong> — Receipt classification, matching, and reconciliation system with users</li>
+      <li><strong>Kanrimon 管理モン — Pilot</strong> — Evidence-backed condominium-management copilot</li>
+      <li><strong>Enterprise AI Enablement</strong> — Production AI monitoring and incident automation across 60 applications, an in-progress BAU transition to Global Operations, and a pilot PM Second Brain with React/Quartz and human-reviewed weekly reporting</li>
+      <li><strong>Enterprise Data Consolidation & Governance</strong> — Coordinated application, data, architecture, security, and infrastructure inputs across 45 Japanese source systems at AIG Business Partners</li>
+      <li><strong>Legacy Mainframe Migration & Application Infrastructure</strong> — Owned Manulife's active-policy migration stream in an approximately 200-person full-SDLC program, then led AD/OS standardization, Hong Kong-to-Japan system migration, and application-operations transformation</li>
+      <li><strong>Infrastructure Scale & Merger Enablement</strong> — AXA transformation covering 10,000+ client PCs and 400+ servers; AIG PEGA, on-site 2018 AIU/FFM cutover, and a 150-target optimization program that helped facilitate a 60% infrastructure-cost reduction</li>
       <li><strong>GenAI Enablement & Change Leadership</strong> — Cross-functional delivery leadership for enterprise AI transformation with governance frameworks, stakeholder alignment, and enablement programs</li>
       <li><strong>Application & Integration Delivery</strong> — Hybrid local/offshore teams delivering web applications, system integrations, and WMS interfaces with strict launch deadlines and compliance (ISO9000/ISO9001, SOX)</li>
     </ul>
@@ -62,7 +63,7 @@ permalink: /kinokomon/
         <div class="kinokomon-section__nav-card-icon">🚀</div>
         <h3 class="kinokomon-section__nav-card-title">Projects & Experiments</h3>
         <p class="kinokomon-section__nav-card-desc">Current projects and experimental initiatives</p>
-        <span class="kinokomon-section__nav-card-badge">12 items</span>
+        <span class="kinokomon-section__nav-card-badge">Portfolio</span>
       </a>
 
       <a href="{{ '/kinokomon/activity/' | relative_url }}" class="kinokomon-section__nav-card">
@@ -108,29 +109,29 @@ permalink: /kinokomon/
       <div class="kinokomon-section__family-card">
         <img src="{{ '/assets/images/kenkoumon.png' | relative_url }}" alt="Kenkoumon" class="kinokomon-section__family-img" />
         <h3 class="kinokomon-section__family-name">Kenkoumon 健康モン</h3>
-        <p class="kinokomon-section__family-desc">Doctor visit transcription & summary application. AI-powered patient/doctor communication with structured visit notes and patient-friendly summaries.</p>
-        <span class="kinokomon-section__family-badge">Healthcare</span>
+        <p class="kinokomon-section__family-desc">Paused doctor-visit transcription and structured patient-summary concept.</p>
+        <span class="kinokomon-section__family-badge">Paused</span>
       </div>
       
       <div class="kinokomon-section__family-card">
         <img src="{{ '/assets/images/keirimon.png' | relative_url }}" alt="Keirimon" class="kinokomon-section__family-img" />
         <h3 class="kinokomon-section__family-name">Keirimon 経理モン</h3>
-        <p class="kinokomon-section__family-desc">Japanese tax and accounting assistant. Automates expense tracking, receipt categorization, and tax preparation for Japanese filers.</p>
-        <span class="kinokomon-section__family-badge">Tax & Finance</span>
+        <p class="kinokomon-section__family-desc">Shared mascot for JTES and Dazbeez Receipts; not a standalone product.</p>
+        <span class="kinokomon-section__family-badge">Mascot</span>
       </div>
       
       <div class="kinokomon-section__family-card">
         <a href="https://bountymon.com" target="_blank" rel="noopener"><img src="{{ '/assets/images/bountymon.png' | relative_url }}" alt="Bountymon" class="kinokomon-section__family-img" /></a>
-        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon</a></h3>
-        <p class="kinokomon-section__family-desc">Bug bounty and gamified task platform. Rewards users for finding software bugs, completing security challenges, and tracking productivity with a bounty hunter theme.</p>
-        <span class="kinokomon-section__family-badge">Security & Rewards</span>
+        <h3 class="kinokomon-section__family-name"><a href="https://bountymon.com" target="_blank" rel="noopener">Bountymon (Kosa)</a></h3>
+        <p class="kinokomon-section__family-desc">Pilot bug-bounty and gamified task platform with test users.</p>
+        <span class="kinokomon-section__family-badge">Pilot · Test users</span>
       </div>
       
       <div class="kinokomon-section__family-card">
         <a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener"><img src="{{ '/assets/images/keibamon.png' | relative_url }}" alt="Keibamon" class="kinokomon-section__family-img" /></a>
         <h3 class="kinokomon-section__family-name"><a href="https://github.com/davidklan-png/keibamon" target="_blank" rel="noopener">Keibamon 競馬モン</a></h3>
-        <p class="kinokomon-section__family-desc">Horse racing data and ML platform. Medallion lake architecture with odds polling, backtesting engine, and race analysis for JRA and NAR.</p>
-        <span class="kinokomon-section__family-badge">Racing & ML</span>
+        <p class="kinokomon-section__family-desc">Pilot horse-racing data and ML platform being evaluated by test users.</p>
+        <span class="kinokomon-section__family-badge">Pilot · Test users</span>
       </div>
     </div>
   </div>

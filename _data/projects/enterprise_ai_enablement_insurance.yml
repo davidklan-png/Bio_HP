@@ -1,126 +1,164 @@
 id: enterprise_ai_enablement_insurance
 detail_page: /projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/
-name: Enterprise AI Enablement in Insurance – Reporting & Incident Intelligence
-name_ja: 保険業界におけるエンタープライズAI活用 – レポーティング・インシデントインテリジェンス
-one_line_value: Automated reporting and incident intelligence to improve executive visibility and decision making.
-one_line_value_ja: 経営の可視化と意思決定の向上のための自動化されたレポーティングとインシデントインテリジェンス。
+name: Enterprise AI Enablement – Monitoring, BAU Transition & PM Second Brain
+name_ja: エンタープライズAI活用 – 監視・BAU移管・PM Second Brain
+one_line_value: Production AI monitoring for 60 applications plus a pilot PM Second Brain that turns enterprise updates into governed delivery intelligence.
+one_line_value_ja: 60アプリの本番AI監視と、業務更新を統制されたデリバリー情報へ変換するパイロットPM Second Brain。
 icon: insurance
 tags:
-  - Enterprise Automation
-  - Incident Intelligence
-  - Executive Reporting
+  - AI-Assisted Monitoring
+  - Operations Transition
+  - PM Second Brain
 tags_ja:
-  - エンタープライズ自動化
-  - インシデントインテリジェンス
-  - 経営レポーティング
+  - AI支援型監視
+  - 運用移管
+  - PM Second Brain
+status:
+  monitoring: Production
+  pm_second_brain: Pilot
+  operational_handover: In progress
+status_ja:
+  monitoring: 本番稼働
+  pm_second_brain: パイロット
+  operational_handover: 移管進行中
 impact_bullets:
-  - Automated PM reporting and executive dashboard workflows.
-  - Unified insights across Confluence, Jira, SharePoint, Power Automate, and Power BI.
-  - Added coding-agent parsers for hundreds of MB of incident data trend analysis.
+  - Production AI helps create automation, analyze alerts, and create incidents across 60 applications.
+  - Governed the in-progress transfer of Japan BAU activities through verified runbooks, shadowing, reverse-shadowing, and readiness evidence.
+  - Built a pilot PM Second Brain that structures Microsoft and Atlassian updates, presents a React/Quartz dashboard, and drafts human-reviewed weekly status reports.
 impact_bullets_ja:
-  - PMレポーティングと経営ダッシュボードワークフローの自動化。
-  - Confluence、Jira、SharePoint、Power Automate、Power BIにまたがる統合的なインサイト。
-  - 数百MBのインシデントデータトレンド分析のためのコーディングエージェントパーサーを追加。
+  - 60アプリを対象に、本番AIが自動化の作成、アラート分析、インシデント起票を支援。
+  - 検証済みランブック、シャドーイング、リバースシャドーイング、準備証跡により、日本BAU業務の進行中移管を統制。
+  - Microsoft・Atlassianの更新を構造化し、React／Quartzダッシュボードと人手確認付き週次報告案を生成するパイロットPM Second Brainを構築。
 executive_summary:
-  problem: PM reporting and incident trend analysis were fragmented across enterprise tools, limiting executive visibility and slowing Change Management response.
-  solution: Automated reporting pipelines and built executive dashboards, then introduced bespoke parser workflows (with coding agents) to analyze large incident datasets.
-  outcome: Improved reporting cadence, clearer incident trend signals, and stronger evidence for Change Management decisions.
+  problem: Manulife Japan needed stronger application monitoring, a controlled transfer of BAU work to Global Operations, and a way to reduce the project-management effort spent collecting updates and assembling status reports.
+  solution: Delivered two complementary AI systems. Production monitoring supports automation creation, alert analysis, and incident creation across 60 applications. A pilot PM Second Brain parses Microsoft and Atlassian updates, applies a delivery taxonomy, presents a React/Quartz dashboard, and drafts weekly status reports for human review.
+  outcome: Improved operational visibility and transfer readiness while turning PM data wrangling and reporting into supporting work, leaving more time for delivery leadership and removing barriers for the team.
 executive_summary_ja:
-  problem: PMレポーティングとインシデント傾向分析が複数の業務ツールに分散しており、経営可視性の低下とChange Management対応の遅延を招いていました。
-  solution: レポーティングパイプラインを自動化して経営ダッシュボードを構築し、さらに大規模インシデントデータを分析するための専用パーサーワークフロー（コーディングエージェント活用）を導入しました。
-  outcome: レポーティング頻度が向上し、インシデント傾向が明確になり、Change Management判断の根拠が強化されました。
+  problem: マニュライフ生命では、アプリ監視の強化、Global Operationsへの統制されたBAU移管、更新収集とステータス報告作成に費やすPM工数の削減が必要でした。
+  solution: 2つの補完的なAIシステムを実装。本番監視は60アプリの自動化作成、アラート分析、インシデント起票を支援。パイロットPM Second BrainはMicrosoft・Atlassian更新を解析し、デリバリー分類を付与してReact／Quartzダッシュボードと週次報告案を生成します。
+  outcome: 運用可視性と移管準備を強化し、PMのデータ整理・報告を補助業務化することで、チームの障害除去とデリバリーリーダーシップに注力できるようにしました。
 use_case:
-  summary: Insurance leadership needed reliable, cross-system intelligence for delivery status, incident patterns, and operational risk.
+  summary: Two linked workstreams support the same operating model—reliable application operations and evidence-backed project delivery.
   stakeholders:
-    - Executive leadership
-    - Program and project managers
-    - Change Management and incident response teams
+    - Japan Operations and Production Support teams
+    - Global Operations teams
+    - Application owners and the project working group
+    - Program and project leadership
 use_case_ja:
-  summary: 保険業界の経営層は、デリバリー状況、インシデント傾向、運用リスクを横断的に把握できる信頼性の高いインテリジェンスを必要としていました。
+  summary: 信頼できるアプリ運用と根拠あるプロジェクト遂行という同じ運用モデルを、2つの連携ワークストリームで支援します。
   stakeholders:
-    - 経営層
-    - プログラム／プロジェクトマネージャー
-    - Change Managementおよびインシデント対応チーム
+    - 日本の運用・本番サポートチーム
+    - Global Operationsチーム
+    - アプリケーションオーナーとプロジェクトワーキンググループ
+    - プログラム／プロジェクト責任者
 architecture:
-  overview: Operational data from collaboration and ticketing systems is transformed into dashboard-ready metrics, with parser pipelines for deep incident trend extraction.
+  overview: Production monitoring and the pilot PM knowledge system remain distinct but reinforce the same governed operating model.
   diagram:
-    - "[Confluence | Jira | SharePoint | ServiceNow]"
-    - "             |"
-    - "   Automation + ETL orchestration"
-    - "             |"
-    - "   Power BI executive dashboards"
-    - "             |"
-    - " Incident data parser pipelines"
-    - "             |"
-    - " Change Management trend insights"
+    - "[60 Applications]"
+    - " URL | Synthetic Monitoring | Centralized Logging | Rapid Recovery"
+    - "                  |"
+    - " Production AI: automation -> alert analysis -> incident creation"
+    - "                  |"
+    - " Discovery -> verified runbooks -> shadow -> reverse-shadow -> handover"
+    - ""
+    - "[Microsoft + Atlassian updates] -> laptop API parsing"
+    - "                  |"
+    - " Objective | Key Result | Workstream | Task | Owner | Team | Risk/Issue | Priority"
+    - "                  |"
+    - " React/Quartz dashboard -> weekly draft -> human review -> distribution"
+    - "                  |"
+    - " Working-group corpus in Confluence + SharePoint"
 architecture_ja:
-  overview: コラボレーション／チケット管理システムの運用データをダッシュボード向けメトリクスへ変換し、パーサーパイプラインでインシデント傾向を深掘り抽出します。
+  overview: 本番監視とパイロットPMナレッジシステムを分離しつつ、同じ統制された運用モデルを相互に強化します。
   diagram:
-    - "[Confluence | Jira | SharePoint | ServiceNow]"
-    - "             |"
-    - "   自動化 + ETLオーケストレーション"
-    - "             |"
-    - "   Power BI経営ダッシュボード"
-    - "             |"
-    - " インシデントデータ・パーサーパイプライン"
-    - "             |"
-    - " Change Management向け傾向インサイト"
+    - "[60アプリケーション]"
+    - " URL | Synthetic Monitoring | 集中ログ | Rapid Recovery"
+    - "                  |"
+    - " 本番AI: 自動化作成 -> アラート分析 -> インシデント起票"
+    - "                  |"
+    - " 業務調査 -> ランブック検証 -> Shadow -> Reverse-shadow -> 引き継ぎ"
+    - ""
+    - "[Microsoft + Atlassian更新] -> ラップトップAPI解析"
+    - "                  |"
+    - " Objective | Key Result | Workstream | Task | Owner | Team | Risk/Issue | Priority"
+    - "                  |"
+    - " React/Quartz -> 週次案 -> 人手確認 -> 配信"
+    - "                  |"
+    - " Confluence + SharePointでワーキンググループに共有"
 tech_details:
   rag_prompt_patterns:
-    - Structured summarization prompts for status rollups.
-    - Parser-assisted analysis prompts for incident clustering.
-    - Executive-tailored narrative templates for dashboard briefings.
+    - Extract delivery entities and tag them as Objective, Key Result, Workstream, Task, Owner, Team, Risk/Issue, and Priority.
+    - Draft weekly status narratives from the structured project corpus while retaining human approval before distribution.
+    - Analyze operational alerts and monitoring context while preserving accountable human incident and recovery decisions.
   tools:
-    - Confluence, Jira, SharePoint
-    - Power Automate and Power BI
-    - Bespoke parser scripts supported by coding agents
+    - Microsoft and Atlassian APIs
+    - Laptop-hosted parsing workflow
+    - React and Quartz dashboard
+    - Confluence and SharePoint corpus sharing
+    - URL and synthetic monitoring
+    - Centralized logging and Rapid Recovery procedures
   constraints:
-    - Data quality inconsistency across tools and teams.
-    - Large incident corpora requiring efficient parsing.
-    - Need for executive-level clarity without losing technical detail.
+    - Project updates arrive across multiple enterprise systems and need a consistent delivery taxonomy.
+    - Weekly reports must remain drafts until reviewed and approved by the project manager.
+    - Operational knowledge must be verified in practice before BAU ownership transfers.
+    - Production monitoring and pilot PM automation require different maturity and governance controls.
   tradeoffs:
-    - Highly automated reporting improves speed but needs governance checks.
-    - Deep parser analysis increases insight quality but requires stronger maintenance.
+    - Local API-driven parsing provides direct control but depends on the laptop workflow being operated reliably.
+    - Automated status drafting reduces data wrangling but deliberately retains human review and accountability.
+    - A staged operational transition takes longer than a document-only handoff but reduces continuity and recovery risk.
 tech_details_ja:
   rag_prompt_patterns:
-    - ステータス集約向けの構造化要約プロンプト。
-    - インシデントクラスタリング向けのパーサー支援分析プロンプト。
-    - ダッシュボード説明用の経営層向けナラティブテンプレート。
+    - デリバリー要素を抽出し、Objective、Key Result、Workstream、Task、Owner、Team、Risk/Issue、Priorityでタグ付け。
+    - 構造化プロジェクトコーパスから週次報告案を作成し、配信前に人の承認を維持。
+    - 責任あるインシデント判断・復旧判断を人に残しながら、アラートと監視コンテキストを分析。
   tools:
-    - Confluence、Jira、SharePoint
-    - Power Automate と Power BI
-    - コーディングエージェントで支援した専用パーサースクリプト
+    - MicrosoftおよびAtlassian API
+    - ラップトップ上の解析ワークフロー
+    - React／Quartzダッシュボード
+    - Confluence／SharePointによるコーパス共有
+    - URL／Synthetic Monitoring
+    - 集中ログとRapid Recovery手順
   constraints:
-    - ツール／チーム間でデータ品質が不均一。
-    - 大規模インシデント群のため効率的な解析が必要。
-    - 技術詳細を失わずに経営層へ明瞭に伝える必要がある。
+    - 複数の業務システムから届く更新を一貫したデリバリー分類へ統合する必要がある。
+    - 週次報告はPMが確認・承認するまでドラフトとして扱う。
+    - BAU責任移管前に、運用知識を実務で検証する必要がある。
+    - 本番監視とパイロットPM自動化では、成熟度とガバナンス管理が異なる。
   tradeoffs:
-    - 高度な自動化は速度を上げる一方、ガバナンス確認が不可欠。
-    - 深いパーサー分析は洞察の質を高める一方、保守負荷が増える。
+    - ローカルAPI解析は直接制御できる一方、ラップトップワークフローの安定運用に依存する。
+    - 自動報告案はデータ整理を減らすが、人のレビューと説明責任を意図的に残す。
+    - 段階的運用移管は文書のみの引き継ぎより時間がかかるが、継続性と復旧リスクを抑える。
 lessons_learned:
-  - Garbage in = Garbage out.  Data quality is critical for automated reporting success.
-  - Data format consistency is essential for reliable parsing and analysis.
-  - Executive communication improves when metrics and narrative are co-designed.
+  - The best PM automation makes reporting secondary to leadership, decisions, and removing barriers.
+  - A shared taxonomy turns fragmented updates into a reusable project corpus.
+  - A document is not a handover; readiness must be demonstrated through shadowing and reverse-shadowing.
+  - Production monitoring and pilot knowledge systems should state their maturity explicitly.
 lessons_learned_ja:
-  - Garbage in = Garbage out。自動レポーティングの成功にはデータ品質が最重要。
-  - 信頼できる解析にはデータ形式の一貫性が不可欠。
-  - メトリクスと説明文を同時設計すると経営層への伝達品質が上がる。
+  - 優れたPM自動化は、報告を補助業務にし、リーダーシップ、判断、障害除去を中心に戻す。
+  - 共通分類により、分散した更新を再利用可能なプロジェクトコーパスへ変換できる。
+  - 文書完成は引き継ぎ完了ではなく、Shadow／Reverse-shadowで準備状況を証明する必要がある。
+  - 本番監視とパイロット知識システムは成熟度を明示すべき。
 improve_next:
-  - Add Power Automate workflows to handle document processing.
-  - Add quality gates for parser output validation.
-  - Improve dashboard focus for actionable insights.
+  - Complete the remaining operational handover and retain post-transfer feedback loops.
+  - Expand readiness quality gates across all 60 application scopes.
+  - Harden the pilot PM Second Brain for repeatable operation beyond the laptop workflow.
+  - Add traceability from weekly status statements back to tagged source updates.
 improve_next_ja:
-  - 文書処理を扱うPower Automateワークフローを追加。
-  - パーサー出力の検証用に品質ゲートを追加。
-  - 実行可能な示唆に集中したダッシュボードへ改善。
+  - 残る運用移管を完了し、移管後のフィードバックループを維持。
+  - 60アプリ全体へ準備状況品質ゲートを拡張。
+  - ラップトップ運用を超えて、パイロットPM Second Brainを再現可能に強化。
+  - 週次報告の各記述からタグ付き元更新への追跡性を追加。
 repro:
   runnable: false
   steps:
-    - Setup processes to capture data and receive feedback from surveys.
-    - Link to Power BI dashboards and validate KPI accuracy.
-    - Use ML to detect data trends and anomalies for incident and problem reduction.
+    - Inventory the 60 applications, monitoring paths, operations responsibilities, and recovery procedures.
+    - Verify runbooks and complete shadowing and reverse-shadowing before operational acceptance.
+    - Parse Microsoft and Atlassian updates through the delivery taxonomy.
+    - Review the React/Quartz dashboard and approve the generated weekly status draft.
+    - Share the governed corpus through Confluence and SharePoint.
 repro_ja:
   steps:
-    - データ収集とアンケートフィードバック取得のプロセスを整備する。
-    - Power BIダッシュボードに接続し、KPI精度を検証する。
-    - MLを活用してデータ傾向と異常を検知し、インシデント／問題の削減に生かす。
+    - 60アプリ、監視経路、運用責任、復旧手順を棚卸し。
+    - 運用受入前にランブック検証とShadow／Reverse-shadowを完了。
+    - Microsoft・Atlassian更新をデリバリー分類で解析。
+    - React／Quartzダッシュボードを確認し、自動生成された週次報告案を承認。
+    - 統制されたコーパスをConfluenceとSharePointで共有。
