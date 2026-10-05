@@ -13,6 +13,7 @@
     "nav.family": "-MONファミリー",
     "nav.kinokomon": "きのこモン",
     "nav.career": "経歴",
+    "nav.writing": "記事",
     "nav.contact": "連絡先",
     "nav.lang_label_en": "EN",
     "nav.lang_label_ja": "JA",
@@ -111,6 +112,10 @@
     "fam.kan.desc": "理事会の継続性、管理計画認定の準備、管理資料の引き継ぎを支援する、根拠重視のマンション管理コパイロット。",
     "fam.kan.tag": "マンション管理 · パイロット",
 
+    "writing.modlabel": "// 記事 · 構築の現場から",
+    "writing.h2": "システムを作りながら学んでいること。",
+    "writing.lead": "エージェント、デリバリー、働き方についてのエッセイ。LinkedInで公開した記事を全文アーカイブしています(本文は英語)。",
+    "writing.cta": "▸ すべての記事",
     "career.modlabel": "// 経歴 · デリバリーの厚み",
     "career.h2": "エンジニアリングとデリバリーの20年。",
     "career.lead": "システム連携とグローバルインフラから、ガバンドAIプロダクトまで。",
