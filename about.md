@@ -49,7 +49,7 @@ permalink: /about/
     <h3 class="about-section__section-title">Get in Touch</h3>
     <p>I'm always curious to learn about interesting problems and interesting people. If you're working on something that matters, I'd love to hear about it.</p>
     <ul class="about-section__list about-section__contact-list">
-      <li><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/davidklan" class="about-section__link" target="_blank" rel="noreferrer">davidklan</a></li>
+      <li><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/david-klan/" class="about-section__link" target="_blank" rel="noreferrer">david-klan</a></li>
       <li><strong>Email:</strong> <a href="mailto:dklan@dazbeez.com" class="about-section__link">dklan@dazbeez.com</a></li>
       <li><strong>Location:</strong> Tokyo, Japan (permanent resident)</li>
     </ul>

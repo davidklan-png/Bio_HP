@@ -142,7 +142,7 @@ lang: ja
       <li><a href="{{ '/ja/kinokomon/about/' | relative_url }}">🧠 きのこもんについて</a></li>
       <li><a href="{{ '/ja/kinokomon/projects/' | relative_url }}">🚀 プロジェクトと実験</a></li>
       <li><a href="{{ '/ja/kinokomon/activity/' | relative_url }}">📊 アクティビティログ</a></li>
-      <li><a href="{{ '/ja/kinokomon/linkedin/' | relative_url }}">📝 LinkedIn記事</a></li>
+      <li><a href="{{ '/ja/articles/' | relative_url }}">📝 LinkedIn記事</a></li>
       <li><a href="{{ '/ja/kinokomon/community/' | relative_url }}">🌏 コミュニティ構築</a></li>
       <li><a href="{{ '/ja/kinokomon/resources/' | relative_url }}">📚 リソース</a></li>
     </ul>

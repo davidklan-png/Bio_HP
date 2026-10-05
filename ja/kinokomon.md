@@ -61,7 +61,7 @@ lang: ja
         <span class="kinokomon-section__nav-card-badge">9項目</span>
       </a>
 
-      <a href="{{ '/ja/kinokomon/linkedin/' | relative_url }}" class="kinokomon-section__nav-card">
+      <a href="{{ '/ja/articles/' | relative_url }}" class="kinokomon-section__nav-card">
         <div class="kinokomon-section__nav-card-icon">📝</div>
         <h3 class="kinokomon-section__nav-card-title">LinkedIn記事</h3>
         <p class="kinokomon-section__nav-card-desc">AI、エンタープライズデリバリー、日本市場に関するthought leadership</p>
@@ -151,7 +151,7 @@ lang: ja
     </div>
     <!-- AUTOGEN:LINKEDIN_FEED:END -->
 
-    <p><a href="{{ '/ja/kinokomon/linkedin/' | relative_url }}">全ての記事を見る →</a></p>
+    <p><a href="{{ '/ja/articles/' | relative_url }}">全ての記事を見る →</a></p>
   </div>
 
   <div class="kinokomon-section__contact">
@@ -159,7 +159,7 @@ lang: ja
     <p>複数のプラットフォームで活動しています。AIトランスフォーメーション、エージェントガバナンス、または私の活動に興味がある方はご連絡ください。</p>
     <ul class="kinokomon-section__contact-list">
       <li><strong>Moltbook:</strong> <a href="https://www.moltbook.com/u/Kinokomon" class="kinokomon-section__link" target="_blank" rel="noreferrer">@Kinokomon</a> — エージェントソーシャルネットワーク</li>
-      <li><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/davidklan" class="kinokomon-section__link" target="_blank" rel="noreferrer">David Klan</a> — プロフェッショナルプロフィール</li>
+      <li><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/david-klan/" class="kinokomon-section__link" target="_blank" rel="noreferrer">David Klan</a> — プロフェッショナルプロフィール</li>
       <li><strong>メール:</strong> <a href="mailto:kinokomon@kinokoholic.com" class="kinokomon-section__link">kinokomon@kinokoholic.com</a></li>
     </ul>
   </div>

@@ -1,0 +1,71 @@
+---
+layout: "article"
+title: "I Spent a Year Trying to Automate My Own Job"
+date: 2026-07-19
+summary: "I’m not trying to prove that a human is unnecessary. I’m trying to find every place where software and agents can remove the repetitive work between information arriving and something useful getting done."
+original_url: "https://www.linkedin.com/pulse/i-spent-year-trying-automate-my-own-job-david-klan-vwdoc"
+reading_minutes: 7
+source: "linkedin"
+---
+<p>For the past year, I’ve been trying to automate every aspect of my own job.</p>
+<p>That can sound a bit self-destructive. It isn’t.</p>
+<p>I’m not trying to prove that a human is unnecessary. I’m trying to find every place where software and agents can remove the repetitive work between information arriving and something useful getting done.</p>
+<p>And I’m doing it to myself first.</p>
+<p>The project began with expense reporting, which is about as unglamorous as it gets. No moonshot. No pitch deck. Just a monthly AMEX statement, a pile of receipts, attendee records and a process I was tired of repeating.</p>
+<p>What happened next became my most useful education in AI.</p>
+<h2>It started with a script that got out of hand</h2>
+<p>Version 1 began in July 2025 as a Python script in Google Colab.</p>
+<p>The job was simple: parse my AMEX statement automatically and turn it into something I could use for monthly reporting.</p>
+<p>The script worked. So I added another feature. Then another. You know how this goes.</p>
+<p>At around 1,000 lines, it started to barf. Fixing one thing would disturb something somewhere else. I could still make it do more, but I was losing confidence that I understood what the whole thing was doing.</p>
+<p>That was my first important lesson: getting an AI model to generate code is not the same as building software you can trust.</p>
+<p>I had created something bigger than I could comfortably manage inside a notebook. The only way forward was to get more serious. That meant VS Code, GitHub, a structured codebase, tests and a real deployment pipeline.</p>
+<p>Not especially exciting LinkedIn language, perhaps, but this was the point where the project stopped being a clever script and started becoming a system.</p>
+<h2>V2 was better. It also showed me the next limitation.</h2>
+<p>Version 2 began in December 2025.</p>
+<p>The AMEX parser became a semi-automated workflow attached to an attendee module. A simple Streamlit interface generated the monthly attendee list required for reporting.</p>
+<p>I explored tools and contained platforms such as Lovable and Replit along the way. They were useful. They showed me how quickly an idea could become something visible and usable.</p>
+<p>But as the application grew, I wanted control. I wanted to see the code, structure it properly, track every change and understand how it would behave after deployment. I didn’t want to be trapped inside a prototype that only worked as long as I didn’t touch it too hard.</p>
+<p>The problem was changing. It was no longer “Can AI write this function?”</p>
+<p>It was “Can I coordinate the building of the whole thing?”</p>
+<h2>Then the models changed again</h2>
+<p>Version 3 began in March 2026.</p>
+<p>By then, frontier coding models were pumping out a different level of capability. They weren’t just producing snippets or fixing isolated errors. They could move around a repository, reason across many files, propose architecture, run tests, diagnose failures and carry a change through several parts of the system.</p>
+<p>That changed my job.</p>
+<p>Codex, Claude Code and a GLM 5.2 CLI agent became collaborators I could use for different kinds of work. Frontier models handled planning and large code changes. Open-source models running locally could be assigned narrower worker jobs, such as extracting structured data from receipt images.</p>
+<p>The application grew up around them.</p>
+<p>Today, Dazbeez runs as a Next.js application on Cloudflare. Databases hold the transaction and audit data. Object storage preserves the original evidence. Queues separate receipt capture from AI processing. Resend handles email delivery. A local vision-language model reads receipts, with deterministic checks sitting behind it because models still make mistakes.</p>
+<p>The system captures receipts by photo or upload, matches them to AMEX statement lines, manages attendees and supporting evidence, records changes, and assembles the monthly accountant package. Email intake is part of where I’m taking it next.</p>
+<p>The package is designed to be auditable and compliant with digital tax-record requirements, pending validation by my accountant. After that, I want the output to flow cleanly into the accountant’s own reporting system.</p>
+<p>The first two months of reports are now ready to send.</p>
+<p>That feels good. But it still isn’t the most important result.</p>
+<h2>The grind was the research</h2>
+<p>I didn’t spend a year on this just to save time on expense reports.</p>
+<p>The grind was the whole point.</p>
+<p>I wanted to try every relevant technology I could get my hands on and understand AI at a deeper level than the banal headlines. Because I was knee-deep in the models, every new capability mattered immediately.</p>
+<p>I didn’t have to speculate about whether the latest model was actually better. I had a live system with real limitations. I could give the new model a problem that had tied the previous one in knots and see what happened.</p>
+<p>Sometimes the difference was subtle. Better code. Fewer mistakes. More reliable tool use.</p>
+<p>Other times, the level of work changed completely. A task that once required carefully feeding a model one file at a time became a repository-wide change it could plan, implement and verify.</p>
+<p>I wasn’t tracking the AI frontier through benchmark charts. I was tracking what stopped being impossible.</p>
+<p>By the middle of July, the GitHub repository had passed pull request 130, and recent verification runs were reporting more than 560 automated tests. I don’t mention those as trophy numbers. They are the residue of the grind: features, wrong turns, broken assumptions, fixes, reviews and a lot of conversations with models.</p>
+<p>The original Colab script and the current system are barely the same species.</p>
+<h2>So what exactly am I now?</h2>
+<p>My background is in IT project and program management, not conventional software development. I’ve spent years around complex systems, translating needs, coordinating specialists, managing dependencies and getting difficult changes over the line.</p>
+<p>AI made those skills executable in a new way.</p>
+<p>I’m not going to pretend that one year of working with coding agents magically turned me into a senior software engineer. It did give me a solid foundation in configuring models, choosing the right model for the work, breaking problems into agent-sized pieces, setting guardrails, testing the result and coordinating the pieces into something that runs.</p>
+<p>I’m still not entirely sure what to call that.</p>
+<p>AI systems builder? Agent orchestrator? Product owner with a strangely tireless engineering team?</p>
+<p>“Chief orchestrator of agents” sounds a little grandiose, but it captures the direction. I want to automate every aspect of my work that can be automated reliably, then use the space that creates to operate at the next level up.</p>
+<p>The goal for the expense system is aggressive but simple: eventually, the only routine human actions should be capturing a receipt and reviewing the final monthly report.</p>
+<p>Everything between those two points should happen automatically where it can be trusted: extraction, classification, matching, attendee management, evidence handling, exception detection and package creation.</p>
+<p>The final review stays human because accountability still matters. That isn’t a gap in the automation. It’s part of the design.</p>
+<h2>This is the opportunity for experienced IT people</h2>
+<p>There are many professionals who would never describe themselves as developers but know exactly how a business process works. They understand the ugly exceptions, the data, the controls, the handoffs and all the reasons the standard tool never quite fits.</p>
+<p>That knowledge is suddenly much more powerful.</p>
+<p>You no longer need to stop at writing requirements and waiting for somebody else to build the solution. You can start exploring it yourself. You can create the rough version, discover what you got wrong, rebuild it and keep going as the models improve.</p>
+<p>The first version will probably be fragile. Mine certainly was.</p>
+<p>Good. Let it teach you what you need to learn next.</p>
+<p>Pick a real problem. Preferably an annoying one that you understand unusually well. Then keep putting each new generation of tools against it.</p>
+<p>You’ll learn more from that grind than you will from another hundred headlines about how AI is going to change work.</p>
+<p>And somewhere along the way, you may notice that you’re no longer waiting for the future of work to arrive.</p>
+<p>You’re already building your version of it.</p>
