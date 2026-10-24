@@ -149,11 +149,26 @@ def render_preview(data: dict, claims: list, digest: str) -> bytes:
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
+def ensure_real_output_dir(final: Path) -> None:
+    """Refuse output destinations under the project that traverse a symlink.
+
+    Keeps generated writes inside the real ``build/preview/`` directory. Only
+    ancestors at or below the (already resolved) project root are checked:
+    symlinked ancestors above it are not project escapes.
+    """
+    current = final.parent
+    while current != ROOT and current != current.parent:
+        if current.is_symlink():
+            raise PreviewError("output directory path traverses a symlink")
+        current = current.parent
+
+
 def write_atomic(final: Path, payload: bytes) -> None:
     """Replace final atomically; on failure remove partials and keep the old file."""
     fd = None
     tmp: Path | None = None
     try:
+        ensure_real_output_dir(final)
         final.parent.mkdir(parents=True, exist_ok=True)
         fd, name = tempfile.mkstemp(dir=final.parent, prefix=".prompt-facts-", suffix=".tmp")
         tmp = Path(name)
@@ -185,6 +200,8 @@ def main(argv=None) -> int:
         print(USAGE, file=sys.stderr)
         return 2
     try:
+        if os.path.realpath(argv[0]) == os.path.realpath(OUTPUT):
+            raise PreviewError("input file resolves to the preview output destination")
         raw = read_input(argv[0])
         data = parse_document(raw)
         claims = validate_document(data)

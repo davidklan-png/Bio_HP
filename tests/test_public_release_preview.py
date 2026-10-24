@@ -8,6 +8,8 @@ All fixtures are synthetic. Runnable without pytest:
 import hashlib
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -124,9 +126,10 @@ def test_valid_minimal_input():
     # No invented JA/period lines when the fields are absent.
     assert not any(line.startswith("ja: ") for line in text.splitlines())
     assert not any(line.startswith("period: ") for line in text.splitlines())
-    # Input file untouched; no stray files left beside the preview.
+    # Input file untouched; the only new file is the final preview itself.
     assert after == raw
-    assert before_names == sorted(p.name for p in PREVIEW.parent.glob("*"))
+    after_names = sorted(p.name for p in PREVIEW.parent.glob("*"))
+    assert after_names == sorted(set(before_names) | {PREVIEW.name})
 
 
 def test_full_input_verbatim_and_deterministic():
@@ -222,6 +225,70 @@ def test_failure_preserves_previous_preview():
         assert_no_markers(r2)
         assert path.read_bytes() == encode(build_doc([claim("synth.bad", status="MK-STATUS")]))
     assert PREVIEW.read_bytes() == previous  # previous final preview untouched
+
+
+def test_input_aliasing_output_rejected():
+    """F1: an input that is (or aliases) the output destination must be refused."""
+    PREVIEW.parent.mkdir(parents=True, exist_ok=True)
+    payload = build_doc([claim("synth.alias", statement="Synthetic alias statement.")])
+    PREVIEW.write_bytes(encode(payload))  # valid JSON placed at the output path
+    before = PREVIEW.read_bytes()
+    r = run_cli(str(PREVIEW))
+    assert r.returncode != 0
+    assert "ERROR" in (r.stdout + r.stderr)
+    assert PREVIEW.read_bytes() == before  # input bytes preserved, exit nonzero
+    # Symlink alias: input path elsewhere, resolving to the output destination.
+    with tempfile.TemporaryDirectory() as tmp:
+        alias = Path(tmp) / "alias.json"
+        alias.symlink_to(PREVIEW)
+        r = run_cli(str(alias))
+        assert r.returncode != 0
+        assert "ERROR" in (r.stdout + r.stderr)
+        assert PREVIEW.read_bytes() == before
+
+
+def test_symlinked_output_dirs_rejected():
+    """F2: symlinked build/ or build/preview must not redirect writes outside."""
+    build = ROOT / "build"
+    assert not build.is_symlink(), "unexpected pre-existing build symlink"
+    if build.exists():
+        shutil.rmtree(build)
+    try:
+        # Case A: `build` itself is a symlink to an outside synthetic directory.
+        with tempfile.TemporaryDirectory() as tmp:
+            outside = Path(tmp) / "outside-a"
+            (outside / "preview").mkdir(parents=True)
+            sentinel = outside / "preview" / "prompt-facts.txt"
+            sentinel.write_bytes(b"SENTINEL-A")
+            build.symlink_to(outside)
+            src = write_input(tmp, build_doc())
+            r = run_cli(str(src))
+            assert r.returncode != 0
+            assert "ERROR" in (r.stdout + r.stderr)
+            assert sentinel.read_bytes() == b"SENTINEL-A"
+            assert sorted(str(p.relative_to(outside)) for p in outside.rglob("*")) == [
+                "preview", "preview/prompt-facts.txt"
+            ]
+        build.unlink()
+        # Case B: `build` is real, `build/preview` is a symlink to outside.
+        with tempfile.TemporaryDirectory() as tmp:
+            outside = Path(tmp) / "outside-b"
+            outside.mkdir()
+            sentinel = outside / "prompt-facts.txt"
+            sentinel.write_bytes(b"SENTINEL-B")
+            build.mkdir()
+            (build / "preview").symlink_to(outside)
+            src = write_input(tmp, build_doc())
+            r = run_cli(str(src))
+            assert r.returncode != 0
+            assert "ERROR" in (r.stdout + r.stderr)
+            assert sentinel.read_bytes() == b"SENTINEL-B"
+            assert [p.name for p in outside.iterdir()] == ["prompt-facts.txt"]
+    finally:
+        if build.is_symlink():
+            build.unlink()
+        if build.exists():
+            shutil.rmtree(build)
 
 
 def test_write_atomic_failure_cleans_up():
