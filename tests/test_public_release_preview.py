@@ -8,8 +8,6 @@ All fixtures are synthetic. Runnable without pytest:
 import hashlib
 import importlib.util
 import json
-import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -68,9 +66,9 @@ def write_input(tmp, payload, name="input.json"):
     return path
 
 
-def run_cli(*args):
+def run_cli(*args, script=SCRIPT):
     return subprocess.run(
-        [sys.executable, str(SCRIPT), *args],
+        [sys.executable, str(script), *args],
         capture_output=True, text=True, encoding="utf-8", cwd=str(ROOT),
     )
 
@@ -248,47 +246,49 @@ def test_input_aliasing_output_rejected():
 
 
 def test_symlinked_output_dirs_rejected():
-    """F2: symlinked build/ or build/preview must not redirect writes outside."""
-    build = ROOT / "build"
-    assert not build.is_symlink(), "unexpected pre-existing build symlink"
-    if build.exists():
-        shutil.rmtree(build)
-    try:
+    """F2: symlinked build/ or build/preview must not redirect writes outside.
+
+    Runs a byte-identical copy of the script inside a disposable synthetic
+    project, so the symlink fixtures never touch this checkout's build/ tree
+    (unrelated generated outputs under build/ must survive the suite).
+    """
+    with tempfile.TemporaryDirectory() as scratch:
+        scratch = Path(scratch)
+        proj = scratch / "proj"
+        (proj / "scripts").mkdir(parents=True)
+        script_copy = proj / "scripts" / "preview_public_release.py"
+        script_copy.write_bytes(SCRIPT.read_bytes())
+        build = proj / "build"
+
         # Case A: `build` itself is a symlink to an outside synthetic directory.
-        with tempfile.TemporaryDirectory() as tmp:
-            outside = Path(tmp) / "outside-a"
-            (outside / "preview").mkdir(parents=True)
-            sentinel = outside / "preview" / "prompt-facts.txt"
-            sentinel.write_bytes(b"SENTINEL-A")
-            build.symlink_to(outside)
-            src = write_input(tmp, build_doc())
-            r = run_cli(str(src))
-            assert r.returncode != 0
-            assert "ERROR" in (r.stdout + r.stderr)
-            assert sentinel.read_bytes() == b"SENTINEL-A"
-            assert sorted(str(p.relative_to(outside)) for p in outside.rglob("*")) == [
-                "preview", "preview/prompt-facts.txt"
-            ]
+        outside = scratch / "outside-a"
+        (outside / "preview").mkdir(parents=True)
+        sentinel = outside / "preview" / "prompt-facts.txt"
+        sentinel.write_bytes(b"SENTINEL-A")
+        build.symlink_to(outside)
+        src = write_input(scratch, build_doc())
+        r = run_cli(str(src), script=script_copy)
+        assert r.returncode != 0
+        assert "ERROR" in (r.stdout + r.stderr)
+        assert sentinel.read_bytes() == b"SENTINEL-A"
+        assert sorted(str(p.relative_to(outside)) for p in outside.rglob("*")) == [
+            "preview", "preview/prompt-facts.txt"
+        ]
         build.unlink()
+
         # Case B: `build` is real, `build/preview` is a symlink to outside.
-        with tempfile.TemporaryDirectory() as tmp:
-            outside = Path(tmp) / "outside-b"
-            outside.mkdir()
-            sentinel = outside / "prompt-facts.txt"
-            sentinel.write_bytes(b"SENTINEL-B")
-            build.mkdir()
-            (build / "preview").symlink_to(outside)
-            src = write_input(tmp, build_doc())
-            r = run_cli(str(src))
-            assert r.returncode != 0
-            assert "ERROR" in (r.stdout + r.stderr)
-            assert sentinel.read_bytes() == b"SENTINEL-B"
-            assert [p.name for p in outside.iterdir()] == ["prompt-facts.txt"]
-    finally:
-        if build.is_symlink():
-            build.unlink()
-        if build.exists():
-            shutil.rmtree(build)
+        outside = scratch / "outside-b"
+        outside.mkdir()
+        sentinel = outside / "prompt-facts.txt"
+        sentinel.write_bytes(b"SENTINEL-B")
+        build.mkdir()
+        (build / "preview").symlink_to(outside)
+        src = write_input(scratch, build_doc())
+        r = run_cli(str(src), script=script_copy)
+        assert r.returncode != 0
+        assert "ERROR" in (r.stdout + r.stderr)
+        assert sentinel.read_bytes() == b"SENTINEL-B"
+        assert [p.name for p in outside.iterdir()] == ["prompt-facts.txt"]
 
 
 def test_write_atomic_failure_cleans_up():
