@@ -190,6 +190,62 @@ def test_update_index_replaces_only_marked_region():
     assert out.startswith("before") and out.endswith("after")
 
 
+def _with_temp_dirs(fn):
+    """Run fn with the importer writing into a throwaway directory."""
+    import tempfile
+    saved = (mod.ARTICLES_DIR, mod.IMAGES_DIR, mod.save_image)
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.ARTICLES_DIR = Path(tmp) / "_articles"
+        mod.IMAGES_DIR = Path(tmp) / "images"
+        try:
+            fn(Path(tmp))
+        finally:
+            mod.ARTICLES_DIR, mod.IMAGES_DIR, mod.save_image = saved
+
+
+def test_import_aborts_when_an_inline_image_cannot_be_saved():
+    # LinkedIn image URLs expire, so publishing one is a time bomb: skip the
+    # article (leaving any existing copy untouched) instead.
+    def run(tmp):
+        mod.save_image = lambda url, dest: None if "body1" in url else "/img/ok.jpg"
+        mod.ARTICLES_DIR.mkdir()
+        existing = mod.ARTICLES_DIR / "ant-spider-bee.html"
+        previous = mod.render_article_file({"title": "Old", "date": "2026-03-08"}, "<p>previous copy</p>")
+        existing.write_text(previous)
+        try:
+            mod.import_one("ant-spider-bee-david-klan-ncavc", PAGE)
+        except ValueError as exc:
+            assert "image" in str(exc)
+        else:
+            raise AssertionError("expected ValueError")
+        assert existing.read_text() == previous
+    _with_temp_dirs(run)
+
+
+def test_import_aborts_when_the_cover_cannot_be_saved():
+    def run(tmp):
+        mod.save_image = lambda url, dest: None if "cover" in url else "/img/ok.jpg"
+        try:
+            mod.import_one("ant-spider-bee-david-klan-ncavc", PAGE)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("expected ValueError")
+        assert not (mod.ARTICLES_DIR / "ant-spider-bee.html").exists()
+    _with_temp_dirs(run)
+
+
+def test_import_rewrites_image_urls_to_local_copies():
+    def run(tmp):
+        mod.save_image = lambda url, dest: "/assets/images/articles/x/" + dest.name + ".png"
+        mod.import_one("ant-spider-bee-david-klan-ncavc", PAGE)
+        text = (mod.ARTICLES_DIR / "ant-spider-bee.html").read_text()
+        assert "media.licdn.com" not in text.split("---", 2)[2]
+        assert 'src="/assets/images/articles/x/img-01.png"' in text
+        assert 'cover: "/assets/images/articles/x/cover.png"' in text
+    _with_temp_dirs(run)
+
+
 def test_committed_homepage_matches_committed_articles():
     """CI guard: the homepage writing block must match _articles/."""
     arts = mod.load_articles()

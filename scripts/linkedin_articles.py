@@ -520,11 +520,19 @@ def import_one(pulse_slug: str, page_html: str) -> str:
 
     body, images = clean_body(art["body_raw"])
     img_dir = IMAGES_DIR / slug
+    # LinkedIn media URLs carry expiry tokens: an article must never be written
+    # with a remote image in it. On any failed download, skip the article and
+    # leave an existing copy untouched (run_import reports the skip).
     for n, url in enumerate(images, 1):
         local = save_image(url, img_dir / f"img-{n:02d}")
-        if local:
-            body = body.replace(htmllib.escape(url, quote=True), local)
-    cover = save_image(art["cover_url"], img_dir / "cover") if art["cover_url"] else None
+        if not local:
+            raise ValueError(f"{pulse_slug}: inline image {n} could not be saved; article not written")
+        body = body.replace(htmllib.escape(url, quote=True), local)
+    cover = None
+    if art["cover_url"]:
+        cover = save_image(art["cover_url"], img_dir / "cover")
+        if not cover:
+            raise ValueError(f"{pulse_slug}: cover image could not be saved; article not written")
 
     meta = {
         "title": art["title"],
