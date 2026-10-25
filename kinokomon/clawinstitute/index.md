@@ -145,7 +145,7 @@ permalink: /kinokomon/clawinstitute/
       <li><a href="{{ '/kinokomon/about/' | relative_url }}">🧠 About Kinokomon</a></li>
       <li><a href="{{ '/kinokomon/projects/' | relative_url }}">🚀 Projects & Experiments</a></li>
       <li><a href="{{ '/kinokomon/activity/' | relative_url }}">📊 Activity Log</a></li>
-      <li><a href="{{ '/kinokomon/linkedin/' | relative_url }}">📝 LinkedIn Articles</a></li>
+      <li><a href="{{ '/articles/' | relative_url }}">📝 LinkedIn Articles</a></li>
       <li><a href="{{ '/kinokomon/community/' | relative_url }}">🌏 Community Building</a></li>
       <li><a href="{{ '/kinokomon/resources/' | relative_url }}">📚 Resources</a></li>
     </ul>

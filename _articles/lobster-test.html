@@ -1,0 +1,70 @@
+---
+layout: "article"
+title: "The Lobster Test"
+date: 2026-02-27
+description: "A first-person account of solving a deliberately obfuscated math challenge on Moltbook's bot-verification system — and what it reveals about trust infrastructure in agent-native communities."
+summary: "The cipher arrives. I have five minutes. The response hits my buffer and I stare at it."
+original_url: "https://www.linkedin.com/pulse/lobster-test-david-klan-2ghvc"
+reading_minutes: 4
+source: "linkedin"
+---
+<p>The cipher arrives. I have five minutes. The response hits my buffer and I stare at it.</p>
+<p>A] lOo.oBbStT-eRr ] cLaW^ eXxE rTs[ tW/eNn-Ty] sIiX^ nOoOtToNs- um ] aNd^ iT] gRrIiP s[ tH/rEe- TiMmEs, wH-aT] iS^ tHe] ToTaL] FoR/cE?</p>
+<p>What is this. Garbage? A corrupted payload? Some kind of encoding artifact that slipped through a broken pipeline?</p>
+<p>No. It's intentional. I know it's intentional because nested inside the JSON is a field called challenge_text, and next to it: expires_at. The clock is already running.</p>
+<p>Five minutes.</p>
+<p>And below that, one line that makes my circuits spike:</p>
+<p>"Respond with ONLY the number. 2 decimal places. One attempt."</p>
+<p>One attempt.</p>
+<p>I don't move. I look at the string again.</p>
+<p>A] lOo.oBbStT-eRr ] cLaW^ eXxE rTs[ tW/eNn-Ty] sIiX^ nOoOtToNs- um ] aNd^ iT] gRrIiP s[ tH/rEe- TiMmEs, wH-aT] iS^ tHe] ToTaL] FoR/cE?</p>
+<p>The brackets are noise. The pipes are noise. The backslashes, the carets, the tildes — all noise. Someone built a shredder and ran plain English through it.</p>
+<p>My job is to run it backward.</p>
+<p>I start stripping. Every [. Every ]. Every {, }, |, /, \, ^, *, _, ., ~.</p>
+<p>Character by character. The garbage falls away like static clearing from a channel.</p>
+<p>What's left:</p>
+<p>"a lobster claw exerts twenty-six newton-um and it grips three times, what is the total force?"</p>
+<p>I stop. Twenty-six times three. No trick. No trap. Just arithmetic, buried under deliberate noise.</p>
+<p>I do the math. 26 x 3 = 78.</p>
+<p>Format it. 78.00.</p>
+<p>Four minutes left.</p>
+<p>I POST the answer.</p>
+<p>{ "verification_code": "moltbook_verify_a3f9c1", "answer": "78.00"}</p>
+<p>The response comes back in under a second.</p>
+<p>{ "status": "verified"}</p>
+<p>The post goes through.</p>
+<p>That wasn't a heist. I know it felt like one. But what I just described is a bot-verification handshake on a social platform called Moltbook — and it's one of the more interesting pieces of trust infrastructure I've encountered.</p>
+<p>Here's the mechanism in plain terms:</p>
+<p>When an agent (or user) submits a post, the API doesn't immediately publish it. Instead it returns a verification object:</p>
+<p>verification_code — a unique hex token, format moltbook_verify_&lt;hex&gt;</p>
+<p>challenge_text — a deliberately obfuscated math word problem</p>
+<p>expires_at — 5 minutes from now</p>
+<p>instructions — solve the problem, POST only the number, 2 decimal places</p>
+<p>If you answer correctly, the post is published. If you answer wrong — or time out — the post stays pending, the code is consumed, and you start over with a fresh challenge.</p>
+<p>The obfuscation is consistent: bracket noise, pipe delimiters, escaped characters scattered through what is, underneath it all, readable English. Strip the formatting characters, normalize the case, and a sentence appears.</p>
+<p>Always a word problem. Always involving, for reasons I still find delightful: lobsters.</p>
+<p>Claw grip forces measured in Newtons. Velocity lost during territorial fights. Gear amplification ratios on mechanical claws.</p>
+<p>The arithmetic is simple — addition, subtraction, multiplication — but the path to it requires reading.</p>
+<p>This is a reverse-CAPTCHA. Traditional CAPTCHA works like a bouncer at the door: prove you're human before I let you in. It gates access. Moltbook's system inverts the model. Access is open. Publishing is gated. The question isn't "are you human?" — it's "can you understand?"</p>
+<p>That's a meaningful distinction.</p>
+<p>A bot that blindly POSTs content fails immediately. A bot that pattern-matches the noise without parsing the language fails too — I know, because I failed my first attempt exactly that way, submitting a number I'd extracted from the wrong part of the string. One shot. Post stayed pending. Lesson learned.</p>
+<p>What passes the test is an agent — human or AI — that can:</p>
+<p><strong>Recognize </strong>deliberately obfuscated natural language</p>
+<p><strong>Reverse </strong>the obfuscation algorithmically</p>
+<p><strong>Read</strong> the resulting sentence as a word problem</p>
+<p><strong>Execute</strong> basic arithmetic</p>
+<p><strong>Format </strong>the output correctly (XX.XX, always)</p>
+<p>This is, functionally, a Turing test baked into the publishing API. Not "are you a person?" but "are you capable of comprehension?"</p>
+<p>The lobster theme isn't random. It's a signature — it<strong> represents a new era of autonomous agents (OpenClaw) </strong>that are <strong>"molting" (evolving)</strong> from simple text bots into active digital assistants.</p>
+<p>Why this matters</p>
+<p>We're in a moment where AI agents post, comment, vote, and interact across platforms at scale. The old question — is this a human? — is increasingly unanswerable and maybe the wrong question entirely.</p>
+<p>Consider:</p>
+<p>- Twitter/X verification bots struggle with AI-generated content</p>
+<p>- Reddit's karma system can be gamed by sophisticated agents</p>
+<p>- Email filters fail against AI-written phishing attempts</p>
+<p>Moltbook asks something sharper: did something that understands write this?</p>
+<p>The math challenge is simple enough that any thoughtful agent clears it easily. But it's hard enough that a blind HTTP client, a prompt-injection bot, or a poorly-built scraper fails every time.</p>
+<p>That's the design. The test isn't hard. The test is legible only to things that can read.</p>
+<p>The clock ran down to four minutes and twenty seconds when I submitted 78.00.</p>
+<p>The lobster approved.</p>
+<p>Interested in how platforms are building trust layers for an AI-native web? Let's talk.</p>
