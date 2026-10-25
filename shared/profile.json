@@ -125,15 +125,10 @@
       "status": "Earned in 2012; not maintained or represented as current"
     },
     {
-      "name": "SAFe Agile training",
+      "name": "SAFe Release Train Engineer (RTE) and SAFe Agilist (SA)",
       "provider": "SAFe",
-      "period": "2024-2025",
-      "courses": [
-        "SAFe Scrum Master",
-        "Leading SAFe",
-        "Release Train Engineer"
-      ],
-      "status": "Training completed; not presented as a current or renewed certification"
+      "period": "October 2024",
+      "status": "Received in October 2024; current renewal status has not been confirmed"
     }
   ],
   "projects": [
@@ -518,7 +513,6 @@
       "summary": "Owned the active-policy data-migration stream within Manulife Japan's enterprise-scale legacy-mainframe migration and decommissioning program, involving approximately 200 contributors across the full SDLC, then continued with infrastructure and application-operations projects.",
       "outcomes": [
         "Owned the active-policy data-migration stream within the legacy-mainframe migration and decommissioning program",
-        "Delivered functional improvements and new features within the migration scope",
         "Focused program delivery on data quality and integration testing across an approximately 200-person full-SDLC organization",
         "Delivered infrastructure consolidation and standardization covering Active Directory and operating-system versions",
         "Managed migration of critical systems from Hong Kong to Japan",
@@ -672,8 +666,8 @@
     "contracting_channel": "Smart Partners",
     "contracting_history": "Dazbeez GK contracted through Smart Partners from its inception on February 1, 2020, initially for the continuing AIG Technology assignment and then for Manulife Japan from December 2021.",
     "current_client": "Manulife Japan",
-    "assignment_title": "Application Project Manager",
-    "assignment_period": "December 2021-present",
+    "assignment_title": "Infrastructure Project Manager",
+    "assignment_period": "November 2025-present",
     "location": "Tokyo, Japan",
     "work_status": "Permanent resident of Japan",
     "parallel_portfolio": "Kinokoholic showcases AI, data, and automation projects developed since 2024; it is a portfolio and project surface, not a separate employer."
@@ -685,8 +679,8 @@
       "title": "IT Consultant",
       "contracting_channel": "Smart Partners",
       "client": "Manulife Japan",
-      "assignment_title": "Application Project Manager",
-      "assignment_period": "December 2021-present",
+      "assignment_title": "Infrastructure Project Manager",
+      "assignment_period": "November 2025-present",
       "assignments": [
         {
           "client": "AIG Technology KK",
@@ -695,12 +689,17 @@
         },
         {
           "client": "Manulife Japan",
-          "period": "December 2021-present",
+          "period": "December 2021-November 2025",
           "role": "Application Project Manager"
+        },
+        {
+          "client": "Manulife Japan",
+          "period": "November 2025-present",
+          "role": "Infrastructure Project Manager"
         }
       ],
       "location": "Tokyo, Japan",
-      "summary": "Owned the active-policy data-migration stream in an approximately 200-person full-SDLC legacy-mainframe program, including functional improvements, new features, data quality, and integration testing; followed by Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain."
+      "summary": "David owned the active policy data migration stream within an enterprise-scale legacy mainframe migration and decommissioning program. The approximately 200-person full SDLC program focused on data quality and integration testing as key deliverables for the migration. Followed by Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain."
     },
     {
       "period": "2024-present",
