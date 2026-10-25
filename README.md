@@ -56,6 +56,34 @@ Minimal end-to-end JD fit concierge:
 - Grounding: `shared/profile.json`
 - Guardrails: evidence-only strengths, size limits, DO rate limiting
 
+## Public-Release Preview (local, synthetic only)
+
+`scripts/preview_public_release.py` renders a **local, unapproved preview** of
+the chat facts from a public-release candidate JSON file:
+
+```bash
+python3 scripts/preview_public_release.py path/to/public-release.candidate.json
+```
+
+- **Input**: a JSON file with exactly `purpose: "profile-homepage"`,
+  `audience: "public"`, a 40-hex-character `knowledge_revision`, and a
+  nonempty, ID-sorted `claims` list. Each claim has exactly `id`, `status`
+  (`verified` or `historical`) and `statement`, plus optional
+  `statement_ja` / `period`. Duplicate JSON keys and `NaN`/`Infinity` are
+  rejected.
+- **Output**: `build/preview/prompt-facts.txt` (gitignored) — the input
+  SHA-256 and revision plus every claim verbatim (EN text, supplied Japanese
+  text and period are never translated or invented). No timestamps:
+  identical input bytes always produce identical preview bytes. On failure
+  nothing is written and any previous preview is preserved.
+- **Boundary**: this validates the file *shape* and renders a local excerpt
+  only. It does not verify Git revisions, evidence, private restrictions or
+  owner consent, and it approves nothing. The homepage, chat prompt and all
+  other live consumers stay unchanged; wiring them to a real release
+  requires an owner-approved release and a separate reviewed task.
+
+Tests (synthetic fixtures only): `python3 tests/test_public_release_preview.py`
+
 ## TDD Workflow
 
 This repo enforces a test-first workflow for code changes.
