@@ -19,9 +19,7 @@ SCRIPT = ROOT / "scripts" / "preview_public_release.py"
 
 spec = importlib.util.spec_from_file_location("preview_public_release", SCRIPT)
 mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mod)
-
-PREVIEW = mod.OUTPUT
+spec.loader.exec_module(mod)  # only write_atomic/PreviewError are used directly
 
 # Synthetic revision (40 hex chars) and unique fake markers. Markers appear only
 # in deliberately invalid/secret-bearing fixtures; they must never reach stdout
@@ -73,6 +71,20 @@ def run_cli(*args, script=SCRIPT):
     )
 
 
+def disposable_project(tmp):
+    """Byte-identical script copy in a synthetic project: (script, preview_path).
+
+    Every test that can write output runs against this copy so the suite never
+    touches this checkout's build/ tree (a developer's existing preview at
+    build/preview/prompt-facts.txt must survive the documented suite run).
+    """
+    proj = Path(tmp) / "proj"
+    (proj / "scripts").mkdir(parents=True)
+    script = proj / "scripts" / "preview_public_release.py"
+    script.write_bytes(SCRIPT.read_bytes())
+    return script, proj / "build" / "preview" / "prompt-facts.txt"
+
+
 def assert_no_markers(r):
     combined = r.stdout + r.stderr
     for marker in MARKERS:
@@ -91,20 +103,26 @@ def expect_rejected(payload):
 
 
 def run_valid(payload):
+    """Valid run against a disposable project copy.
+
+    Returns (result, input_bytes_after, preview_bytes); reads happen inside
+    the temporary project's lifetime. The disposable preview directory must
+    contain exactly the final preview file.
+    """
     with tempfile.TemporaryDirectory() as tmp:
+        script, preview = disposable_project(tmp)
         path = write_input(tmp, payload)
-        r = run_cli(str(path))
+        r = run_cli(str(path), script=script)
         assert r.returncode == 0, (r.stdout, r.stderr)
-        return r, path.read_bytes()
+        assert sorted(p.name for p in preview.parent.glob("*")) == [preview.name]
+        return r, path.read_bytes(), preview.read_bytes()
 
 
 def test_valid_minimal_input():
     stmt = "Synthetic minimal statement with kanji 検証 and emoji 🧠."
     payload = build_doc([claim("synth.min", statement=stmt)])
     raw = encode(payload)
-    before_names = (sorted(p.name for p in PREVIEW.parent.glob("*"))
-                    if PREVIEW.parent.exists() else [])
-    r, after = run_valid(payload)
+    r, after, preview_bytes = run_valid(payload)
     digest = hashlib.sha256(raw).hexdigest()
     # Success output: safe metadata only.
     assert r.stdout.splitlines() == [
@@ -113,7 +131,7 @@ def test_valid_minimal_input():
         "claims: 1",
         "local preview; not approved for use",
     ]
-    text = PREVIEW.read_bytes().decode("utf-8")
+    text = preview_bytes.decode("utf-8")
     assert "LOCAL PREVIEW" in text and "NOT APPROVED FOR USE" in text
     assert "not a complete chronology" in text and "not a live prompt" in text
     assert "synth.min" in text
@@ -124,10 +142,9 @@ def test_valid_minimal_input():
     # No invented JA/period lines when the fields are absent.
     assert not any(line.startswith("ja: ") for line in text.splitlines())
     assert not any(line.startswith("period: ") for line in text.splitlines())
-    # Input file untouched; the only new file is the final preview itself.
+    # Input file untouched; run_valid asserts the preview dir holds only the
+    # final preview itself.
     assert after == raw
-    after_names = sorted(p.name for p in PREVIEW.parent.glob("*"))
-    assert after_names == sorted(set(before_names) | {PREVIEW.name})
 
 
 def test_full_input_verbatim_and_deterministic():
@@ -143,10 +160,15 @@ def test_full_input_verbatim_and_deterministic():
     ]
     payload = build_doc(claims_list)
     raw = encode(payload)
-    r1, _ = run_valid(payload)
-    first = PREVIEW.read_bytes()
-    r2, _ = run_valid(payload)
-    second = PREVIEW.read_bytes()
+    with tempfile.TemporaryDirectory() as tmp:
+        script, preview = disposable_project(tmp)
+        src = write_input(tmp, payload)
+        r1 = run_cli(str(src), script=script)
+        assert r1.returncode == 0, (r1.stdout, r1.stderr)
+        first = preview.read_bytes()
+        r2 = run_cli(str(src), script=script)
+        assert r2.returncode == 0, (r2.stdout, r2.stderr)
+        second = preview.read_bytes()
     # Deterministic: identical input bytes -> identical preview bytes, twice.
     assert first == second
     digest = hashlib.sha256(raw).hexdigest()
@@ -213,36 +235,40 @@ def test_rejects_duplicate_and_unsorted_ids():
 
 def test_failure_preserves_previous_preview():
     good = build_doc([claim("synth.keep", statement="Synthetic keeper statement.")])
-    r1, _ = run_valid(good)
-    previous = PREVIEW.read_bytes()
-    assert r1.returncode == 0
     with tempfile.TemporaryDirectory() as tmp:
-        path = write_input(tmp, build_doc([claim("synth.bad", status="MK-STATUS")]))
-        r2 = run_cli(str(path))
+        script, preview = disposable_project(tmp)
+        src = write_input(tmp, good)
+        r1 = run_cli(str(src), script=script)
+        assert r1.returncode == 0, (r1.stdout, r1.stderr)
+        previous = preview.read_bytes()
+        bad = build_doc([claim("synth.bad", status="MK-STATUS")])
+        path = write_input(tmp, bad, name="bad.json")
+        r2 = run_cli(str(path), script=script)
         assert r2.returncode != 0
         assert_no_markers(r2)
-        assert path.read_bytes() == encode(build_doc([claim("synth.bad", status="MK-STATUS")]))
-    assert PREVIEW.read_bytes() == previous  # previous final preview untouched
+        assert path.read_bytes() == encode(bad)
+        assert preview.read_bytes() == previous  # previous final preview untouched
 
 
 def test_input_aliasing_output_rejected():
     """F1: an input that is (or aliases) the output destination must be refused."""
-    PREVIEW.parent.mkdir(parents=True, exist_ok=True)
     payload = build_doc([claim("synth.alias", statement="Synthetic alias statement.")])
-    PREVIEW.write_bytes(encode(payload))  # valid JSON placed at the output path
-    before = PREVIEW.read_bytes()
-    r = run_cli(str(PREVIEW))
-    assert r.returncode != 0
-    assert "ERROR" in (r.stdout + r.stderr)
-    assert PREVIEW.read_bytes() == before  # input bytes preserved, exit nonzero
-    # Symlink alias: input path elsewhere, resolving to the output destination.
     with tempfile.TemporaryDirectory() as tmp:
-        alias = Path(tmp) / "alias.json"
-        alias.symlink_to(PREVIEW)
-        r = run_cli(str(alias))
+        script, preview = disposable_project(tmp)
+        preview.parent.mkdir(parents=True, exist_ok=True)
+        preview.write_bytes(encode(payload))  # valid JSON placed at the output path
+        before = preview.read_bytes()
+        r = run_cli(str(preview), script=script)
         assert r.returncode != 0
         assert "ERROR" in (r.stdout + r.stderr)
-        assert PREVIEW.read_bytes() == before
+        assert preview.read_bytes() == before  # input bytes preserved, exit nonzero
+        # Symlink alias: input path elsewhere, resolving to the output destination.
+        alias = Path(tmp) / "alias.json"
+        alias.symlink_to(preview)
+        r = run_cli(str(alias), script=script)
+        assert r.returncode != 0
+        assert "ERROR" in (r.stdout + r.stderr)
+        assert preview.read_bytes() == before
 
 
 def test_symlinked_output_dirs_rejected():
@@ -254,11 +280,8 @@ def test_symlinked_output_dirs_rejected():
     """
     with tempfile.TemporaryDirectory() as scratch:
         scratch = Path(scratch)
-        proj = scratch / "proj"
-        (proj / "scripts").mkdir(parents=True)
-        script_copy = proj / "scripts" / "preview_public_release.py"
-        script_copy.write_bytes(SCRIPT.read_bytes())
-        build = proj / "build"
+        script_copy, preview = disposable_project(scratch)
+        build = preview.parents[1]  # <scratch>/proj/build
 
         # Case A: `build` itself is a symlink to an outside synthetic directory.
         outside = scratch / "outside-a"
@@ -308,13 +331,15 @@ def test_write_atomic_failure_cleans_up():
 
 def test_unreadable_missing_and_bad_usage_safe():
     with tempfile.TemporaryDirectory() as tmp:
-        locked = Path(tmp) / "MKPATH-input.json"
-        locked.write_bytes(encode(build_doc()))
-        locked.chmod(0)
-        r = run_cli(str(locked))
-        locked.chmod(0o644)
+        # Directory-as-input: deterministic read failure on any UID (root
+        # containers bypass mode bits, but cannot read() a directory).
+        script, preview = disposable_project(tmp)
+        not_a_file = Path(tmp) / "MKPATH-input.json"
+        not_a_file.mkdir()
+        r = run_cli(str(not_a_file), script=script)
         assert r.returncode != 0 and "ERROR" in (r.stdout + r.stderr)
         assert_no_markers(r)
+        assert not preview.exists()  # failed read writes nothing
         r = run_cli(str(Path(tmp) / "MKMISSING.json"))
         assert r.returncode != 0 and "ERROR" in (r.stdout + r.stderr)
         assert_no_markers(r)
