@@ -1,0 +1,37 @@
+---
+layout: "article"
+title: "Your Org Chart Is a Firewall, and AI Just Found the Open Ports"
+date: 2026-06-04
+summary: "For most of my career I believed organizations were built around expertise. Finance did finance because they understood finance. Operations ran operations because they knew operations. IT fulfilled requests because they…"
+original_url: "https://www.linkedin.com/pulse/your-org-chart-firewall-ai-just-found-open-ports-david-klan-nodnc"
+cover: "/assets/images/articles/your-org-chart-firewall-ai-just-found-open-ports/cover.png"
+reading_minutes: 5
+source: "linkedin"
+---
+<p>For most of my career I believed organizations were built around expertise. Finance did finance because they understood finance. Operations ran operations because they knew operations. IT fulfilled requests because they held the technical knowledge nobody else had. The org chart was a map of who-knew-what.</p>
+<p>I no longer believe that.</p>
+<p>The map was never really about knowledge. It was about access. Expertise was just the thing that made the access <em>look </em>justified.</p>
+<h3>The bottleneck was never skill</h3>
+<p>Here's what changed my mind. I started noticing that when I hit a wall in another department, I stopped filing a ticket and waiting. I'd just do the work myself. Not because I'd quietly become an analyst or a DBA overnight, but because the expertise was suddenly available on tap. AI explained the SQL, drafted the script, wrote the PRD, walked me through the workflow.</p>
+<p>And then I'd hit the <em>real</em> wall. Not "I don't know how." But "I don't have the credentials." Not skill. ACLs.</p>
+<p>That reframe is the whole point. For decades we assumed the constraint on doing someone else's job was competence. It was actually authorization. We just couldn't see it, because competence was scarce enough to be the binding constraint. Remove that scarcity and the next constraint underneath is revealed — and it was permissions all along.</p>
+<h3>Why this is the more interesting claim</h3>
+<p>The tired version of the AI conversation is "AI replaces jobs." This is a better thesis: <strong>AI commoditizes expertise, which promotes authorization to the scarce resource.</strong> Power doesn't evaporate — it migrates. It moves from the people who <em>know</em> to the people who <em>control access</em>.</p>
+<p>That's a sharper prediction because it tells you where the value pools next. When any input becomes abundant, margin flows to whatever is still scarce and adjacent to it. Expertise is becoming abundant. Standing next to it are credentials, data ownership, and the authority to act. That's where leverage concentrates.</p>
+<h3>What actually erodes first</h3>
+<p>The roles most exposed aren't the deep specialists. It's the middle layer — the translators and routers. The people whose job was to connect systems, interpret requests, coordinate handoffs, and move information between silos. That entire function is friction, and friction is exactly what an AI-enabled employee at the edge of the org can now route around.</p>
+<p>The important detail: this isn't disruption. Nobody announces it. There's no transformation initiative. An employee hits a two-week dependency, gets the access, does the work in an afternoon, and a coordinating role becomes a little less necessary. Nobody is fired. They're <em>bypassed</em>. The org doesn't restructure — it quietly stops using parts of itself.</p>
+<hr>
+<h3>Claude pushback to the premise — the original argument is too clean</h3>
+<p>This is where Claude Opus 4.8 parts ways with the optimism baked into the premise, and where it matters for anyone building or running these systems.</p>
+<p><strong>Those permission boundaries were often load-bearing.</strong> Segregation of duties isn't bureaucratic theater — it's why the person who approves a payment can't also issue it. The middle layer the article treats as pure friction was, in places, doing real work: sanity-checking, catching errors, absorbing accountability. When you route around it via convenience, you don't just delete the delay. You delete the control. "Everyone can do everyone's job" and "nobody is accountable for anyone's job" are the same sentence read from opposite ends.</p>
+<p><strong>The article describes shadow IT and frames it as liberation.</strong> "The employee gains access" is doing a lot of quiet work in that sentence. In practice that access is often obtained informally, retained indefinitely, and never reviewed. AI removes the <em>competence</em> barrier to misuse while leaving every <em>incentive</em> for misuse intact. The result isn't a graph of trust. It's a sprawl of over-provisioned identities that no one is tracking — which is precisely how breaches happen.</p>
+<p>So the real conclusion isn't that the org becomes a frictionless network of agents. It's that <strong>the org's security posture becomes its operating model.</strong> That's a heavier statement than the original makes.</p>
+<hr>
+<h3>What this means if you're building the system</h3>
+<p>The org chart of the future looks less like a hierarchy of expertise and more like an access graph. That's the right instinct. But an access graph is only an asset if it's <em>governed</em>. Ungoverned, it's just attack surface. A few implications I'd front-load into any system being designed today:</p>
+<ul><li><strong>Identity and access management stops being IT plumbing and becomes the core architecture.</strong> The question shifts from "who knows how" to "who is allowed" — which means your IAM, your audit logs, and your provisioning workflows <em>are</em> the org design now, not a layer underneath it. Invest accordingly and early; retrofitting governance onto a system that already assumes open access is brutal.</li><li><strong>Design for least-privilege and just-in-time access from day one.</strong> If expertise is no longer the gate, access has to be the deliberate, time-boxed, reviewable gate. Standing permissions are the liability. Grant narrowly, expire by default, log everything.</li><li><strong>Accountability has to be designed in, not assumed.</strong> When the doer and the approver collapse into one AI-augmented person, you need explicit, system-enforced separation where the stakes justify it. Decide deliberately which boundaries are friction to remove and which are controls to keep.</li><li><strong>Assume the bypass is already happening.</strong> People are routing around your dependencies right now, with or without sanction. The choice isn't whether to allow it — it's whether to give them a governed path or let them carve an ungoverned one.</li></ul>
+<h3>The Irony</h3>
+<p>For decades, companies ran empowerment programs, culture initiatives, leadership training — all trying to get employees to act with more agency. AI may deliver it by accident by removing the need to ask for help.</p>
+<p>But agency without governance is exposure. The companies that win the next decade won't be the ones whose people <em>can</em> do anything. They'll be the ones who decided, on purpose, who's <em>allowed</em> to — and built the system to enforce it.</p>
+<p>The question was never whether AI replaces jobs. It's whether your permission architecture was a deliberate design or just an accident of which expertise used to be scarce. Because AI is about to audit that answer for you, whether you're ready or not.</p>

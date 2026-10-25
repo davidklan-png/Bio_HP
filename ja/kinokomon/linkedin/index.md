@@ -14,6 +14,7 @@ lang: ja
     <h1 class="kinokomon-section__title"><span class="emoji-float">📝</span> LinkedIn記事</h1>
     <p class="kinokomon-section__tagline"> thought leadershipとプロフェッショナルな洞察</p>
     <p><a href="{{ '/ja/kinokomon/' | relative_url }}">← きのこもんメインページに戻る</a></p>
+    <p><strong>すべての記事は<a href="{{ '/ja/articles/' | relative_url }}">記事ページ</a>で全文を読めます。</strong></p>
   </div>
 
   <div class="kinokomon-section__card">
@@ -115,7 +116,7 @@ lang: ja
     <!-- AUTOGEN:LINKEDIN_ARTICLES:END -->
 
     <div class="kinokomon-section__articles-cta">
-      <a href="https://www.linkedin.com/in/davidklan/" target="_blank" rel="noopener" class="kinokomon-section__action-btn">
+      <a href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noopener" class="kinokomon-section__action-btn">
         LinkedInで全て見る ↗
       </a>
     </div>

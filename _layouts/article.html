@@ -1,0 +1,46 @@
+---
+layout: default
+---
+{% assign articles = site.articles | sort: 'date' | reverse %}
+{% for a in articles %}{% if a.url == page.url %}{% assign idx = forloop.index0 %}{% endif %}{% endfor %}
+{% assign newer_idx = idx | minus: 1 %}
+{% assign older_idx = idx | plus: 1 %}
+<article class="post" lang="en">
+  <header class="post__head">
+    <p class="post__crumbs"><a href="{{ '/articles/' | relative_url }}">← /writing</a></p>
+    <p class="post__meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%-d %b %Y" }}</time>
+      <span aria-hidden="true">·</span> {{ page.reading_minutes }} min read
+    </p>
+    <h1 class="post__title">{{ page.title }}</h1>
+    {% if page.description %}<p class="post__dek">{{ page.description }}</p>{% endif %}
+    <p class="post__origin">
+      Originally published on
+      <a href="{{ page.original_url }}" target="_blank" rel="noopener">LinkedIn ↗</a>
+    </p>
+  </header>
+
+  {% if page.cover %}
+  <figure class="post__cover">
+    <img src="{{ page.cover | relative_url }}" alt="" width="1280" height="720" fetchpriority="high">
+  </figure>
+  {% endif %}
+
+  <div class="post__body">
+    {{ content }}
+  </div>
+
+  <footer class="post__foot">
+    <a class="chip chip--brand" href="{{ page.original_url }}" target="_blank" rel="noopener">▸ discuss on LinkedIn</a>
+    <a class="chip" href="{{ '/chat/' | relative_url }}">▸ ask Kinokomon about this</a>
+  </footer>
+
+  <nav class="post__pager" aria-label="More articles">
+    {% if idx > 0 %}{% assign newer = articles[newer_idx] %}
+    <a class="post__pager-link" href="{{ newer.url | relative_url }}"><span>newer</span>{{ newer.title }}</a>
+    {% else %}<span></span>{% endif %}
+    {% if older_idx < articles.size %}{% assign older = articles[older_idx] %}
+    <a class="post__pager-link post__pager-link--older" href="{{ older.url | relative_url }}"><span>older</span>{{ older.title }}</a>
+    {% endif %}
+  </nav>
+</article>

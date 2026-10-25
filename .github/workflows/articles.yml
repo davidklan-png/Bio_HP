@@ -1,0 +1,19 @@
+name: Articles archive
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  articles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fail if homepage writing block is stale vs _articles/
+        run: python3 scripts/linkedin_articles.py check
+      - name: Run importer unit tests (offline)
+        run: python3 tests/test_linkedin_articles.py
