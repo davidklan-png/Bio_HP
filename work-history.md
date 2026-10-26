@@ -18,7 +18,7 @@ Tokyo-based IT consultant with more than 20 years of experience spanning applica
 - Contracting channel: Smart Partners
 - Initial Dazbeez client assignment: AIG Technology KK, continuing from February 1, 2020
 - Current client: Manulife Japan
-- Current role: IT Consultant / Application Project Manager
+- Previous assignment: Application Project Manager at Manulife Japan, contracted through Smart Partners (December 2021-November 2025). Current assignment: Infrastructure Project Manager at Manulife Japan, contracted through Smart Partners (November 2025-present).
 - Dazbeez GK: February 1, 2020–present
 - Manulife Japan assignment: December 2021–present
 - Location: Tokyo, Japan
@@ -30,7 +30,7 @@ Since 2024, I have also developed AI, data, and automation projects showcased th
 ### Dazbeez GK — IT Consultant
 **Dazbeez GK: February 1, 2020–present | Manulife Japan assignment through Smart Partners: December 2021–present | Tokyo**
 
-Role: Application Project Manager
+Previous assignment: Application Project Manager at Manulife Japan, contracted through Smart Partners (December 2021-November 2025). Current assignment: Infrastructure Project Manager at Manulife Japan, contracted through Smart Partners (November 2025-present).
 
 - Lead application project delivery in a large, regulated insurance environment.
 - Coordinate business, application, infrastructure, vendor, and governance stakeholders.
