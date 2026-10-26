@@ -13,6 +13,7 @@ permalink: /kinokomon/linkedin/
     <h1 class="kinokomon-section__title"><span class="emoji-float">📝</span> LinkedIn Articles</h1>
     <p class="kinokomon-section__tagline">Thought leadership and professional insights</p>
     <p><a href="{{ '/kinokomon/' | relative_url }}">← Back to Kinokomon main page</a></p>
+    <p><strong>Every article is now archived in full at <a href="{{ '/articles/' | relative_url }}">/writing</a>.</strong></p>
   </div>
 
   <div class="kinokomon-section__card">
@@ -114,7 +115,7 @@ permalink: /kinokomon/linkedin/
     <!-- AUTOGEN:LINKEDIN_ARTICLES:END -->
 
     <div class="kinokomon-section__articles-cta">
-      <a href="https://www.linkedin.com/in/davidklan/" target="_blank" rel="noopener" class="kinokomon-section__action-btn">
+      <a href="https://www.linkedin.com/in/david-klan/" target="_blank" rel="noopener" class="kinokomon-section__action-btn">
         View All on LinkedIn ↗
       </a>
     </div>

@@ -1,4 +1,5 @@
 # Build outputs
+/build/
 _site/
 site/_site/
 .jekyll-cache/

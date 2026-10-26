@@ -1,0 +1,7 @@
+# Writing published on other people's sites. Linked, not republished:
+# the host owns the page. LinkedIn articles live in _articles/ instead.
+- title: "One Year of Learning AI: What Actually Changed"
+  venue: paulroberts.jp (guest post)
+  date_label: "2025"
+  url: https://paulroberts.jp/guest-post-5-david-klan-on-one-year-of-learning-ai/
+  description: From typing prompts into ChatGPT to building Kinokomon and JTES with Claude Code. The key insight — once you set up a coding agent, you control how you use AI, not the vendor.
