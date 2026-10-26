@@ -4,6 +4,16 @@ baseurl: ""
 url: "https://kinokoholic.com"
 markdown: kramdown
 permalink: pretty
+
+# Articles: full-text archive of LinkedIn articles (scripts/linkedin_articles.py).
+collections:
+  articles:
+    output: true
+    permalink: /articles/:name/
+# Which copy search engines should treat as the original:
+#   linkedin -> rel=canonical points at the LinkedIn article (default; no duplicate-content risk)
+#   self     -> rel=canonical points at kinokoholic.com (site builds its own search authority)
+articles_canonical: linkedin
 exclude:
   - requirements.txt
   - agentic-workflows/

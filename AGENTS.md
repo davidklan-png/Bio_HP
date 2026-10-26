@@ -1,6 +1,6 @@
 # Agent Handover Guide
 
-Last updated: 2026-05-09
+Last updated: 2026-10-05
 
 ## Purpose
 
@@ -34,6 +34,7 @@ Bio_HP/
 ├── _data/               ← All data (projects, site config)
 ├── assets/              ← All assets (js, css, images)
 ├── projects/            ← Project pages (markdown)
+├── _articles/           ← Full-text LinkedIn article archive (generated, curatable)
 ├── kinokomon.md, about.md, work-history.md
 ├── ja/                  ← JA mirror of Jekyll pages
 ├── tests/               ← JS unit tests
@@ -126,6 +127,32 @@ from `shared/profile.json`.
 
 > Scope note: only the family grid is generated. The curated "FEATURED PROJECTS"
 > cards are an intentional editorial selection and remain hand-maintained.
+
+## Generated: Articles (LinkedIn archive)
+
+David's LinkedIn articles are archived in full on the site.
+
+- **Source of truth:** one file per article in `_articles/<slug>.html` (a Jekyll
+  collection, rendered at `/articles/<slug>/` with `_layouts/article.html`).
+  Index pages: `articles.md` (`/articles/`) and `ja/articles.md` (`/ja/articles/`,
+  JA chrome, English bodies). Images live in `assets/images/articles/<slug>/`.
+- **Import new articles:** `python3 scripts/linkedin_articles.py import`
+  (add `--seed <linkedin.com/pulse/... URL>` for an article that no other
+  article links to). Discovery follows each article's "more articles by"
+  links, because LinkedIn's API does not expose member articles and the
+  profile listing is bot-blocked. Commit `_articles/`, the images, and
+  `index.html` together.
+- **Curating:** edit `description` (hand-written blurb), `featured` or `tags` in
+  an article's front matter. `import --refresh` re-fetches bodies but never
+  overwrites those keys. `summary` is the auto excerpt and is regenerated.
+- **Homepage block:** the `<!-- AUTOGEN:articles:start --> ... :end -->` region in
+  `index.html` (latest 3) is generated; run `python3 scripts/linkedin_articles.py sync`.
+  CI (`.github/workflows/articles.yml`) fails if it drifts from `_articles/`.
+- **Canonical URL:** `articles_canonical` in `_config.yml` — `linkedin` (default:
+  search engines credit LinkedIn, no duplicate-content risk) or `self` (the site
+  becomes the canonical home of the writing).
+- Writing hosted on other people's sites is linked, not copied: `_data/articles_external.yml`.
+- `/kinokomon/linkedin/` is the older, orchestrator-maintained list; it now points to `/articles/`.
 
 ## TDD Requirement
 

@@ -28,6 +28,25 @@ test('portfolio prompt reflects the current employment model and retired metrics
   assert.doesNotMatch(SYSTEM_PROMPT, /40% time-to-launch/i);
 });
 
+test('portfolio prompt states both owner-confirmed Manulife assignments', () => {
+  assert.match(
+    SYSTEM_PROMPT,
+    /Previous assignment: Application Project Manager at Manulife Japan, contracted through Smart Partners \(December 2021-November 2025\)\. Current assignment: Infrastructure Project Manager at Manulife Japan, contracted through Smart Partners \(November 2025-present\)\./,
+  );
+  assert.doesNotMatch(SYSTEM_PROMPT, /Current assignment: Application Project Manager/);
+});
+
+test('portfolio prompt carries the owner-approved mainframe migration description', () => {
+  assert.match(
+    SYSTEM_PROMPT,
+    /David owned the active policy data migration stream within an enterprise-scale legacy mainframe migration and decommissioning program\. The approximately 200-person full SDLC program focused on data quality and integration testing as key deliverables for the migration\./,
+  );
+  assert.doesNotMatch(SYSTEM_PROMPT, /As Application Project Manager/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /functional improvements and new features/i);
+  assert.match(SYSTEM_PROMPT, /Subsequent projects consolidated and standardized Active Directory/i);
+  assert.match(SYSTEM_PROMPT, /BAU handover to Global Operations is in progress/i);
+});
+
 test('portfolio prompt reflects the corrected client chronology and drops unattributed outcomes', () => {
   assert.match(SYSTEM_PROMPT, /April 2011–June 2012.*AXA/s);
   assert.match(SYSTEM_PROMPT, /2013–2015.*AIG Business Partners/s);
@@ -79,11 +98,18 @@ test('portfolio prompt distinguishes the two Manulife AI systems and their matur
   assert.match(SYSTEM_PROMPT, /handover is in progress/i);
 });
 
-test('portfolio prompt reflects confirmed education, languages, training, and project maturity', () => {
+test('portfolio prompt reflects confirmed education, languages, certifications, and project maturity', () => {
   assert.match(SYSTEM_PROMPT, /Bachelor of Business Administration.*Management Information Systems.*University of Hawaiʻi at Mānoa/is);
   assert.match(SYSTEM_PROMPT, /English.*Native/is);
   assert.match(SYSTEM_PROMPT, /Japanese.*Conversational/is);
-  assert.match(SYSTEM_PROMPT, /2024–2025.*SAFe Scrum Master.*Leading SAFe.*Release Train Engineer/is);
+  assert.match(
+    SYSTEM_PROMPT,
+    /David received the SAFe Release Train Engineer \(RTE\) and SAFe Agilist \(SA\) certifications in October 2024\. Current renewal status has not been confirmed\./,
+  );
+  assert.match(SYSTEM_PROMPT, /Do not describe them as current\./);
+  assert.doesNotMatch(SYSTEM_PROMPT, /SAFe Scrum Master/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /Leading SAFe/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /maintain or renew/);
   assert.match(SYSTEM_PROMPT, /JTES.*In development/is);
   assert.match(SYSTEM_PROMPT, /Keibamon.*Pilot.*test users/is);
   assert.match(SYSTEM_PROMPT, /Dazbeez Receipts.*Production.*users/is);
