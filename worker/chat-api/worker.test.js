@@ -88,7 +88,9 @@ test('portfolio prompt describes incident intelligence as a governed BAU transit
 
 test('portfolio prompt distinguishes the two Manulife AI systems and their maturity', () => {
   assert.match(SYSTEM_PROMPT, /AI monitoring.*production/is);
-  assert.match(SYSTEM_PROMPT, /60 applications/i);
+  // 60 is the monitoring scope (DKlan-Pro delivery.monitoring-scope-public), never coverage.
+  assert.match(SYSTEM_PROMPT, /60-application monitoring scope/i);
+  assert.doesNotMatch(SYSTEM_PROMPT, /across 60 applications|monitoring across 60|60 applications onboarded/i);
   assert.match(SYSTEM_PROMPT, /URL.*synthetic monitoring.*centralized logging.*Rapid Recovery/is);
   assert.match(SYSTEM_PROMPT, /PM Second Brain.*pilot/is);
   assert.match(SYSTEM_PROMPT, /Objective.*Key Result.*Workstream.*Task.*Owner.*Team.*Risk\/Issue.*Priority/is);
