@@ -40,7 +40,7 @@ Previous assignment: Application Project Manager at Manulife Japan, contracted t
 - Worked within a program involving approximately 200 contributors across the full SDLC, with particular focus on data quality and integration testing.
 - Continued with infrastructure consolidation and standardization projects covering Active Directory and operating-system versions.
 - Managed migration of critical systems from Hong Kong to Japan.
-- Introduced production AI monitoring across 60 applications to help create automation, analyze alerts, and create incidents. The scope includes URL monitoring, synthetic monitoring, centralized logging, and Rapid Recovery procedures.
+- Introduced production AI monitoring within a 60-application monitoring scope to help create automation, analyze alerts, and create incidents. The scope includes URL monitoring, synthetic monitoring, centralized logging, and Rapid Recovery procedures.
 - Lead the in-progress transfer of BAU activities from Japan to Global Operations through discovery of Japan Operations and Production Support, creation and verification of runbooks and documentation, shadowing, reverse-shadowing, readiness validation, and operational handover.
 - Created a pilot AI Project Management “Second Brain” as an intrapreneurial effort to automate PM data wrangling and status reporting.
 - Use API calls from a laptop to parse Microsoft and Atlassian updates and tag information by Objective, Key Result, Workstream, Task, Owner, Team, Risk/Issue, and Priority.
