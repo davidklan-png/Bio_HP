@@ -24,6 +24,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
+    # Production only ever comes from main: a manual run on another branch is skipped.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     defaults:
