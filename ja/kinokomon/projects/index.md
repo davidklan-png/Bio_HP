@@ -55,7 +55,7 @@ lang: ja
 
       <div class="kinokomon-section__project-item">
         <h3>エンタープライズAI活用 — 監視・BAU移管・PM Second Brain</h3>
-        <p class="kinokomon-section__project-desc">60アプリの本番AI監視、Global Operationsへの進行中BAU移管、Microsoft・Atlassian更新をReact／Quartzで構造化するパイロットPM Second Brain。</p>
+        <p class="kinokomon-section__project-desc">監視対象60アプリの範囲での本番AI監視、Global Operationsへの進行中BAU移管、Microsoft・Atlassian更新をReact／Quartzで構造化するパイロットPM Second Brain。</p>
         <a href="{{ '/ja/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/' | relative_url }}" class="kinokomon-section__link">プロジェクトを見る →</a>
       </div>
 

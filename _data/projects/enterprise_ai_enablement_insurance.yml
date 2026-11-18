@@ -2,8 +2,8 @@ id: enterprise_ai_enablement_insurance
 detail_page: /projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/
 name: Enterprise AI Enablement – Monitoring, BAU Transition & PM Second Brain
 name_ja: エンタープライズAI活用 – 監視・BAU移管・PM Second Brain
-one_line_value: Production AI monitoring for 60 applications plus a pilot PM Second Brain that turns enterprise updates into governed delivery intelligence.
-one_line_value_ja: 60アプリの本番AI監視と、業務更新を統制されたデリバリー情報へ変換するパイロットPM Second Brain。
+one_line_value: Production AI monitoring within a 60-application monitoring scope plus a pilot PM Second Brain that turns enterprise updates into governed delivery intelligence.
+one_line_value_ja: 監視対象60アプリの範囲での本番AI監視と、業務更新を統制されたデリバリー情報へ変換するパイロットPM Second Brain。
 icon: insurance
 tags:
   - AI-Assisted Monitoring
@@ -22,20 +22,20 @@ status_ja:
   pm_second_brain: パイロット
   operational_handover: 移管進行中
 impact_bullets:
-  - Production AI helps create automation, analyze alerts, and create incidents across 60 applications.
+  - Production AI helps create automation, analyze alerts, and create incidents within a 60-application monitoring scope.
   - Governed the in-progress transfer of Japan BAU activities through verified runbooks, shadowing, reverse-shadowing, and readiness evidence.
   - Built a pilot PM Second Brain that structures Microsoft and Atlassian updates, presents a React/Quartz dashboard, and drafts human-reviewed weekly status reports.
 impact_bullets_ja:
-  - 60アプリを対象に、本番AIが自動化の作成、アラート分析、インシデント起票を支援。
+  - 監視対象60アプリの範囲で、本番AIが自動化の作成、アラート分析、インシデント起票を支援。
   - 検証済みランブック、シャドーイング、リバースシャドーイング、準備証跡により、日本BAU業務の進行中移管を統制。
   - Microsoft・Atlassianの更新を構造化し、React／Quartzダッシュボードと人手確認付き週次報告案を生成するパイロットPM Second Brainを構築。
 executive_summary:
   problem: Manulife Japan needed stronger application monitoring, a controlled transfer of BAU work to Global Operations, and a way to reduce the project-management effort spent collecting updates and assembling status reports.
-  solution: Delivered two complementary AI systems. Production monitoring supports automation creation, alert analysis, and incident creation across 60 applications. A pilot PM Second Brain parses Microsoft and Atlassian updates, applies a delivery taxonomy, presents a React/Quartz dashboard, and drafts weekly status reports for human review.
+  solution: Delivered two complementary AI systems. Production monitoring supports automation creation, alert analysis, and incident creation within a 60-application monitoring scope. A pilot PM Second Brain parses Microsoft and Atlassian updates, applies a delivery taxonomy, presents a React/Quartz dashboard, and drafts weekly status reports for human review.
   outcome: Improved operational visibility and transfer readiness while turning PM data wrangling and reporting into supporting work, leaving more time for delivery leadership and removing barriers for the team.
 executive_summary_ja:
   problem: マニュライフ生命では、アプリ監視の強化、Global Operationsへの統制されたBAU移管、更新収集とステータス報告作成に費やすPM工数の削減が必要でした。
-  solution: 2つの補完的なAIシステムを実装。本番監視は60アプリの自動化作成、アラート分析、インシデント起票を支援。パイロットPM Second BrainはMicrosoft・Atlassian更新を解析し、デリバリー分類を付与してReact／Quartzダッシュボードと週次報告案を生成します。
+  solution: 2つの補完的なAIシステムを実装。本番監視は監視対象60アプリの範囲で自動化作成、アラート分析、インシデント起票を支援。パイロットPM Second BrainはMicrosoft・Atlassian更新を解析し、デリバリー分類を付与してReact／Quartzダッシュボードと週次報告案を生成します。
   outcome: 運用可視性と移管準備を強化し、PMのデータ整理・報告を補助業務化することで、チームの障害除去とデリバリーリーダーシップに注力できるようにしました。
 use_case:
   summary: Two linked workstreams support the same operating model—reliable application operations and evidence-backed project delivery.
@@ -54,7 +54,7 @@ use_case_ja:
 architecture:
   overview: Production monitoring and the pilot PM knowledge system remain distinct but reinforce the same governed operating model.
   diagram:
-    - "[60 Applications]"
+    - "[60-Application Monitoring Scope]"
     - " URL | Synthetic Monitoring | Centralized Logging | Rapid Recovery"
     - "                  |"
     - " Production AI: automation -> alert analysis -> incident creation"
@@ -71,7 +71,7 @@ architecture:
 architecture_ja:
   overview: 本番監視とパイロットPMナレッジシステムを分離しつつ、同じ統制された運用モデルを相互に強化します。
   diagram:
-    - "[60アプリケーション]"
+    - "[監視対象60アプリ]"
     - " URL | Synthetic Monitoring | 集中ログ | Rapid Recovery"
     - "                  |"
     - " 本番AI: 自動化作成 -> アラート分析 -> インシデント起票"

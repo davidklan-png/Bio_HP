@@ -244,7 +244,7 @@
     "p3.id": "PRJ.03",
     "p3.tag": "運用移管 · 納品済み",
     "p3.title": "本番AI監視・BAU移管・PM Second Brain",
-    "p3.summary": "60アプリの本番AI監視、進行中のGlobal OperationsへのBAU移管、Microsoft・Atlassian更新を分類してReact／Quartzと人手確認付き週次報告へつなぐパイロットPM Second Brain。",
+    "p3.summary": "監視対象60アプリの範囲での本番AI監視、進行中のGlobal OperationsへのBAU移管、Microsoft・Atlassian更新を分類してReact／Quartzと人手確認付き週次報告へつなぐパイロットPM Second Brain。",
     "p3.why": "暗黙の運用知識を失わずにBAUを移管する必要がある。",
     "p3.tradeoff": "迅速な移管と、実務で証明された準備状況。",
     "p3.assumes": "文書だけでは運用準備完了を証明できない。",

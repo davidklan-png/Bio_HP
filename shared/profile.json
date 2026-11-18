@@ -380,14 +380,14 @@
         "Second Brain",
         "Status reporting"
       ],
-      "summary": "Two Manulife AI systems: production monitoring and incident automation across 60 applications, plus a pilot PM Second Brain that turns Microsoft and Atlassian updates into structured delivery intelligence and human-reviewed weekly reporting.",
+      "summary": "Two Manulife AI systems: production monitoring and incident automation within a 60-application monitoring scope, plus a pilot PM Second Brain that turns Microsoft and Atlassian updates into structured delivery intelligence and human-reviewed weekly reporting.",
       "status": {
         "ai_monitoring": "Production",
         "pm_second_brain": "Pilot",
         "operational_handover": "In progress"
       },
       "outcomes": [
-        "Used production AI to help create automation, analyze alerts, and create incidents across 60 applications",
+        "Used production AI to help create automation, analyze alerts, and create incidents within a 60-application monitoring scope",
         "Covered URL monitoring, synthetic monitoring, centralized logging, and Rapid Recovery procedures",
         "Governed an in-progress BAU transition through discovery, verified runbooks, shadowing, reverse-shadowing, and readiness validation",
         "Built a pilot PM Second Brain that parses Microsoft and Atlassian updates through a delivery taxonomy",
@@ -516,7 +516,7 @@
         "Focused program delivery on data quality and integration testing across an approximately 200-person full-SDLC organization",
         "Delivered infrastructure consolidation and standardization covering Active Directory and operating-system versions",
         "Managed migration of critical systems from Hong Kong to Japan",
-        "Introduced production AI monitoring across 60 applications to support automation creation, alert analysis, and incident creation",
+        "Introduced production AI monitoring within a 60-application monitoring scope to support automation creation, alert analysis, and incident creation",
         "Governed an in-progress BAU transfer from Japan to Global Operations through discovery, verified runbooks, shadowing, reverse-shadowing, and readiness validation",
         "Built a pilot PM Second Brain using Microsoft and Atlassian APIs, a structured delivery taxonomy, React/Quartz, and human-reviewed weekly reporting"
       ],
@@ -699,7 +699,7 @@
         }
       ],
       "location": "Tokyo, Japan",
-      "summary": "David owned the active policy data migration stream within an enterprise-scale legacy mainframe migration and decommissioning program. The approximately 200-person full SDLC program focused on data quality and integration testing as key deliverables for the migration. Followed by Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain."
+      "summary": "David owned the active policy data migration stream within an enterprise-scale legacy mainframe migration and decommissioning program. The approximately 200-person full SDLC program focused on data quality and integration testing as key deliverables for the migration. Followed by Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring within a 60-application monitoring scope, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain."
     },
     {
       "period": "2024-present",

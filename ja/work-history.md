@@ -41,7 +41,7 @@ lang: ja
 - 約200名がフルSDLCに参加するプログラムで、特にデータ品質と結合テストに注力。
 - Active DirectoryとOSバージョンを対象としたインフラ統合・標準化案件を継続して担当。
 - 香港から日本への重要システム移行を管理。
-- 60アプリケーションを対象に、本番AI監視を導入。自動化の作成、アラート分析、インシデント起票を支援し、URL監視、Synthetic Monitoring、集中ログ、Rapid Recovery手順を対象化。
+- 監視対象60アプリの範囲で本番AI監視を導入。自動化の作成、アラート分析、インシデント起票を支援し、URL監視、Synthetic Monitoring、集中ログ、Rapid Recovery手順を対象化。
 - 日本の運用・本番サポート業務の調査、ランブックと文書の作成・検証、シャドーイング、リバースシャドーイング、準備状況確認を通じ、日本からGlobal Operationsへの進行中のBAU移管をリード。
 - PMのデータ整理とステータス報告を自動化する社内起業的なパイロットとして、Second Brain型AIプロジェクト管理システムを構築。
 - ラップトップからAPIを呼び出し、MicrosoftおよびAtlassianの更新を解析して、Objective、Key Result、Workstream、Task、Owner、Team、Risk/Issue、Priorityでタグ付け。

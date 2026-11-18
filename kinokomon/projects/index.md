@@ -54,7 +54,7 @@ permalink: /kinokomon/projects/
 
       <div class="kinokomon-section__project-item">
         <h3>Enterprise AI Enablement — Monitoring, BAU Transition & PM Second Brain</h3>
-        <p class="kinokomon-section__project-desc">Production AI monitoring across 60 applications, an in-progress BAU transition to Global Operations, and a pilot PM Second Brain that structures Microsoft and Atlassian updates in a React/Quartz dashboard</p>
+        <p class="kinokomon-section__project-desc">Production AI monitoring within a 60-application monitoring scope, an in-progress BAU transition to Global Operations, and a pilot PM Second Brain that structures Microsoft and Atlassian updates in a React/Quartz dashboard</p>
         <a href="{{ '/projects/enterprise-ai-enablement-in-insurance-reporting-incident-intelligence/' | relative_url }}" class="kinokomon-section__link">View project →</a>
       </div>
 
