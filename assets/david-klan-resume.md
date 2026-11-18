@@ -41,7 +41,7 @@ So I built JTES — an AI assistant that:
 ### Enterprise AI Enablement — Monitoring, BAU Transition & PM Second Brain
 **Moving operations without losing knowledge—and automating the PM overhead**
 
-I introduced production AI monitoring across 60 applications to help create automation, analyze alerts, and create incidents. The operating scope includes URL and synthetic monitoring, centralized logging, and Rapid Recovery procedures.
+I introduced production AI monitoring within a 60-application monitoring scope to help create automation, analyze alerts, and create incidents. The operating scope includes URL and synthetic monitoring, centralized logging, and Rapid Recovery procedures.
 
 Alongside that platform, I am leading a controlled transfer of application BAU activities from Japan to Global Operations. The work begins with full discovery of Japan Operations and Production Support, then turns tacit operating knowledge into verified runbooks and documentation. The handover remains in progress.
 
@@ -71,7 +71,7 @@ I built a system that helps finance teams organize receipts by reading them, fig
 ### Current Consulting Structure
 **Dazbeez GK → Smart Partners → Manulife Japan**
 
-I established my company, Dazbeez GK, on February 1, 2020 and am employed by it as an IT Consultant. From inception, Dazbeez contracted through Smart Partners—initially continuing my existing AIG Technology assignment, then providing the commercial channel for my Manulife Japan assignment from December 2021. At Manulife, I began with ownership of the active-policy data-migration stream in an approximately 200-person, full-SDLC legacy-mainframe migration and decommissioning program. My stream included functional improvements and new features, with particular focus on data quality and integration testing. Subsequent projects covered Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring across 60 applications, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain.
+I established my company, Dazbeez GK, on February 1, 2020 and am employed by it as an IT Consultant. From inception, Dazbeez contracted through Smart Partners—initially continuing my existing AIG Technology assignment, then providing the commercial channel for my Manulife Japan assignment from December 2021. At Manulife, I began with ownership of the active-policy data-migration stream in an approximately 200-person, full-SDLC legacy-mainframe migration and decommissioning program. My stream included functional improvements and new features, with particular focus on data quality and integration testing. Subsequent projects covered Active Directory and OS standardization, critical-system migration from Hong Kong to Japan, production AI monitoring within a 60-application monitoring scope, an in-progress BAU transfer to Global Operations, and a pilot PM Second Brain.
 
 Since 2024, I have also developed AI, data, and role-automation projects showcased through Kinokoholic. Kinokoholic is my portfolio and project surface, not a separate employer. In this work I operate as a forward-deployed engineer, data wrangler, and role-automation specialist.
 
