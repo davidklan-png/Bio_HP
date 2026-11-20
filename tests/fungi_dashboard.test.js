@@ -61,6 +61,21 @@ describe('fungi-dashboard: map helpers', () => {
   });
 });
 
+describe('fungi-dashboard: mesh keys', () => {
+  const data = require('../assets/data/shroomhunt/dashboard.json');
+  it('gives every published mesh square its own key', () => {
+    const keys = new Set(data.mesh.map((m) => fd.meshKey(m[0], m[1])));
+    assert.strictEqual(keys.size, data.mesh.length);
+  });
+  it('maps any point inside a square to that square', () => {
+    for (const m of data.mesh.slice(0, 300)) {
+      const k = fd.meshKey(m[0], m[1]);
+      assert.strictEqual(fd.meshKey(m[0] + 0.04, m[1] - 0.06), k);
+      assert.strictEqual(fd.meshKey(m[0] - 0.04, m[1] + 0.06), k);
+    }
+  });
+});
+
 describe('fungi-dashboard: data guards', () => {
   it('rejects data without the fields the page needs', () => {
     assert.strictEqual(fd.isValid({}), false);

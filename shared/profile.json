@@ -165,7 +165,7 @@
       ],
       "evidence": [
         {
-          "url": "https://kinokoholic.com/kinokomon/",
+          "url": "https://kinokoholic.com/kinokomon/agent/",
           "label": "Kenkoumon Development",
           "snippet": "Doctor visit transcription and summary application"
         }
@@ -200,7 +200,7 @@
       ],
       "evidence": [
         {
-          "url": "https://kinokoholic.com/kinokomon/",
+          "url": "https://kinokoholic.com/kinokomon/agent/",
           "label": "Keirimon Mascot",
           "snippet": "Mascot shared by JTES and Dazbeez Receipts"
         }
@@ -353,7 +353,7 @@
       "stack": [],
       "evidence": [
         {
-          "url": "https://kinokoholic.com/kinokomon/",
+          "url": "https://kinokoholic.com/kinokomon/agent/",
           "label": "Kanrimon Portfolio Entry",
           "snippet": "Pilot condominium-management copilot"
         }
