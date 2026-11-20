@@ -12,7 +12,7 @@ permalink: /kinokomon/linkedin/
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">📝</span> LinkedIn Articles</h1>
     <p class="kinokomon-section__tagline">Thought leadership and professional insights</p>
-    <p><a href="{{ '/kinokomon/' | relative_url }}">← Back to Kinokomon main page</a></p>
+    <p><a href="{{ '/kinokomon/agent/' | relative_url }}">← Back to Kinokomon main page</a></p>
     <p><strong>Every article is now archived in full at <a href="{{ '/articles/' | relative_url }}">/writing</a>.</strong></p>
   </div>
 

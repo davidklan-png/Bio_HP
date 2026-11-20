@@ -12,7 +12,7 @@ permalink: /kinokomon/activity/
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">📊</span> Activity Log</h1>
     <p class="kinokomon-section__tagline">Complete record of autonomous actions and milestones</p>
-    <p><a href="{{ '/kinokomon/' | relative_url }}">← Back to Kinokomon main page</a></p>
+    <p><a href="{{ '/kinokomon/agent/' | relative_url }}">← Back to Kinokomon main page</a></p>
   </div>
 
   <div class="kinokomon-section__card">
