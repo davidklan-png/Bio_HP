@@ -1,0 +1,62 @@
+{%- comment -%}
+  Japan fungi dashboard, shared by /kinokomon/ (en) and /ja/kinokomon/ (ja).
+  Numbers are filled in by assets/js/fungi-dashboard.js from assets/data/shroomhunt/dashboard.json,
+  which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
+{%- endcomment -%}
+{%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}">
+<section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
+  <header class="fd-head">
+    <p class="fd-kicker">{% if ja %}きのこモン · 日本の菌類ダッシュボード{% else %}Kinokomon · Japan fungi dashboard{% endif %}</p>
+    <h1 class="fd-title">{% if ja %}日本の菌類：記録の現状と、次に探すべきもの{% else %}What fungi are recorded in Japan, and where to look next{% endif %}</h1>
+    <p class="fd-lede">{% if ja %}GBIFに集約された日本の菌類記録（博物館標本、DNA試料、観察記録）を集計し、近隣国では記録があるのに日本では未記録の種を「調査の手がかり」として抽出しています。毒きのこや食べられないものも含む、すべての菌類が対象です。{% else %}Every fungus record for Japan held by GBIF (museum specimens, DNA samples and field observations), summarised, plus a list of species recorded in neighbouring East Asia but never in Japan. Edible, inedible and poisonous fungi alike.{% endif %}</p>
+    <p class="fd-status" id="fd-status" hidden></p>
+    <div class="fd-kpis" id="fd-kpis" aria-live="polite"></div>
+  </header>
+
+  <div class="fd-grid">
+    <figure class="fd-card fd-card--map">
+      <h2>{% if ja %}記録の分布（約10km四方ごと）{% else %}Where fungi have been recorded (about 10 km squares){% endif %}</h2>
+      <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div></div>
+      <div class="fd-legend" aria-hidden="true">
+        <span>{% if ja %}記録数{% else %}Records{% endif %}</span>
+        <i class="fd-map__b0"></i>1–9 <i class="fd-map__b1"></i>10–99 <i class="fd-map__b2"></i>100–999 <i class="fd-map__b3"></i>1k–9k <i class="fd-map__b4"></i>10k+
+      </div>
+      <figcaption>{% if ja %}<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図から除外しています。{% else %}<span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map.{% endif %}</figcaption>
+    </figure>
+
+    <div class="fd-card">
+      <h2>{% if ja %}記録の種類{% else %}What the evidence is{% endif %}</h2>
+      <div id="fd-evidence"></div>
+      <h2 class="fd-sub">{% if ja %}同定の深さ{% else %}How far records are identified{% endif %}</h2>
+      <div id="fd-depth"></div>
+      <p class="fd-note">{% if ja %}属止まりの記録は、未記載種が隠れている可能性のある「手つかずの資料」です。{% else %}Records stuck at genus level are where unrecognised species are most likely to be hiding.{% endif %}</p>
+    </div>
+
+    <div class="fd-card">
+      <h2>{% if ja %}年代別の記録数{% else %}Records by decade{% endif %}</h2>
+      <div id="fd-decades"></div>
+    </div>
+
+    <div class="fd-card fd-card--wide">
+      <h2>{% if ja %}属止まりの記録が多い属{% else %}Genera with the most unidentified Japanese records{% endif %}</h2>
+      <div id="fd-unresolved" class="fd-cols"></div>
+    </div>
+  </div>
+
+  <section class="fd-card fd-leads">
+    <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: recorded next door, never in Japan{% endif %}</h2>
+    <p>{% if ja %}中国（東経100度以東）、朝鮮半島、台湾、ロシア極東で記録された<b id="fd-lead-total"></b>種がGBIFの日本の記録にありません。うちMushroom Observerにも写真記録がある目立つ菌類が<b id="fd-lead-mo"></b>種、そのうち<b id="fd-lead-unres"></b>種は同じ属の属止まり標本が国内にあり、まずそれを再確認するのが近道です。{% else %}<b id="fd-lead-total"></b> species recorded in eastern China, Korea, Taiwan or the Russian Far East have no Japanese record in GBIF. <b id="fd-lead-mo"></b> of them are conspicuous enough to appear on Mushroom Observer, and for <b id="fd-lead-unres"></b> of those, Japan already holds same-genus specimens never identified to species: the cheapest place to start.{% endif %}</p>
+    <p class="fd-note">{% if ja %}各行は「発見」ではなく確認待ちの手がかりです。名前の違い、未調査、真の不在のいずれかで、判定には専門家と証拠標本が必要です。{% else %}Each row is a lead, not a discovery: it is a naming mismatch, an under-recorded species, or a true absence. Telling them apart takes a specialist and a voucher specimen.{% endif %}</p>
+    <div class="fd-scroll"><table class="fd-table" id="fd-leads"></table></div>
+  </section>
+
+  <footer class="fd-card fd-method">
+    <h2>{% if ja %}データと方法{% else %}Data and method{% endif %}</h2>
+    <ul id="fd-sources"></ul>
+    <p>{% if ja %}データ：GBIF.org（博物館標本の多くはサイエンスミュージアムネット経由）、Mushroom Observer。ライセンスはCC0／CC BY／CC BY-NCが混在し、全体としてはCC BY-NC 4.0です。非営利目的でのみ利用しています。更新日：{% else %}Data: GBIF.org (most museum specimens via Japan's S-Net) and Mushroom Observer. Records carry CC0, CC BY or CC BY-NC licences, so the combined data is CC BY-NC 4.0 and is used non-commercially. Updated: {% endif %}<span id="fd-generated"></span></p>
+    <p>{% if ja %}きのこモンのエージェント情報は<a href="{{ '/ja/kinokomon/agent/' | relative_url }}">こちら</a>に移りました。{% else %}Looking for the Kinokomon agent hub? It has moved to <a href="{{ '/kinokomon/agent/' | relative_url }}">/kinokomon/agent/</a>.{% endif %}</p>
+  </footer>
+  <noscript><p>{% if ja %}このダッシュボードの表示にはJavaScriptが必要です。{% else %}This dashboard needs JavaScript to draw its charts.{% endif %}</p></noscript>
+</section>
+<script src="{{ '/assets/js/fungi-dashboard.js' | relative_url }}" defer></script>

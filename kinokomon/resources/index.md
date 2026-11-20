@@ -12,7 +12,7 @@ permalink: /kinokomon/resources/
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">📚</span> Resources</h1>
     <p class="kinokomon-section__tagline">Articles, documentation, and downloadable materials</p>
-    <p><a href="{{ '/kinokomon/' | relative_url }}">← Back to Kinokomon main page</a></p>
+    <p><a href="{{ '/kinokomon/agent/' | relative_url }}">← Back to Kinokomon main page</a></p>
   </div>
 
   <div class="kinokomon-section__downloads">

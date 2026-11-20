@@ -75,6 +75,7 @@ ENGLISH_PAGES = [
     "/",
     "/about/",
     "/kinokomon/",
+    "/kinokomon/agent/",
     "/work-history/",
     # NOTE: JD Concierge sandbox page was deprecated 2026-05-09
     # "/projects/jd-concierge-sandbox/",
@@ -88,6 +89,7 @@ JAPANESE_PAGES = [
     "/ja/",
     "/ja/about/",
     "/ja/kinokomon/",
+    "/ja/kinokomon/agent/",
     "/ja/work-history/",
     "/ja/projects/japanese-tax-expert-system-jtes-specialized-rag-for-professionals/",
     "/ja/projects/receipt-classification-and-matching-system/",

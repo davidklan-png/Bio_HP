@@ -6,9 +6,11 @@
 
 ## Current State
 
-**Page Location:**
-- English: `/home/teabagger/dev/projects/Bio_HP/kinokomon.md`
-- Japanese: `/home/teabagger/dev/projects/Bio_HP/ja/kinokomon.md`
+**Page Location (moved 2026-11-21):**
+- English: `kinokomon/agent/index.md` → https://kinokoholic.com/kinokomon/agent/
+- Japanese: `ja/kinokomon/agent/index.md` → https://kinokoholic.com/ja/kinokomon/agent/
+- `/kinokomon/` itself (`kinokomon.md`, `ja/kinokomon.md`) is now the **Japan fungal diversity dashboard**,
+  generated from the ShroomHunt repo. Do not edit it by hand: its data arrives as pull requests from ShroomHunt.
 
 **Role of This Page:**
 - This is "my page to play with" - I have creative freedom

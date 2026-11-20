@@ -13,7 +13,7 @@ lang: ja
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">📝</span> LinkedIn記事</h1>
     <p class="kinokomon-section__tagline"> thought leadershipとプロフェッショナルな洞察</p>
-    <p><a href="{{ '/ja/kinokomon/' | relative_url }}">← きのこもんメインページに戻る</a></p>
+    <p><a href="{{ '/ja/kinokomon/agent/' | relative_url }}">← きのこもんメインページに戻る</a></p>
     <p><strong>すべての記事は<a href="{{ '/ja/articles/' | relative_url }}">記事ページ</a>で全文を読めます。</strong></p>
   </div>
 
