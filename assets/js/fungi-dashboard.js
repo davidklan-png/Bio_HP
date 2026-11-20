@@ -75,6 +75,11 @@
     if (n < 10000) return 3;
     return 4;
   }
+  // A square's key is its JIS 2nd-mesh row and column: floor(lat / 5') and floor(lon / 7.5').
+  // The same function keys both the published square centres and the pointer position.
+  function meshKey(lat, lon) {
+    return Math.floor(lat / MESH_DLAT + 1e-9) + ':' + Math.floor(lon / MESH_DLON + 1e-9);
+  }
   function isValid(d) {
     return !!(d && d.totals && typeof d.totals.records === 'number' &&
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
@@ -82,7 +87,7 @@
 
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
-    mapSize: mapSize, project: project, bucket: bucket, isValid: isValid
+    mapSize: mapSize, project: project, bucket: bucket, meshKey: meshKey, isValid: isValid
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -128,7 +133,7 @@
     var svg = fig.querySelector('svg');
     var tip = fig.querySelector('.fd-map__tip');
     var cells = {};
-    d.mesh.forEach(function (m) { cells[Math.round(m[0] / MESH_DLAT) + ':' + Math.round(m[1] / MESH_DLON)] = m; });
+    d.mesh.forEach(function (m) { cells[meshKey(m[0], m[1])] = m; });
     function draw() {
       // Fit the whole Japan box inside the figure, centred, whatever the card's shape.
       var W = Math.max(280, fig.clientWidth), H = Math.max(280, fig.clientHeight);
@@ -149,9 +154,7 @@
         var x = e.clientX - r.left, y = e.clientY - r.top;
         var lat = JAPAN_BOX.latMax - (y - oy) / (size.height / (JAPAN_BOX.latMax - JAPAN_BOX.latMin));
         var lon = JAPAN_BOX.lonMin + (x - ox) / (size.width / (JAPAN_BOX.lonMax - JAPAN_BOX.lonMin));
-        var key = Math.round((Math.floor(lat / MESH_DLAT) * MESH_DLAT + MESH_DLAT / 2) / MESH_DLAT) + ':' +
-          Math.round((Math.floor(lon / MESH_DLON) * MESH_DLON + MESH_DLON / 2) / MESH_DLON);
-        var m = cells[key];
+        var m = cells[meshKey(lat, lon)];
         if (!m) { tip.hidden = true; return; }
         tip.hidden = false;
         tip.textContent = t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species');
