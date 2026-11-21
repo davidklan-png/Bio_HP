@@ -199,6 +199,9 @@ html[lang="ja"] .fd-area__title { font-family: "Noto Sans JP", var(--sans) !impo
 @media (max-width: 600px) { .fd-cols { grid-template-columns: minmax(0, 1fr); } .fd-bar { grid-template-columns: minmax(0, 9.2em) minmax(40px, 1fr) auto; gap: 8px; font-size: 13px; } .fd-bar__value small { display: none; } .fd-table { font-size: 13px; } }
 
 /* Street mode: Leaflet chrome matches the dashboard (zoom bottom-right, away from the legend). */
+/* Leaflet owns gestures inside the street container: pinch zooms the map, not the page.
+   Page scrolling outside the map is untouched. */
+.fd-map__street { touch-action: none; }
 .fd-map__street .leaflet-control-zoom { position: absolute; right: 10px; bottom: 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .fd-map__street .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; font: 600 18px var(--sans); color: var(--ink); background: color-mix(in srgb, var(--panel) 88%, transparent); border-bottom: 1px solid var(--line); }
 .fd-map__street .leaflet-control-zoom a:last-child { border-bottom: none; }
