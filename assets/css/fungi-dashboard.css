@@ -51,6 +51,7 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 .fd-preview__text { flex: 1 1 240px; min-width: 0; margin: 0; color: var(--ink); font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
 .fd-preview__open { min-height: 44px; min-width: 44px; }
 .fd-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font: 12.5px var(--mono); color: var(--muted); margin-top: 10px; }
+.fd-legend[hidden] { display: none; } /* display:flex would otherwise beat [hidden] */
 .fd-legend__title { color: var(--ink); }
 .fd-legend__item { display: inline-flex; align-items: center; white-space: nowrap; }
 .fd-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; border: 1px solid var(--line-strong); }
@@ -93,6 +94,34 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 
 .fd-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
 .fd-mapbar .fd-status { flex: 1 1 200px; margin: 0; }
+
+/* Research mode (Phase 3B): the area tables' kind/month widget docks here while the
+   research view is active — one synchronized control set, moved rather than copied. */
+.fd-research-bar { display: grid; gap: 8px; margin: 0 0 12px; }
+.fd-research-bar[hidden] { display: none; }
+.fd-research-note { margin: 0; }
+/* Squares with no public estimate in research view: dashed outline, never a fill, so
+   they read differently from every measured band (colour never carries meaning alone). */
+.fd-map__nx { fill: none; stroke: var(--muted); stroke-width: 1; stroke-opacity: .35; }
+.fd-legend i.fd-map__nx { background: transparent; border: 1px dashed var(--muted); }
+
+/* Place / genus search: same surface as the picker, results are real buttons. */
+.fd-search { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.fd-search[hidden] { display: none; }
+.fd-search .fd-seg button { min-height: 44px; }
+.fd-search input { flex: 1 1 200px; min-height: 44px; font: 15px var(--sans); color: var(--ink);
+  background: var(--elev); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 6px 10px; }
+.fd-search input:disabled { opacity: .55; }
+.fd-search__results { flex: 1 1 100%; list-style: none; display: grid; gap: 4px; margin: 0; padding: 0;
+  max-height: 264px; overflow-y: auto; }
+.fd-search__results[hidden] { display: none; }
+.fd-search__results button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px;
+  text-align: left; font: 500 14px var(--sans); color: var(--ink); background: var(--elev);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; }
+.fd-search__results button:hover { background: var(--brand-soft); }
+.fd-search__alt { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.fd-search__more { color: var(--muted); font-size: 13px; padding: 4px 12px; }
+.fd-search__note { margin: 0; flex: 1 1 100%; }
 
 /* Street mode (Leaflet + GSI Pale tiles, entered only from the Street map button).
    The SVG stays the first paint and the fallback; it is hidden while street is on. */

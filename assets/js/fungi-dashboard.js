@@ -230,6 +230,108 @@
     if (keys.every(function (k) { return layers[k] === first; })) return { refetch: null, joins: true };
     return bypassed ? { refetch: null, joins: false } : { refetch: keys, joins: true };
   }
+  /* ---- research filters + place/genus search (map plan §5 3B). mesh-research.json is
+     produced later (ShroomHunt 3A); these readers follow the frozen §6 shapes, so both
+     files are v1-only: neither ever existed without schema_version. */
+  var KINDS = ['m', 'l', 'o'];
+  var COUNT_BANDS = ['10–24', '25–49', '50–99', '100–249', '250+'];
+  var SHARE_BANDS = ['0–20%', '20–40%', '40–60%', '60–80%', '80–100%'];
+  function bandLabel(list, i) { return i >= 0 && i < list.length ? list[i] : null; }
+  function countBandLabel(i) { return bandLabel(COUNT_BANDS, i); }
+  function shareBandLabel(i) { return bandLabel(SHARE_BANDS, i); }
+  var MESH_KEY_RE = /^\d+:\d+$/;
+  function readResearch(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isSnap(d.snapshot)) return { ok: false };
+    if (!Array.isArray(d.slices) || !Array.isArray(d.genera)) return { ok: false };
+    var sliceOk = d.slices.every(function (s) {
+      if (!Array.isArray(s) || s.length !== 3) return false;
+      if (typeof s[0] !== 'number' || !(s[0] >= 0 && s[0] <= 12)) return false;
+      if (s[1] !== 'all' && KINDS.indexOf(s[1]) < 0) return false;
+      if (!Array.isArray(s[2])) return false;
+      return s[2].every(function (c) {
+        return Array.isArray(c) && c.length === 3 && MESH_KEY_RE.test(c[0]) &&
+          c[1] >= 0 && c[1] <= 4 && c[1] === Math.floor(c[1]) &&
+          (c[2] === null || (c[2] >= 0 && c[2] <= 4 && c[2] === Math.floor(c[2])));
+      });
+    });
+    if (!sliceOk) return { ok: false };
+    var genusOk = d.genera.every(function (g) {
+      return Array.isArray(g) && g.length === 2 && typeof g[0] === 'string' &&
+        Array.isArray(g[1]) && g[1].every(function (id) { return typeof id === 'string'; });
+    });
+    if (!genusOk) return { ok: false };
+    return { ok: true, snapshot: d.snapshot, data: d };
+  }
+  // A research payload joins the loaded base files only when their snapshots agree.
+  // v0 base files (no snapshot) cannot be compared, so they never block the join.
+  function researchJoins(dashSnap, idxSnap, rSnap) {
+    var known = [dashSnap, idxSnap].filter(Boolean);
+    return known.every(function (s) { return s === rSnap; });
+  }
+  function findSlice(data, month, kind) {
+    return (data.slices || []).filter(function (s) { return s[0] === month && s[1] === kind; })[0] || null;
+  }
+  // The research view of the map: null = show all-time records, withheld = the month ×
+  // kind combination was not published, cells = meshKey → [count_band, genus_share_band|null].
+  // A mesh square missing from cells has no public estimate (distinct from a measured band).
+  function researchView(data, month, kind) {
+    if (!data) return null;
+    var slice = findSlice(data, month, kind);
+    if (!slice) return { withheld: true, cells: null };
+    var cells = {};
+    slice[2].forEach(function (c) { cells[c[0]] = [c[1], c[2]]; });
+    return { withheld: false, cells: cells };
+  }
+  // Case/diacritic-insensitive fold for place search (Latin and kana/kanji pass through).
+  function foldQuery(s) {
+    return String(s == null ? '' : s).normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  function searchPlaces(places, q, limit) {
+    var needle = foldQuery(q);
+    if (!needle) return [];
+    var cap = limit == null ? 8 : limit;
+    return (places || []).map(function (p) {
+      var fields = [p.en, p.ja].concat(p.aliases || []).map(foldQuery);
+      var rank = 3;
+      fields.forEach(function (f) {
+        if (f === needle) rank = 0;
+        else if (f.indexOf(needle) === 0) rank = Math.min(rank, 1);
+        else if (f.indexOf(needle) >= 0) rank = Math.min(rank, 2);
+      });
+      return rank < 3 ? { place: p, rank: rank, name: foldQuery(p.en) } : null;
+    }).filter(Boolean).sort(function (a, b) {
+      return a.rank - b.rank || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    }).slice(0, cap).map(function (h) { return { place: h.place, rank: h.rank }; });
+  }
+  // Reviewed genera → coarse links. Only known leaf areas (island/tile) survive; unknown
+  // ids and groups drop, and a genus left with no areas drops entirely.
+  function genusResults(genera, q, index, limit) {
+    var needle = foldQuery(q);
+    if (!needle) return [];
+    var leaves = {};
+    ((index && index.areas) || []).forEach(function (a) {
+      if (a.kind === 'island' || a.kind === 'tile') leaves[a.id] = a;
+    });
+    var cap = limit == null ? 8 : limit;
+    return (genera || []).map(function (g) {
+      if (foldQuery(g[0]).indexOf(needle) !== 0) return null;
+      var areas = (g[1] || []).filter(function (id) { return !!leaves[id]; });
+      return areas.length ? { genus: g[0], areas: areas } : null;
+    }).filter(Boolean).slice(0, cap);
+  }
+  function readMapReference(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isObj(d.source) || !Array.isArray(d.bbox) ||
+      d.bbox.length !== 4 || !Array.isArray(d.land) || !Array.isArray(d.places)) return { ok: false };
+    var placesOk = d.places.every(function (p) {
+      return isObj(p) && typeof p.en === 'string' && typeof p.ja === 'string' &&
+        Array.isArray(p.aliases) && Array.isArray(p.at) && p.at.length === 2 &&
+        typeof p.at[0] === 'number' && typeof p.at[1] === 'number' &&
+        (p.area_id === undefined || typeof p.area_id === 'string');
+    });
+    if (!placesOk) return { ok: false };
+    return { ok: true, data: d };
+  }
   // Deep links are #area-<id>. Malformed or unknown ids fall back to the Japan view.
   function parseAreaHash(hash) {
     var m = /^#?area-([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(String(hash || ''));
@@ -295,6 +397,9 @@
     meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
+    readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
+    COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
+    foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
     tapTransition: tapTransition, tapGuard: tapGuard,
     STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
   };
@@ -332,6 +437,26 @@
     streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
     streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Street map to retry.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「詳細地図」をもう一度押すと再試行できます。'],
     streetExit: ['Back to the simple map.', '簡易地図に戻りました。'],
+    researchLoading: ['Loading research data…', 'リサーチデータを読み込み中…'],
+    researchUnavailable: ['Research data is unavailable; the map keeps showing all-time records.', 'リサーチデータは利用できません。地図は引き続き全期間の記録を表示しています。'],
+    researchSlice: ['This month and kind combination was withheld: no square has a public estimate.', 'この月と種類の組み合わせは非公開です。公開推定値のある区画はありません。'],
+    researchNoEstimate: ['no public estimate', '公開推定値なし'],
+    researchEst: ['estimated records', '推定記録数'],
+    researchShare: ['genus-only share', '属のみの割合'],
+    researchWithheld: ['withheld', '非公開'],
+    researchOn: ['Research view on: squares are coloured by estimated records for the selected month and kind.', 'リサーチ表示オン：区画を選択した月・種類の推定記録数で色分けしました。'],
+    researchOff: ['Research view off: squares show all-time records again.', 'リサーチ表示オフ：区画は全期間の記録数表示に戻りました。'],
+    searchPlace: ['Search places', '地名を検索'],
+    searchGenus: ['Search reviewed genera', '審査済みの属を検索'],
+    phPlace: ['e.g. Naha, 屋久島', '例：Naha、屋久島'],
+    phGenus: ['Latin genus name, e.g. Amanita', 'ラテン語の属名（例：Amanita）'],
+    noResults: ['No matches.', '該当なし。'],
+    moreResults: ['More matches — keep typing to narrow down', '他にも該当 — 入力を絞ってください'],
+    geoLoading: ['Loading place names…', '地名データを読み込み中…'],
+    geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
+    genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
+    genusNoIndex: ['Genus search is unavailable: the area list could not be loaded.', '地域一覧を読み込めないため、属名検索は利用できません。'],
+    searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
     showAll: ['Show all', 'すべて表示'],
@@ -362,6 +487,12 @@
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
   var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
   var street = { on: false, loading: false }; // street-mode session state
+  // Research filters (Phase 3B): mesh-research.json is fetched only on the first enable;
+  // a payload that fails validation or joins no loaded snapshot leaves everything else on.
+  var research = { on: false, fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
+  var geo = { status: 'idle', places: null }; // reference geography for place search
+  var search = { mode: 'place', refresh: null }; // refresh re-applies mode availability + query
+  var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
 
   // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
   // never pointer movement.
@@ -374,9 +505,10 @@
   }
   function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
   // Redraw every live renderer: the SVG always, the street map only while it is open.
+  // The street redraw is forced so a research-mode recolour reaches it immediately.
   function drawViews() {
     if (map.draw) map.draw();
-    if (street.on && root.FungiFieldMap && root.FungiFieldMap.isActive()) root.FungiFieldMap.redraw();
+    if (street.on && root.FungiFieldMap && root.FungiFieldMap.isActive()) root.FungiFieldMap.redraw(true);
   }
   // One tap on a square, from any renderer: first tap previews, second opens (0C flow).
   function tapAt(lat, lon) {
@@ -417,6 +549,8 @@
     var name = areaName(findArea(tap.areaId));
     var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
     if (name) txt += (txt ? ' — ' : '') + name;
+    var rline = researchCellLine(tap.cell); // research mode: band + share, never a computed share
+    if (rline) txt += (txt ? ' — ' : '') + rline;
     $('fd-preview-text').textContent = txt;
     $('fd-preview-open').hidden = !tap.areaId;
     el.hidden = false;
@@ -461,7 +595,8 @@
       geom = { box: box, size: size, ox: ox, oy: oy };
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
-      var paths = ['', '', '', '', ''], sel = '';
+      var paths = ['', '', '', '', ''], nx = '', sel = '';
+      var rv = state.rview; // research view: cells colour by slice band, absent → no estimate
       // Cell→area joins are skipped while snapshots disagree; each layer still draws alone.
       var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
       var selIds = state.sel ? ((state.sel.detail && state.sel.detail.members) || [state.sel.row.id]) : [];
@@ -472,8 +607,12 @@
         var w = zoomed ? Math.max(1, b.x - a.x - 1) : Math.max(2.2, b.x - a.x);
         var h = zoomed ? Math.max(1, b.y - a.y - 1) : Math.max(2.2, b.y - a.y);
         var r = 'M' + (a.x + ox).toFixed(1) + ' ' + (a.y + oy).toFixed(1) + 'h' + w.toFixed(1) + 'v' + h.toFixed(1) + 'h' + (-w).toFixed(1) + 'z';
-        paths[bucket(m[2])] += r;
-        if (selCells && selIds.indexOf(selCells[meshKey(m[0], m[1])]) >= 0) sel += r;
+        var k = meshKey(m[0], m[1]);
+        if (rv) {
+          var row = rv.cells ? rv.cells[k] : null; // withheld slice: every square is "no estimate"
+          if (row) paths[row[0]] += r; else nx += r;
+        } else paths[bucket(m[2])] += r;
+        if (selCells && selIds.indexOf(selCells[k]) >= 0) sel += r;
       });
       var outlines = '';
       if (state.index) {
@@ -496,6 +635,7 @@
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
       svg.innerHTML = outlines + paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
+        (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
         (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') + loc;
     }
     function pointer(e) {
@@ -514,6 +654,8 @@
       svg.style.cursor = area ? 'pointer' : 'default';
       var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
       if (area) txt += (txt ? ' — ' : '') + areaName(area) + ' (' + t('previewHint') + ')';
+      var hline = m ? researchCellLine(meshKey(p.lat, p.lon)) : null;
+      if (hline) txt += (txt ? ' — ' : '') + hline;
       tip.hidden = false;
       tip.textContent = txt;
       tip.style.left = '0px'; // reset so the measured width is the wrapped width
@@ -559,6 +701,18 @@
   var src = '';
   function areaUrl(id) { return base + 'areas/' + encodeURIComponent(id) + '.json'; }
 
+  // The kind/month segments always reflect one shared state, wherever the widget is docked.
+  function syncFilters() {
+    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
+    doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
+  }
+  function filterChanged() {
+    state.allSp = state.allPoss = false;
+    syncFilters();
+    applyResearch(); // the research recolour follows the same month/kind selection
+    renderArea();
+  }
+
   function setupPicker() {
     var sel = $('fd-area-pick');
     var areas = state.index.areas.slice();
@@ -571,14 +725,19 @@
       '<optgroup label="' + esc(lang === 'ja' ? '島' : 'Islands') + '">' + isles.map(opt).join('') + '</optgroup>';
     sel.addEventListener('change', function () { if (sel.value) selectArea(sel.value); else clearArea(); });
     $('fd-area-back').addEventListener('click', clearArea);
+    // The one kind/month widget: it lives beside the area tables, and while the research
+    // view is on it docks in the map card. Remember where it belongs so it can move back.
+    filtersEl = $('fd-filters');
+    if (filtersEl) { filtersHome = filtersEl.parentNode; filtersNext = filtersEl.nextSibling; }
     doc.querySelectorAll('[data-fd-kind]').forEach(function (b) {
-      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); state.allSp = state.allPoss = false; renderArea(); });
+      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); filterChanged(); });
     });
     $('fd-month').innerHTML = '<button type="button" data-fd-month="0">' + (lang === 'ja' ? '全月' : 'All') + '</button>' +
       MONTHS_EN.map(function (_, i) { return '<button type="button" data-fd-month="' + (i + 1) + '">' + esc(monthName(i + 1, lang)) + '</button>'; }).join('');
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) {
-      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); state.allSp = state.allPoss = false; renderArea(); });
+      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); filterChanged(); });
     });
+    syncFilters();
     $('fd-picker').hidden = false;
   }
 
@@ -713,8 +872,7 @@
     var note = samplingNote(a.top_localities, tot.records);
     $('fd-area-note').hidden = !note;
     if (note) $('fd-area-note').textContent = t('sampling') + ': ' + note.name + ' (' + note.share + '%).';
-    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
-    doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
+    syncFilters();
     var mmax = Math.max.apply(null, a.months);
     $('fd-area-months').innerHTML = a.months.map(function (v, i) {
       return '<div class="fd-mbar' + (state.month === i + 1 ? ' is-on' : '') + '" title="' + fmtInt(v) + ' ' + esc(t('records')) + '"><span style="height:' +
@@ -790,6 +948,8 @@
     if (lb) lb.disabled = false; // locating needs only the rendered map
     var sb = $('fd-street');
     if (sb) sb.disabled = false; // street mode needs only the rendered mesh
+    var rb = $('fd-research');
+    if (rb) rb.disabled = false; // research fetches its own payload on first enable
     doc.querySelector('.fd').classList.add('is-ready');
   }
 
@@ -840,6 +1000,7 @@
       mesh: function () { return state.d ? state.d.mesh : []; },
       tapAt: tapAt, selectedKeys: selectedKeys,
       locCell: function () { return state.locCell; },
+      researchView: function () { return state.rview; }, // street cells recolour with research
       onEvent: streetEvent
     };
   }
@@ -870,6 +1031,212 @@
     });
   }
   /* ---- end street */
+
+  /* ---- research filters + place/genus search (Phase 3B). mesh-research.json and
+     japan-outline.json are lazy: neither is requested until Research filters is first
+     pressed or place search is first used. Invalid or absent data degrades to a status;
+     the overview, picker, search that does not need the payload and tables all stay up. */
+  function researchCellLine(key) {
+    var rv = state.rview;
+    if (!rv || !key) return null;
+    var row = rv.cells ? rv.cells[key] : null;
+    if (!row) return t('researchNoEstimate');
+    var s = t('researchEst') + ': ' + countBandLabel(row[0]);
+    s += ' · ' + t('researchShare') + ': ' + (row[1] == null ? t('researchWithheld') : shareBandLabel(row[1]));
+    return s; // the share band is published as-is, never computed here
+  }
+  function applyResearch() {
+    var res = research.res;
+    var usable = research.on && res && res.ok &&
+      researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot);
+    state.rview = usable ? researchView(res.data, state.month, state.kind) : null;
+    var note = '', noteEl = $('fd-research-note');
+    if (research.on && !usable) note = research.loading ? t('researchLoading') : t('researchUnavailable');
+    else if (state.rview && state.rview.withheld) note = t('researchSlice');
+    if (noteEl) { noteEl.hidden = !note; noteEl.textContent = note; }
+    if (note !== research.lastNote) { // announce settled changes only, never each redraw
+      research.lastNote = note;
+      if (note && !research.loading) announce(note);
+    }
+    var lgA = $('fd-legend-all'), lgR = $('fd-legend-research');
+    if (lgA) lgA.hidden = !!state.rview;
+    if (lgR) lgR.hidden = !state.rview;
+    var bar = $('fd-research-bar');
+    if (bar) {
+      if (state.rview) { bar.hidden = false; var dock = $('fd-filter-dock'); if (dock && filtersEl) dock.appendChild(filtersEl); }
+      else { bar.hidden = true; if (filtersEl && filtersHome) filtersHome.insertBefore(filtersEl, filtersNext); }
+    }
+    if (search.refresh) search.refresh(); // genus-mode availability may have changed
+    drawViews();
+  }
+  function loadResearch(bypass) {
+    research.fetched = true;
+    research.loading = true;
+    fetchJson(base + 'mesh-research.json', { cache: bypass ? 'reload' : 'no-cache' })
+      .then(readResearch)
+      .then(function (res) {
+        research.res = res;
+        // Standard 0D treatment for a snapshot mismatch: exactly one cache-bypassed
+        // refetch, then research shows unavailable while everything else stays.
+        if (res.ok && !researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot) && !research.bypassed) {
+          research.bypassed = true;
+          research.fetched = false;
+          research.loading = false;
+          return loadResearch(true);
+        }
+        research.loading = false;
+        applyResearch();
+      })
+      .catch(function () {
+        research.res = { ok: false };
+        research.fetched = false; // a failed fetch retries on the next enable
+        research.loading = false;
+        applyResearch();
+      });
+  }
+  function wireResearch() {
+    var btn = $('fd-research');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      research.on = !research.on;
+      btn.setAttribute('aria-pressed', String(research.on));
+      if (research.on && !research.fetched) loadResearch(false); // lazy: first enable fetches once
+      applyResearch();
+      announce(research.on ? t('researchOn') : t('researchOff'));
+    });
+  }
+
+  function ensureGeo() {
+    if (geo.status !== 'idle') return;
+    geo.status = 'loading';
+    if (search.refresh) search.refresh();
+    fetchJson(base + 'japan-outline.json', { cache: 'no-cache' })
+      .then(readMapReference)
+      .then(function (res) {
+        geo.status = res.ok ? 'ready' : 'absent';
+        geo.places = res.ok ? res.data.places : [];
+        if (search.refresh) search.refresh();
+      })
+      .catch(function () {
+        geo.status = 'absent';
+        geo.places = [];
+        if (search.refresh) search.refresh();
+      });
+  }
+  function wireSearch() {
+    var box = $('fd-search'), input = $('fd-search-input'), results = $('fd-search-results');
+    if (!box || !input || !results) return;
+    function note(msg) { var n = $('fd-search-note'); if (n) { n.hidden = !msg; n.textContent = msg || ''; } }
+    function clearResults() {
+      results.hidden = true;
+      results.innerHTML = '';
+      input.setAttribute('aria-expanded', 'false');
+    }
+    function addButton(html, onClick) {
+      var li = doc.createElement('li');
+      var b = doc.createElement('button');
+      b.type = 'button';
+      b.innerHTML = html;
+      b.addEventListener('click', onClick);
+      li.appendChild(b);
+      results.appendChild(li);
+      return b;
+    }
+    function researchReady() {
+      return !!(research.res && research.res.ok &&
+        researchJoins(state.snaps.dashboard, state.snaps.index, research.res.snapshot));
+    }
+    function avail() {
+      if (search.mode === 'place') {
+        input.disabled = geo.status === 'absent';
+        input.placeholder = t('phPlace');
+        $('fd-search-label').textContent = t('searchPlace');
+        note(geo.status === 'absent' ? t('geoAbsent') : geo.status === 'loading' ? t('geoLoading') : '');
+      } else {
+        input.disabled = !researchReady() || !state.index;
+        input.placeholder = t('phGenus');
+        $('fd-search-label').textContent = t('searchGenus');
+        note(input.disabled ? (researchReady() ? t('genusNoIndex') : t('genusUnavailable')) : '');
+      }
+    }
+    function centreOn(p) {
+      state.box = zoomBox([p.at[1], p.at[1], p.at[0], p.at[0]]); // camera only, no selection
+      clearPreview();
+      drawViews();
+      announce(t('searchCentred') + ' ' + (lang === 'ja' ? p.ja : p.en));
+    }
+    function run() {
+      clearResults();
+      var q = input.value;
+      if (!q.trim()) { avail(); return; } // empty query: drop any stale no-matches note
+      if (search.mode === 'place') {
+        if (geo.status !== 'ready') return; // disabled with its reason already shown
+        var hits = searchPlaces(geo.places, q);
+        if (!hits.length) { note(t('noResults')); return; }
+        hits.forEach(function (h) {
+          var p = h.place;
+          addButton(esc(lang === 'ja' ? p.ja : p.en) + ' <span class="fd-search__alt">' + esc(lang === 'ja' ? p.en : p.ja) + '</span>', function () {
+            clearResults();
+            if (p.area_id && findArea(p.area_id)) selectArea(p.area_id); // validated index only
+            else centreOn(p);
+          });
+        });
+      } else {
+        if (!researchReady() || !state.index) return;
+        var rows = 0, more = false;
+        genusResults(research.res.data.genera, q, state.index, 24).forEach(function (g) {
+          g.areas.forEach(function (id) {
+            if (rows >= 8) { more = true; return; }
+            addButton('<i>' + esc(g.genus) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(id))) + '</span>', (function (aid) {
+              return function () { clearResults(); selectArea(aid); };
+            })(id));
+            rows++;
+          });
+        });
+        if (!rows) { note(t('noResults')); return; }
+        if (more) {
+          var li = doc.createElement('li');
+          li.className = 'fd-search__more';
+          li.textContent = t('moreResults');
+          results.appendChild(li);
+        }
+      }
+      results.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+    search.refresh = function () { avail(); if (!results.hidden || input.value) run(); };
+    function setMode(mode) {
+      search.mode = mode;
+      $('fd-search-place').setAttribute('aria-pressed', String(mode === 'place'));
+      $('fd-search-genus').setAttribute('aria-pressed', String(mode === 'genus'));
+      input.value = '';
+      clearResults();
+      avail();
+      if (mode === 'place') ensureGeo(); // geography loads on first place use, focus or not
+      input.focus(); // deliberate focus management on the mode switch
+    }
+    $('fd-search-place').addEventListener('click', function () { setMode('place'); });
+    $('fd-search-genus').addEventListener('click', function () { setMode('genus'); });
+    box.addEventListener('focusin', function () { if (search.mode === 'place') ensureGeo(); });
+    input.addEventListener('input', run);
+    input.addEventListener('keydown', function (e) {
+      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
+      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[0].focus(); }
+      else if (e.key === 'Enter' && btns.length) { e.preventDefault(); btns[0].click(); }
+      else if (e.key === 'Escape') { clearResults(); avail(); }
+    });
+    results.addEventListener('keydown', function (e) {
+      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
+      var i = btns.indexOf(doc.activeElement);
+      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[Math.min(i + 1, btns.length - 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (i <= 0) input.focus(); else btns[i - 1].focus(); }
+      else if (e.key === 'Enter' && i >= 0) { e.preventDefault(); btns[i].click(); }
+      else if (e.key === 'Escape') { clearResults(); input.focus(); }
+    });
+    box.hidden = false;
+    avail();
+  }
+  /* ---- end research + search */
 
   function fetchJson(url, opts) {
     return root.fetch(url, opts).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -902,6 +1269,7 @@
         var id = parseAreaHash(root.location.hash);
         if (id) selectArea(id);
       }
+      if (search.refresh) search.refresh(); // genus search needs the validated index
     } else {
       areaMsg(t('indexError')); // area selection is disabled; the national layers stay usable
       announce(t('indexError'));
@@ -955,6 +1323,8 @@
     });
     wireLocate();
     wireStreet();
+    wireResearch();
+    wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);

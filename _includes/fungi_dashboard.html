@@ -26,15 +26,32 @@
       <div class="fd-mapbar">
         <button type="button" class="fd-btn" id="fd-locate" disabled>{% if ja %}現在地を表示{% else %}Locate me{% endif %}</button>
         <button type="button" class="fd-btn" id="fd-street" aria-pressed="false" disabled>{% if ja %}詳細地図{% else %}Street map{% endif %}</button>
+        <button type="button" class="fd-btn" id="fd-research" aria-pressed="false" disabled>{% if ja %}調査フィルタ{% else %}Research filters{% endif %}</button>
         <p class="fd-status" id="fd-area-msg" hidden></p>
         <button type="button" class="fd-btn" id="fd-area-retry" hidden>{% if ja %}再試行{% else %}Retry{% endif %}</button>
+      </div>
+      {%- comment -%} Research mode: the area tables' kind/month controls dock here (one
+        synchronized widget, moved — never duplicated) with their own status line. {%- endcomment -%}
+      <div class="fd-research-bar" id="fd-research-bar" hidden>
+        <div id="fd-filter-dock"></div>
+        <p class="fd-note" id="fd-research-note" hidden></p>
+      </div>
+      <div class="fd-search" id="fd-search" hidden>
+        <div class="fd-seg" role="group" aria-label="{% if ja %}検索の種類{% else %}Search mode{% endif %}">
+          <button type="button" id="fd-search-place" aria-pressed="true">{% if ja %}地名{% else %}Place{% endif %}</button>
+          <button type="button" id="fd-search-genus" aria-pressed="false">{% if ja %}属名{% else %}Genus{% endif %}</button>
+        </div>
+        <label class="fd-sr" for="fd-search-input" id="fd-search-label"></label>
+        <input type="search" id="fd-search-input" autocomplete="off" spellcheck="false" aria-controls="fd-search-results" aria-expanded="false">
+        <ul class="fd-search__results" id="fd-search-results" aria-label="{% if ja %}検索結果{% else %}Search results{% endif %}" hidden></ul>
+        <p class="fd-note fd-search__note" id="fd-search-note" hidden></p>
       </div>
       <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div><div class="fd-map__street" id="fd-map-street" role="region" aria-label="{% if ja %}詳細地図（地理院タイル）{% else %}Street map (GSI tiles){% endif %}" hidden></div></div>
       <div class="fd-preview" id="fd-preview" hidden>
         <p class="fd-preview__text" id="fd-preview-text"></p>
         <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
       </div>
-      <div class="fd-legend">
+      <div class="fd-legend" id="fd-legend-all">
         <span class="fd-legend__title">{% if ja %}区画あたりの記録数{% else %}Records per square{% endif %}</span>
         <span class="fd-legend__item"><i class="fd-map__b0" aria-hidden="true"></i>1–9</span>
         <span class="fd-legend__item"><i class="fd-map__b1" aria-hidden="true"></i>10–99</span>
@@ -42,7 +59,16 @@
         <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>1k–9k</span>
         <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>10k+</span>
       </div>
-      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。「詳細地図」ボタンで道路入りの地図に切り替えられます（読み込みはそのときだけ行われます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The Street map button swaps in a road map (its tiles load only then). Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
+      <div class="fd-legend" id="fd-legend-research" hidden>
+        <span class="fd-legend__title">{% if ja %}選択した月・種類の推定記録数（区画あたり）{% else %}Estimated records per square (selected month &amp; kind){% endif %}</span>
+        <span class="fd-legend__item"><i class="fd-map__b0" aria-hidden="true"></i>10–24</span>
+        <span class="fd-legend__item"><i class="fd-map__b1" aria-hidden="true"></i>25–49</span>
+        <span class="fd-legend__item"><i class="fd-map__b2" aria-hidden="true"></i>50–99</span>
+        <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>100–249</span>
+        <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>250+</span>
+        <span class="fd-legend__item"><i class="fd-map__nx" aria-hidden="true"></i>{% if ja %}公開推定値なし{% else %}no public estimate{% endif %}</span>
+      </div>
+      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。「詳細地図」ボタンで道路入りの地図に切り替えられます（読み込みはそのときだけ行われます）。「調査フィルタ」では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません（データはそのときだけ読み込まれます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The Street map button swaps in a road map (its tiles load only then). Research filters recolour the squares by estimated records for a chosen month and kind (loaded on demand); a dashed square has no public estimate. Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
     </figure>
 
     <div class="fd-card">
@@ -73,7 +99,7 @@
       </div>
       <div class="fd-months" id="fd-area-months" aria-hidden="true"></div>
     </header>
-    <div class="fd-filters">
+    <div class="fd-filters" id="fd-filters">
       <div class="fd-seg" role="group" aria-label="{% if ja %}菌の種類{% else %}Kind of fungus{% endif %}">
         <button type="button" data-fd-kind="m">{% if ja %}きのこ・目に見える菌{% else %}Mushrooms &amp; visible fungi{% endif %}</button>
         <button type="button" data-fd-kind="l">{% if ja %}地衣類{% else %}Lichens{% endif %}</button>
