@@ -85,3 +85,53 @@ describe('fungi-dashboard: data guards', () => {
     assert.strictEqual(fd.esc('<b>Amanita</b> & co'), '&lt;b&gt;Amanita&lt;/b&gt; &amp; co');
   });
 });
+
+describe('fungi-dashboard: drill-down helpers', () => {
+  const index = {
+    areas: [
+      { id: 'okinawa-honto', kind: 'island', bbox: [26.07, 26.88, 127.63, 128.33] },
+      { id: 'g-okinawa-prefecture', kind: 'group', bbox: [24.2, 27.1, 122.9, 131.4] },
+      { id: 't5339', kind: 'tile', bbox: [35.33, 36.0, 139, 140] }
+    ],
+    cells: { '427:1118': 't5339' }
+  };
+  it('finds the island under a point before any square', () => {
+    assert.strictEqual(fd.areaAt(26.5, 128.0, index), 'okinawa-honto');
+  });
+  it('never returns a group from a map click', () => {
+    assert.strictEqual(fd.areaAt(25.0, 125.0, index), null);
+  });
+  it('falls back to the area of the ~10 km square', () => {
+    assert.strictEqual(fd.areaAt(35.6, 139.8, index), 't5339');
+  });
+  it('pads small areas so a zoomed map is never a speck', () => {
+    const b = fd.zoomBox([26.07, 26.88, 127.63, 128.33]);
+    assert.ok(b.latMax - b.latMin >= 1.2 && b.lonMax - b.lonMin >= 1.2);
+    assert.ok(b.latMin < 26.07 && b.latMax > 26.88);
+  });
+  it('projects inside a zoom box', () => {
+    const box = fd.zoomBox([26.07, 26.88, 127.63, 128.33]);
+    const size = fd.mapSize(600, box);
+    const p = fd.project(26.48, 127.98, size.width, size.height, box);
+    assert.ok(p.x > 0.3 * size.width && p.x < 0.7 * size.width);
+    assert.ok(p.y > 0.3 * size.height && p.y < 0.7 * size.height);
+  });
+  const list = [
+    { n: 'Suillus granulatus', k: 'm', m: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 25] },
+    { n: 'Parmotrema tinctorum', k: 'l', m: [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0] },
+    { n: 'Aspergillus niger', k: 'o', m: [0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 5, 0] }
+  ];
+  it('filters species by kind and month', () => {
+    assert.deepStrictEqual(fd.filterSpecies(list, 'm', 0).map((x) => x.n), ['Suillus granulatus']);
+    assert.deepStrictEqual(fd.filterSpecies(list, 'all', 11).map((x) => x.n), ['Suillus granulatus', 'Aspergillus niger']);
+    assert.deepStrictEqual(fd.filterSpecies(list, 'l', 12), []);
+  });
+  it('flags areas where one site dominates the records', () => {
+    assert.deepStrictEqual(fd.samplingNote([['Oku', 3596], ['Yonaha Blue', 3321]], 11416), { name: 'Oku', share: 31 });
+    assert.strictEqual(fd.samplingNote([['Naha', 10]], 1000), null);
+  });
+  it('names months in both languages', () => {
+    assert.strictEqual(fd.monthName(1, 'en'), 'Jan');
+    assert.strictEqual(fd.monthName(12, 'ja'), '12月');
+  });
+});
