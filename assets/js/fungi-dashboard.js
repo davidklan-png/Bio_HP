@@ -113,6 +113,17 @@
     var share = Math.round((100 * top[0][1]) / total);
     return share >= 30 ? { name: top[0][0], share: share } : null;
   }
+  // Habitat column: habitat / host notes if any, else localities, plus the elevation range.
+  function whereText(s, lang) {
+    var parts = [];
+    var notes = (s.h && s.h.length ? s.h : s.l || []).join(' / ');
+    if (notes) parts.push(notes);
+    if (s.el) {
+      var e = s.el[0] === s.el[1] ? String(s.el[0]) : s.el[0] + '–' + s.el[1];
+      parts.push(lang === 'ja' ? '標高' + e + ' m' : e + ' m');
+    }
+    return parts.join(' · ');
+  }
   function isValid(d) {
     return !!(d && d.totals && typeof d.totals.records === 'number' &&
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
@@ -121,7 +132,7 @@
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, meshKey: meshKey, areaAt: areaAt,
-    filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, isValid: isValid
+    filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, isValid: isValid
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -357,7 +368,7 @@
       list.slice(0, 300).map(function (s) {
         var where = a.kind === 'group'
           ? (s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')
-          : (s.h && s.h.length ? s.h : s.l || []).join(' / ');
+          : whereText(s, lang);
         var ev = Object.keys(s.e || {}).map(function (k) { return T['ev_' + k] ? t('ev_' + k) : k; }).join(', ');
         return '<tr><td><a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a></td><td>' +
           esc(s.f) + '</td><td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td><td class="fd-where">' + esc(where) + '</td><td>' + esc(ev) + '</td></tr>';

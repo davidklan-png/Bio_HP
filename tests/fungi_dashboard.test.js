@@ -135,3 +135,11 @@ describe('fungi-dashboard: drill-down helpers', () => {
     assert.strictEqual(fd.monthName(12, 'ja'), '12月');
   });
 });
+
+describe('fungi-dashboard: habitat column', () => {
+  it('prefers habitat notes, then locality, and appends elevation', () => {
+    assert.strictEqual(fd.whereText({ h: ['In Pinus forest'], l: ['Oku'], el: [70, 320] }, 'en'), 'In Pinus forest · 70–320 m');
+    assert.strictEqual(fd.whereText({ h: [], l: ['Oku', 'Yonaha'], el: null }, 'en'), 'Oku / Yonaha');
+    assert.strictEqual(fd.whereText({ h: [], l: [], el: [500, 500] }, 'ja'), '標高500 m');
+  });
+});
