@@ -6,6 +6,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const fd = require('../assets/js/fungi-dashboard.js');
@@ -164,5 +165,103 @@ describe('fungi-dashboard: review fixes', () => {
     const second = tracker.start('ishigaki');
     assert.strictEqual(tracker.isCurrent(first), false);
     assert.strictEqual(tracker.isCurrent(second), true);
+  });
+});
+
+describe('fungi-dashboard: tap inspect/open flow', () => {
+  const cell = { cell: '318:1042', areaId: 'okinawa-honto' };
+  it('previews on a first tap and opens on a second tap of the same cell', () => {
+    const first = fd.tapTransition(null, cell);
+    assert.deepStrictEqual(first, { next: cell, action: 'preview' });
+    const second = fd.tapTransition(first.next, cell);
+    assert.strictEqual(second.action, 'open');
+  });
+  it('previews a different cell instead of opening', () => {
+    const after = fd.tapTransition(fd.tapTransition(null, cell).next, { cell: '319:1043', areaId: 'okinawa-honto' });
+    assert.strictEqual(after.action, 'preview');
+    assert.strictEqual(after.next.cell, '319:1043');
+  });
+  it('clears the preview when an empty spot is tapped, and does nothing from idle', () => {
+    assert.deepStrictEqual(fd.tapTransition(null, null), { next: null, action: 'none' });
+    const cleared = fd.tapTransition(fd.tapTransition(null, cell).next, null);
+    assert.deepStrictEqual(cleared, { next: null, action: 'clear' });
+  });
+  it('never opens a cell that no area owns', () => {
+    const orphan = { cell: '318:1042', areaId: null };
+    assert.strictEqual(fd.tapTransition(fd.tapTransition(null, orphan).next, orphan).action, 'preview');
+  });
+  it('can open an area previewed without a recorded cell (island water)', () => {
+    const water = { cell: null, areaId: 'okinawa-honto' };
+    assert.strictEqual(fd.tapTransition(null, water).action, 'preview');
+    assert.strictEqual(fd.tapTransition(fd.tapTransition(null, water).next, water).action, 'open');
+  });
+});
+
+describe('fungi-dashboard: tap gesture guard', () => {
+  it('accepts a pointer that lands and lifts in place', () => {
+    const g = fd.tapGuard();
+    g.down({ x: 100, y: 100 });
+    assert.strictEqual(g.up({ x: 104, y: 103 }), true);
+  });
+  it('rejects a pointer that moved before lifting (scroll or drag)', () => {
+    const g = fd.tapGuard();
+    g.down({ x: 100, y: 100 });
+    assert.strictEqual(g.up({ x: 122, y: 118 }), false);
+  });
+  it('rejects a pointer cancelled by scrolling', () => {
+    const g = fd.tapGuard();
+    g.down({ x: 100, y: 100 });
+    g.cancel();
+    assert.strictEqual(g.up({ x: 100, y: 100 }), false);
+  });
+  it('ignores moves and lifts without a press', () => {
+    const g = fd.tapGuard();
+    g.move({ x: 1, y: 1 });
+    assert.strictEqual(g.up({ x: 1, y: 1 }), false);
+  });
+});
+
+describe('fungi-dashboard: bucket classes and palette', () => {
+  it('maps record counts to bucket classes at the boundaries', () => {
+    const expect = [
+      [1, 'fd-map__b0'], [9, 'fd-map__b0'], [10, 'fd-map__b1'], [99, 'fd-map__b1'], [100, 'fd-map__b2'],
+      [999, 'fd-map__b2'], [1000, 'fd-map__b3'], [9999, 'fd-map__b3'], [10000, 'fd-map__b4']
+    ];
+    for (const [n, cls] of expect) assert.strictEqual(fd.bucketClass(n), cls, 'n=' + n);
+  });
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const block = (sel) => css.slice(css.indexOf(sel)).slice(0, css.slice(css.indexOf(sel)).indexOf('}'));
+  const hexVar = (b, name) => b.match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{6})'))[1];
+  const softVar = (b) => b.match(/--brand-soft:\s*rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/).slice(1).map(Number);
+  const lum = (hex) => {
+    const c = hex.slice(1).match(/../g).map((x) => parseInt(x, 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const contrast = (a, b) => {
+    const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (l1 + 0.05) / (l2 + 0.05);
+  };
+  const themes = [['dark', block('.fd {')], ['light', block(':root[data-theme="light"] .fd {')]];
+  it('gives each theme five distinct bucket colours holding 3:1 against panel and water', () => {
+    for (const [name, b] of themes) {
+      const colors = [0, 1, 2, 3, 4].map((i) => hexVar(b, 'fd-b' + i));
+      assert.strictEqual(new Set(colors).size, 5, name + ' buckets must be distinct');
+      const panel = hexVar(b, 'panel');
+      const [r, g, bl, a] = softVar(b); // the map's radial tint over the panel is the "water"
+      const pc = panel.slice(1).match(/../g).map((x) => parseInt(x, 16));
+      const waterBlend = '#' + [r, g, bl].map((v, i) => Math.round(a * v + (1 - a) * pc[i]).toString(16).padStart(2, '0')).join('');
+      for (let i = 0; i < 5; i++) {
+        assert.ok(contrast(colors[i], panel) >= 3, name + ' b' + i + ' vs panel ' + contrast(colors[i], panel).toFixed(2));
+        assert.ok(contrast(colors[i], waterBlend) >= 3, name + ' b' + i + ' vs water ' + contrast(colors[i], waterBlend).toFixed(2));
+      }
+    }
+  });
+  it('keeps bucket palettes theme-local with a two-tone selection outline', () => {
+    const palettes = themes.map(([, b]) => [0, 1, 2, 3, 4].map((i) => hexVar(b, 'fd-b' + i)));
+    assert.notDeepStrictEqual(palettes[0], palettes[1]);
+    for (const [name, b] of themes) {
+      assert.notStrictEqual(hexVar(b, 'fd-sel-halo'), hexVar(b, 'fd-sel-core'), name + ' outline must be two-tone');
+    }
   });
 });

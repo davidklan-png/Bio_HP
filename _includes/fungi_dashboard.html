@@ -11,7 +11,8 @@
     <h1 class="fd-title">{% if ja %}日本の菌類：記録の現状と、次に探すべきもの{% else %}What fungi are recorded in Japan, and where to look next{% endif %}</h1>
     <p class="fd-lede">{% if ja %}GBIFに集約された日本の菌類記録（博物館標本、DNA試料、観察記録）を集計し、近隣国では記録があるのに日本では未記録の種を「調査の手がかり」として抽出しています。毒きのこや食べられないものも含む、すべての菌類が対象です。{% else %}Every fungus record for Japan held by GBIF (museum specimens, DNA samples and field observations), summarised, plus a list of species recorded in neighbouring East Asia but never in Japan. Edible, inedible and poisonous fungi alike.{% endif %}</p>
     <p class="fd-status" id="fd-status" hidden></p>
-    <div class="fd-kpis" id="fd-kpis" aria-live="polite"></div>
+    <p class="fd-sr" id="fd-live" role="status" aria-live="polite"></p>
+    <div class="fd-kpis" id="fd-kpis"></div>
   </header>
 
   <div class="fd-grid">
@@ -23,11 +24,19 @@
         <button type="button" class="fd-btn" id="fd-area-back" hidden>{% if ja %}← 日本全体{% else %}← All of Japan{% endif %}</button>
       </div>
       <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div></div>
-      <div class="fd-legend" aria-hidden="true">
-        <span>{% if ja %}記録数{% else %}Records{% endif %}</span>
-        <i class="fd-map__b0"></i>1–9 <i class="fd-map__b1"></i>10–99 <i class="fd-map__b2"></i>100–999 <i class="fd-map__b3"></i>1k–9k <i class="fd-map__b4"></i>10k+
+      <div class="fd-preview" id="fd-preview" hidden>
+        <p class="fd-preview__text" id="fd-preview-text"></p>
+        <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
       </div>
-      <figcaption>{% if ja %}島や地域をクリックすると、種・月・生息環境と、見つかる可能性のある種を表示します。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Click an island or area to see its species, months, habitats and what could be found there. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
+      <div class="fd-legend">
+        <span class="fd-legend__title">{% if ja %}区画あたりの記録数{% else %}Records per square{% endif %}</span>
+        <span class="fd-legend__item"><i class="fd-map__b0" aria-hidden="true"></i>1–9</span>
+        <span class="fd-legend__item"><i class="fd-map__b1" aria-hidden="true"></i>10–99</span>
+        <span class="fd-legend__item"><i class="fd-map__b2" aria-hidden="true"></i>100–999</span>
+        <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>1k–9k</span>
+        <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>10k+</span>
+      </div>
+      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。Escキーで概要を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. Esc dismisses the preview. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
     </figure>
 
     <div class="fd-card">
@@ -49,7 +58,7 @@
     </div>
   </div>
 
-  <section class="fd-card fd-area" id="fd-area" hidden aria-live="polite">
+  <section class="fd-card fd-area" id="fd-area" hidden>
     <p class="fd-status" id="fd-area-status" hidden></p>
     <header class="fd-area__head">
       <div>

@@ -143,12 +143,42 @@
     return !!(d && d.totals && typeof d.totals.records === 'number' &&
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
   }
+  // Tap flow: a first tap on a square previews it; a second tap on the same square opens its area.
+  // prev/tap are null (nothing under the pointer) or { cell: meshKey|null, areaId: area id|null }.
+  function tapTransition(prev, tap) {
+    if (!tap) return { next: null, action: prev ? 'clear' : 'none' };
+    // "The same spot" means the same square, or the same area when the tap hit island water
+    // where no square is recorded.
+    var same = prev && ((prev.cell && tap.cell && prev.cell === tap.cell) ||
+      (!prev.cell && !tap.cell && prev.areaId && prev.areaId === tap.areaId));
+    if (same && tap.areaId) return { next: null, action: 'open' };
+    return { next: { cell: tap.cell, areaId: tap.areaId }, action: 'preview' };
+  }
+  // A tap is a pointer that lands and lifts within a few pixels: anything larger (or cancelled
+  // by the browser taking over a scroll) never becomes a selection.
+  function tapGuard(maxMove) {
+    var limit = maxMove == null ? 10 : maxMove;
+    var start = null, ok = false;
+    function moved(p) {
+      if (!start) return false;
+      var dx = p.x - start.x, dy = p.y - start.y;
+      return Math.sqrt(dx * dx + dy * dy) > limit;
+    }
+    return {
+      down: function (p) { start = p; ok = true; },
+      move: function (p) { if (moved(p)) ok = false; },
+      cancel: function () { start = null; ok = false; },
+      up: function (p) { var hit = !!(start && ok && !moved(p)); start = null; ok = false; return hit; }
+    };
+  }
+  function bucketClass(n) { return 'fd-map__b' + bucket(n); }
 
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
-    mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, meshKey: meshKey, areaAt: areaAt,
+    mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
-    monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid
+    monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
+    tapTransition: tapTransition, tapGuard: tapGuard
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -162,7 +192,9 @@
     loadError: ['The dashboard data could not be loaded.', 'ダッシュボードのデータを読み込めませんでした。'],
     areaError: ['This area could not be loaded.', 'この地域のデータを読み込めませんでした。'],
     downloaded: ['downloaded', '取得日'],
-    clickHint: ['Click', 'クリック'],
+    previewHint: ['tap to preview', 'タップで概要'],
+    openArea: ['Open area', '地域を開く'],
+    returnedAll: ['Back to all of Japan.', '日本全体の表示に戻りました。'],
     squares: ['squares', '区画'],
     byName: ['matched by place name', '地名で照合'],
     unresolved: ['not identified to species', '種まで未同定'],
@@ -189,6 +221,31 @@
 
   var state = { d: null, index: null, area: null, kind: 'm', month: 0, box: JAPAN_BOX, cache: {}, allSp: false, allPoss: false };
   var areaRequests = latestOnly();
+  var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
+
+  // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
+  // never pointer movement.
+  function announce(msg) { if (msg) { var el = $('fd-live'); if (el) el.textContent = msg; } }
+  function findArea(id) {
+    return (state.index && state.index.areas || []).filter(function (a) { return a.id === id; })[0] || null;
+  }
+  function areaName(a) { return a ? (lang === 'ja' ? a.name_ja : a.name_en) : null; }
+  function clearPreview() {
+    tapState = null;
+    var el = $('fd-preview');
+    if (el) el.hidden = true;
+  }
+  function renderPreview(tap, m) {
+    var el = $('fd-preview');
+    if (!el) return;
+    if (!tap) { el.hidden = true; return; }
+    var name = areaName(findArea(tap.areaId));
+    var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
+    if (name) txt += (txt ? ' — ' : '') + name;
+    $('fd-preview-text').textContent = txt;
+    $('fd-preview-open').hidden = !tap.areaId;
+    el.hidden = false;
+  }
 
   function barRows(rows, total, fmt) {
     var max = rows.reduce(function (m, r) { return Math.max(m, r[1]); }, 0) || 1;
@@ -255,7 +312,7 @@
         });
       }
       svg.innerHTML = outlines + paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
-        (sel ? '<path class="fd-map__sel" d="' + sel + '"/>' : '');
+        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '');
     }
     function pointer(e) {
       var r = svg.getBoundingClientRect();
@@ -263,28 +320,56 @@
       var ll = unproject(x - geom.ox, y - geom.oy, geom.size.width, geom.size.height, geom.box);
       return { x: x, y: y, lat: ll.lat, lon: ll.lon, w: r.width };
     }
-    function areaById(id) { return state.index.areas.filter(function (a) { return a.id === id; })[0]; }
     svg.addEventListener('mousemove', function (e) {
       if (!geom) return;
       var p = pointer(e);
       var m = cells[meshKey(p.lat, p.lon)];
       var aid = state.index ? areaAt(p.lat, p.lon, state.index) : null;
-      var area = aid && areaById(aid);
+      var area = aid && findArea(aid);
       if (!m && !area) { tip.hidden = true; svg.style.cursor = 'default'; return; }
       svg.style.cursor = area ? 'pointer' : 'default';
       var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
-      if (area) txt += (txt ? ' — ' : '') + t('clickHint') + ': ' + (lang === 'ja' ? area.name_ja : area.name_en);
+      if (area) txt += (txt ? ' — ' : '') + areaName(area) + ' (' + t('previewHint') + ')';
       tip.hidden = false;
       tip.textContent = txt;
-      tip.style.left = Math.max(0, Math.min(p.x + 12, p.w - 300)) + 'px';
-      tip.style.top = Math.max(0, p.y - 34) + 'px';
+      tip.style.left = '0px'; // reset so the measured width is the wrapped width
+      tip.style.left = Math.max(0, Math.min(p.x + 12, p.w - tip.offsetWidth - 6)) + 'px';
+      tip.style.top = Math.max(0, p.y - tip.offsetHeight - 8) + 'px';
     });
     svg.addEventListener('mouseleave', function () { tip.hidden = true; });
-    svg.addEventListener('click', function (e) {
+    // Tap flow for every pointer kind: first tap previews the square, second tap (or the
+    // preview's Open area button, or the picker) opens it. Touch goes through pointer
+    // events so a scroll that cancels the pointer can never select.
+    var guard = tapGuard();
+    var touchAt = 0; // a touch tap also fires a synthetic click; only one of the two may act
+    function handleTap(e) {
       if (!geom || !state.index) return;
       var p = pointer(e);
+      var key = meshKey(p.lat, p.lon);
+      var m = cells[key] || null;
       var aid = areaAt(p.lat, p.lon, state.index);
-      if (aid) selectArea(aid);
+      var tap = m || aid ? { cell: m ? key : null, areaId: aid } : null;
+      var tr = tapTransition(tapState, tap);
+      tapState = tr.next;
+      if (tr.action === 'open') { clearPreview(); selectArea(aid); }
+      else if (tr.action === 'preview') { renderPreview(tap, m); announce($('fd-preview-text').textContent); }
+      else if (tr.action === 'clear') clearPreview();
+    }
+    if (root.PointerEvent) {
+      svg.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') guard.down({ x: e.clientX, y: e.clientY });
+      });
+      svg.addEventListener('pointermove', function (e) { guard.move({ x: e.clientX, y: e.clientY }); });
+      svg.addEventListener('pointercancel', function () { guard.cancel(); });
+      svg.addEventListener('pointerup', function (e) {
+        if (e.pointerType === 'mouse' || !guard.up({ x: e.clientX, y: e.clientY })) return;
+        touchAt = Date.now();
+        handleTap(e);
+      });
+    }
+    svg.addEventListener('click', function (e) {
+      if (Date.now() - touchAt < 600) return; // the touch pointerup already handled this gesture
+      handleTap(e);
     });
     map.draw = draw;
     draw();
@@ -333,6 +418,8 @@
       $('fd-area').hidden = false;
       $('fd-area-back').hidden = false;
       status.hidden = true;
+      clearPreview();
+      announce(areaName(a) + ' · ' + fmtInt(a.totals.records) + ' ' + t('records') + ' · ' + fmtInt(a.totals.species) + ' ' + t('species'));
       try { root.history.replaceState(null, '', '#area-' + a.id); } catch (e) { /* ignore */ }
       if (map.draw) map.draw();
       renderArea();
@@ -342,7 +429,9 @@
     root.fetch(areaUrl(id), { cache: 'no-cache' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (a) { state.cache[id] = a; if (areaRequests.isCurrent(token)) go(a); })
-      .catch(function () { if (areaRequests.isCurrent(token)) { status.hidden = false; status.textContent = t('areaError'); } });
+      .catch(function () {
+        if (areaRequests.isCurrent(token)) { status.hidden = false; status.textContent = t('areaError'); announce(t('areaError')); }
+      });
   }
 
   function clearArea() {
@@ -352,6 +441,8 @@
     $('fd-area').hidden = true;
     $('fd-area-back').hidden = true;
     $('fd-area-pick').value = '';
+    clearPreview();
+    announce(t('returnedAll'));
     try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ }
     if (map.draw) map.draw();
   }
@@ -464,6 +555,16 @@
   function start() {
     var el = doc.querySelector('.fd');
     if (!el) return;
+    $('fd-preview-open').addEventListener('click', function () {
+      if (tapState && tapState.areaId) { var id = tapState.areaId; clearPreview(); selectArea(id); }
+    });
+    doc.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
+      var pv = $('fd-preview');
+      if (pv && !pv.hidden) { clearPreview(); return; }
+      if (state.area) clearArea();
+    });
     var src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     root.fetch(src, { cache: 'no-cache' })
@@ -473,7 +574,7 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (ix) { state.index = ix; setupPicker(); if (map.draw) map.draw(); })
       .catch(function () {
-        if (!state.d) { $('fd-status').hidden = false; $('fd-status').textContent = t('loadError'); }
+        if (!state.d) { $('fd-status').hidden = false; $('fd-status').textContent = t('loadError'); announce(t('loadError')); }
       });
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
