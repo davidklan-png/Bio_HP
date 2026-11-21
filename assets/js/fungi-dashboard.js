@@ -89,10 +89,52 @@
     if (n < 10000) return 3;
     return 4;
   }
-  // A square's key is its JIS 2nd-mesh row and column: floor(lat / 5') and floor(lon / 7.5').
-  function meshKey(lat, lon) {
-    return Math.floor(lat / MESH_DLAT + 1e-9) + ':' + Math.floor(lon / MESH_DLON + 1e-9);
+  // JIS 2nd mesh, shared with ShroomHunt's mesh_key(): row = floor(lat × 12 + 1e-9),
+  // col = floor(lon × 8 + 1e-9), valid inside the half-open envelope [20,46) × [122,154).
+  // Exact rectangle edges are rebuilt from the key, never from the rounded published centre.
+  function meshCell(lat, lon) {
+    if (typeof lat !== 'number' || typeof lon !== 'number' || !isFinite(lat) || !isFinite(lon)) return null;
+    if (lat < 20 || lat >= 46 || lon < 122 || lon >= 154) return null;
+    var row = Math.floor(lat * 12 + 1e-9), col = Math.floor(lon * 8 + 1e-9);
+    return { row: row, col: col, key: row + ':' + col };
   }
+  function cellEdges(row, col) { return [row / 12, (row + 1) / 12, col / 8, (col + 1) / 8]; }
+  function cellCenter(row, col) { return { lat: (row + 0.5) / 12, lon: (col + 0.5) / 8 }; }
+  function meshKey(lat, lon) { var c = meshCell(lat, lon); return c ? c.key : null; }
+  // A geolocation fix becomes one JIS cell. A fix whose accuracy radius reaches a cell edge
+  // could span more than one square, so it is rejected as too imprecise.
+  var M_PER_DEG = 111320;
+  function locateCell(pos) {
+    var c = pos && pos.coords;
+    if (!c || typeof c.latitude !== 'number' || typeof c.longitude !== 'number' ||
+      !isFinite(c.latitude) || !isFinite(c.longitude)) return { ok: false, reason: 'invalid' };
+    var cell = meshCell(c.latitude, c.longitude);
+    if (!cell) return { ok: false, reason: 'outside' };
+    if (typeof c.accuracy === 'number' && isFinite(c.accuracy) && c.accuracy >= 0) {
+      var e = cellEdges(cell.row, cell.col);
+      var toLat = Math.min(c.latitude - e[0], e[1] - c.latitude) * M_PER_DEG;
+      var toLon = Math.min(c.longitude - e[2], e[3] - c.longitude) * M_PER_DEG * Math.cos((c.latitude * Math.PI) / 180);
+      if (c.accuracy >= Math.min(toLat, toLon)) return { ok: false, reason: 'inaccurate' };
+    }
+    return { ok: true, row: cell.row, col: cell.col, key: cell.key };
+  }
+  /* ---- locate (device-side only: this block must never contain a network request,
+     storage, URL or analytics write — tests scan it) */
+  // One user-initiated fix, no watch. Only the JIS cell leaves this block; the raw position
+  // is discarded inside the callback. Opening the area stays a separate user action.
+  function runLocate(geo, sink) {
+    if (!geo || typeof geo.getCurrentPosition !== 'function') { sink.status('unsupported'); return; }
+    geo.getCurrentPosition(function (pos) {
+      var cell = locateCell(pos);
+      if (!cell.ok) { sink.status(cell.reason); return; }
+      var out = { row: cell.row, col: cell.col, key: cell.key };
+      sink.highlight(out);
+      sink.status('located', out);
+    }, function (err) {
+      sink.status(err && err.code === 1 ? 'denied' : err && err.code === 3 ? 'timeout' : 'unavailable');
+    }, { timeout: 10000, maximumAge: 60000 });
+  }
+  /* ---- end locate */
   // Which drill-down area is under a point: a curated island first, then the area of the ~10 km square.
   function areaAt(lat, lon, index) {
     var hit = null;
@@ -144,11 +186,223 @@
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
   }
 
+  // ---- v1 contract readers. v0 files (no schema_version) are tolerated until the 1C
+  // cutover; unknown versions or invalid shapes read as unavailable.
+  function isObj(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  function isSnap(s) { return typeof s === 'string' && /^[0-9a-f]{64}$/.test(s); }
+  function readVersion(d) {
+    if (!isObj(d)) return -1;
+    if (d.schema_version === undefined) return 0;
+    return d.schema_version === 1 ? 1 : -1;
+  }
+  function isAreaKind(k) { return k === 'island' || k === 'tile' || k === 'group'; }
+  function readDashboard(d) {
+    var v = readVersion(d);
+    if (v >= 0 && isValid(d) && (v === 0 || isSnap(d.snapshot)))
+      return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+    return { ok: false };
+  }
+  function readIndex(d) {
+    var v = readVersion(d);
+    if (v < 0 || (v === 1 && !isSnap(d.snapshot))) return { ok: false };
+    if (!isObj(d) || !Array.isArray(d.areas) || !isObj(d.cells)) return { ok: false };
+    var rows = d.areas.every(function (a) {
+      return isObj(a) && typeof a.id === 'string' && isAreaKind(a.kind) &&
+        Array.isArray(a.bbox) && a.bbox.length === 4;
+    });
+    if (!rows) return { ok: false };
+    return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+  }
+  function readArea(d) {
+    var v = readVersion(d);
+    if (v < 0 || (v === 1 && !isSnap(d.snapshot))) return { ok: false };
+    if (!isObj(d) || typeof d.id !== 'string' || !isAreaKind(d.kind) || !Array.isArray(d.bbox) ||
+      d.bbox.length !== 4 || !isObj(d.totals) || typeof d.totals.records !== 'number' ||
+      !Array.isArray(d.months) || !Array.isArray(d.species)) return { ok: false };
+    return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+  }
+  // What to do when loaded files carry different snapshots: exactly one refetch of the
+  // mismatched files with cache bypass, then joins across snapshots are disabled.
+  function resolveSnapshots(layers, bypassed) {
+    var keys = Object.keys(layers).filter(function (k) { return layers[k]; });
+    if (keys.length < 2) return { refetch: null, joins: true };
+    var first = layers[keys[0]];
+    if (keys.every(function (k) { return layers[k] === first; })) return { refetch: null, joins: true };
+    return bypassed ? { refetch: null, joins: false } : { refetch: keys, joins: true };
+  }
+  /* ---- research filters + place/genus search (map plan §5 3B). mesh-research.json is
+     produced later (ShroomHunt 3A); these readers follow the frozen §6 shapes, so both
+     files are v1-only: neither ever existed without schema_version. */
+  var KINDS = ['m', 'l', 'o'];
+  var COUNT_BANDS = ['10–24', '25–49', '50–99', '100–249', '250+'];
+  var SHARE_BANDS = ['0–20%', '20–40%', '40–60%', '60–80%', '80–100%'];
+  function bandLabel(list, i) { return i >= 0 && i < list.length ? list[i] : null; }
+  function countBandLabel(i) { return bandLabel(COUNT_BANDS, i); }
+  function shareBandLabel(i) { return bandLabel(SHARE_BANDS, i); }
+  var MESH_KEY_RE = /^\d+:\d+$/;
+  function readResearch(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isSnap(d.snapshot)) return { ok: false };
+    if (!Array.isArray(d.slices) || !Array.isArray(d.genera)) return { ok: false };
+    var sliceOk = d.slices.every(function (s) {
+      if (!Array.isArray(s) || s.length !== 3) return false;
+      if (typeof s[0] !== 'number' || !(s[0] >= 0 && s[0] <= 12)) return false;
+      if (s[1] !== 'all' && KINDS.indexOf(s[1]) < 0) return false;
+      if (!Array.isArray(s[2])) return false;
+      return s[2].every(function (c) {
+        return Array.isArray(c) && c.length === 3 && MESH_KEY_RE.test(c[0]) &&
+          c[1] >= 0 && c[1] <= 4 && c[1] === Math.floor(c[1]) &&
+          (c[2] === null || (c[2] >= 0 && c[2] <= 4 && c[2] === Math.floor(c[2])));
+      });
+    });
+    if (!sliceOk) return { ok: false };
+    var genusOk = d.genera.every(function (g) {
+      return Array.isArray(g) && g.length === 2 && typeof g[0] === 'string' &&
+        Array.isArray(g[1]) && g[1].every(function (id) { return typeof id === 'string'; });
+    });
+    if (!genusOk) return { ok: false };
+    return { ok: true, snapshot: d.snapshot, data: d };
+  }
+  // A research payload joins the loaded base files only when their snapshots agree.
+  // v0 base files (no snapshot) cannot be compared, so they never block the join.
+  function researchJoins(dashSnap, idxSnap, rSnap) {
+    var known = [dashSnap, idxSnap].filter(Boolean);
+    return known.every(function (s) { return s === rSnap; });
+  }
+  function findSlice(data, month, kind) {
+    return (data.slices || []).filter(function (s) { return s[0] === month && s[1] === kind; })[0] || null;
+  }
+  // The research view of the map: null = show all-time records, withheld = the month ×
+  // kind combination was not published, cells = meshKey → [count_band, genus_share_band|null].
+  // A mesh square missing from cells has no public estimate (distinct from a measured band).
+  function researchView(data, month, kind) {
+    if (!data) return null;
+    var slice = findSlice(data, month, kind);
+    if (!slice) return { withheld: true, cells: null };
+    var cells = {};
+    slice[2].forEach(function (c) { cells[c[0]] = [c[1], c[2]]; });
+    return { withheld: false, cells: cells };
+  }
+  // Case/diacritic-insensitive fold for place search (Latin and kana/kanji pass through).
+  function foldQuery(s) {
+    return String(s == null ? '' : s).normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  function searchPlaces(places, q, limit) {
+    var needle = foldQuery(q);
+    if (!needle) return [];
+    var cap = limit == null ? 8 : limit;
+    return (places || []).map(function (p) {
+      var fields = [p.en, p.ja].concat(p.aliases || []).map(foldQuery);
+      var rank = 3;
+      fields.forEach(function (f) {
+        if (f === needle) rank = 0;
+        else if (f.indexOf(needle) === 0) rank = Math.min(rank, 1);
+        else if (f.indexOf(needle) >= 0) rank = Math.min(rank, 2);
+      });
+      return rank < 3 ? { place: p, rank: rank, name: foldQuery(p.en) } : null;
+    }).filter(Boolean).sort(function (a, b) {
+      return a.rank - b.rank || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    }).slice(0, cap).map(function (h) { return { place: h.place, rank: h.rank }; });
+  }
+  // Reviewed genera → coarse links. Only known leaf areas (island/tile) survive; unknown
+  // ids and groups drop, and a genus left with no areas drops entirely.
+  function genusResults(genera, q, index, limit) {
+    var needle = foldQuery(q);
+    if (!needle) return [];
+    var leaves = {};
+    ((index && index.areas) || []).forEach(function (a) {
+      if (a.kind === 'island' || a.kind === 'tile') leaves[a.id] = a;
+    });
+    var cap = limit == null ? 8 : limit;
+    return (genera || []).map(function (g) {
+      if (foldQuery(g[0]).indexOf(needle) !== 0) return null;
+      var areas = (g[1] || []).filter(function (id) { return !!leaves[id]; });
+      return areas.length ? { genus: g[0], areas: areas } : null;
+    }).filter(Boolean).slice(0, cap);
+  }
+  function readMapReference(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isObj(d.source) || !Array.isArray(d.bbox) ||
+      d.bbox.length !== 4 || !Array.isArray(d.land) || !Array.isArray(d.places)) return { ok: false };
+    var placesOk = d.places.every(function (p) {
+      return isObj(p) && typeof p.en === 'string' && typeof p.ja === 'string' &&
+        Array.isArray(p.aliases) && Array.isArray(p.at) && p.at.length === 2 &&
+        typeof p.at[0] === 'number' && typeof p.at[1] === 'number' &&
+        (p.area_id === undefined || typeof p.area_id === 'string');
+    });
+    if (!placesOk) return { ok: false };
+    return { ok: true, data: d };
+  }
+  // Deep links are #area-<id>. Malformed or unknown ids fall back to the Japan view.
+  function parseAreaHash(hash) {
+    var m = /^#?area-([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(String(hash || ''));
+    return m ? m[1] : null;
+  }
+  // Tap flow: a first tap on a square previews it; a second tap on the same square opens its area.
+  // prev/tap are null (nothing under the pointer) or { cell: meshKey|null, areaId: area id|null }.
+  function tapTransition(prev, tap) {
+    if (!tap) return { next: null, action: prev ? 'clear' : 'none' };
+    // "The same spot" means the same square, or the same area when the tap hit island water
+    // where no square is recorded.
+    var same = prev && ((prev.cell && tap.cell && prev.cell === tap.cell) ||
+      (!prev.cell && !tap.cell && prev.areaId && prev.areaId === tap.areaId));
+    if (same && tap.areaId) return { next: null, action: 'open' };
+    return { next: { cell: tap.cell, areaId: tap.areaId }, action: 'preview' };
+  }
+  // A tap is a pointer that lands and lifts within a few pixels: anything larger (or cancelled
+  // by the browser taking over a scroll) never becomes a selection.
+  function tapGuard(maxMove) {
+    var limit = maxMove == null ? 10 : maxMove;
+    var start = null, ok = false;
+    function moved(p) {
+      if (!start) return false;
+      var dx = p.x - start.x, dy = p.y - start.y;
+      return Math.sqrt(dx * dx + dy * dy) > limit;
+    }
+    return {
+      down: function (p) { start = p; ok = true; },
+      move: function (p) { if (moved(p)) ok = false; },
+      cancel: function () { start = null; ok = false; },
+      up: function (p) { var hit = !!(start && ok && !moved(p)); start = null; ok = false; return hit; }
+    };
+  }
+  function bucketClass(n) { return 'fd-map__b' + bucket(n); }
+
+  // Street map (Phase 2) is entered explicitly: the stylesheet, vendored Leaflet and the
+  // street adapter are injected only when the Street map button is pressed, so a plain
+  // page load requests none of them. Scripts carry async=false to keep execution order
+  // (Leaflet defines window.L before the adapter registers itself).
+  var STREET_ASSETS = [
+    { tag: 'link', href: '/assets/vendor/leaflet/leaflet.css' },
+    { tag: 'script', src: '/assets/vendor/leaflet/leaflet.js' },
+    { tag: 'script', src: '/assets/js/fungi-field-map.js' }
+  ];
+  function injectAssets(doc, list) {
+    return Promise.all(list.map(function (a) {
+      return new Promise(function (resolve, reject) {
+        var el = doc.createElement(a.tag);
+        if (a.tag === 'link') { el.rel = 'stylesheet'; el.href = a.href; }
+        else { el.src = a.src; el.async = false; }
+        el.onload = function () { resolve(el); };
+        el.onerror = function () { reject(new Error('could not load ' + (a.href || a.src))); };
+        (doc.head || doc.getElementsByTagName('head')[0]).appendChild(el);
+      });
+    }));
+  }
+
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
-    mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, meshKey: meshKey, areaAt: areaAt,
+    mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
-    monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid
+    monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
+    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
+    detailJoinOf: detailJoinOf,
+    readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
+    resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
+    readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
+    COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
+    foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
+    tapTransition: tapTransition, tapGuard: tapGuard,
+    STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -160,13 +414,50 @@
     species: ['species', '種'],
     square: ['~10 km square', '約10km四方'],
     loadError: ['The dashboard data could not be loaded.', 'ダッシュボードのデータを読み込めませんでした。'],
+    indexError: ['Areas are unavailable right now; the national picture still works.', '地域データは現在利用できません。地図と国内の集計は表示しています。'],
     areaError: ['This area could not be loaded.', 'この地域のデータを読み込めませんでした。'],
+    loadingArea: ['Loading', '読み込み中'],
+    snapMismatch: ['The data files were updated mid-load; each part is shown separately.', '読み込み中にデータが更新されたため、各データを個別に表示しています。'],
+    loc_located: ['Showing the ~10 km square containing your location.', '現在地を含む約10km区画を表示しました。'],
+    loc_denied: ['Location permission was denied.', '位置情報の利用が拒否されました。'],
+    loc_timeout: ['Getting your location timed out.', '位置情報の取得がタイムアウトしました。'],
+    loc_unavailable: ['Your location could not be determined.', '位置情報を取得できませんでした。'],
+    loc_unsupported: ['This browser cannot share your location.', 'このブラウザは位置情報に対応していません。'],
+    loc_inaccurate: ['The location fix is too imprecise to place you in one square.', '位置の精度が低く、区画を特定できません。'],
+    loc_outside: ['Your location is outside the mapped area.', '現在地が地図の範囲外です。'],
+    locHint: ['Use Open area to see it in detail.', '「地域を開く」で詳細を表示できます。'],
     downloaded: ['downloaded', '取得日'],
-    clickHint: ['Click', 'クリック'],
+    previewHint: ['tap to preview', 'タップで概要'],
+    openArea: ['Open area', '地域を開く'],
+    returnedAll: ['Back to all of Japan.', '日本全体の表示に戻りました。'],
     squares: ['squares', '区画'],
     byName: ['matched by place name', '地名で照合'],
     unresolved: ['not identified to species', '種まで未同定'],
     sampling: ['Most records come from one survey site', '記録の多くが1か所の調査地に集中しています'],
+    streetLoading: ['Loading the street map…', '詳細地図を読み込み中…'],
+    streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
+    streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Street map to retry.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「詳細地図」をもう一度押すと再試行できます。'],
+    streetExit: ['Back to the simple map.', '簡易地図に戻りました。'],
+    researchLoading: ['Loading research data…', 'リサーチデータを読み込み中…'],
+    researchUnavailable: ['Research data is unavailable; the map keeps showing all-time records.', 'リサーチデータは利用できません。地図は引き続き全期間の記録を表示しています。'],
+    researchSlice: ['This month and kind combination was withheld: no square has a public estimate.', 'この月と種類の組み合わせは非公開です。公開推定値のある区画はありません。'],
+    researchNoEstimate: ['no public estimate', '公開推定値なし'],
+    researchEst: ['estimated records', '推定記録数'],
+    researchShare: ['genus-only share', '属のみの割合'],
+    researchWithheld: ['withheld', '非公開'],
+    researchOn: ['Research view on: squares are coloured by estimated records for the selected month and kind.', 'リサーチ表示オン：区画を選択した月・種類の推定記録数で色分けしました。'],
+    researchOff: ['Research view off: squares show all-time records again.', 'リサーチ表示オフ：区画は全期間の記録数表示に戻りました。'],
+    searchPlace: ['Search places', '地名を検索'],
+    searchGenus: ['Search reviewed genera', '審査済みの属を検索'],
+    phPlace: ['e.g. Naha, 屋久島', '例：Naha、屋久島'],
+    phGenus: ['Latin genus name, e.g. Amanita', 'ラテン語の属名（例：Amanita）'],
+    noResults: ['No matches.', '該当なし。'],
+    moreResults: ['More matches — keep typing to narrow down', '他にも該当 — 入力を絞ってください'],
+    geoLoading: ['Loading place names…', '地名データを読み込み中…'],
+    geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
+    genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
+    genusNoIndex: ['Genus search is unavailable: the area list could not be loaded.', '地域一覧を読み込めないため、属名検索は利用できません。'],
+    searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
     showAll: ['Show all', 'すべて表示'],
@@ -187,8 +478,84 @@
   function t(k) { return lang === 'ja' ? T[k][1] : T[k][0]; }
   function $(id) { return doc.getElementById(id); }
 
-  var state = { d: null, index: null, area: null, kind: 'm', month: 0, box: JAPAN_BOX, cache: {}, allSp: false, allPoss: false };
+  // sel = { row: validated index row, detail: area file|null, failed: bool }. joins is
+  // false only after a snapshot mismatch survived its one cache-bypassed refetch.
+  var state = { d: null, index: null, sel: null, kind: 'm', month: 0, box: JAPAN_BOX,
+    cache: {}, cacheSnap: undefined, allSp: false, allPoss: false, joins: true, detailJoin: true,
+    locCell: null, snaps: { dashboard: null, index: null },
+    bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
   var areaRequests = latestOnly();
+  var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
+  var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
+  var street = { on: false, loading: false }; // street-mode session state
+  // Research filters (Phase 3B): mesh-research.json is fetched only on the first enable;
+  // a payload that fails validation or joins no loaded snapshot leaves everything else on.
+  var research = { on: false, fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
+  var geo = { status: 'idle', places: null }; // reference geography for place search
+  var search = { mode: 'place', refresh: null }; // refresh re-applies mode availability + query
+  var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
+
+  // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
+  // never pointer movement.
+  function announce(msg) { if (msg) { var el = $('fd-live'); if (el) el.textContent = msg; } }
+  // Area load/error status lives in the visible map/picker region (#fd-area-msg), not in the
+  // detail section it describes.
+  function areaMsg(msg) {
+    var el = $('fd-area-msg');
+    if (el) { el.hidden = !msg; el.textContent = msg || ''; }
+  }
+  function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
+  // Redraw every live renderer: the SVG always, the street map only while it is open.
+  // The street redraw is forced so a research-mode recolour reaches it immediately.
+  function drawViews() {
+    if (map.draw) map.draw();
+    if (street.on && root.FungiFieldMap && root.FungiFieldMap.isActive()) root.FungiFieldMap.redraw(true);
+  }
+  // One tap on a square, from any renderer: first tap previews, second opens (0C flow).
+  function tapAt(lat, lon) {
+    if (!state.index) return;
+    var key = meshKey(lat, lon);
+    var m = meshCells[key] || null;
+    var aid = state.joins ? areaAt(lat, lon, state.index) : null;
+    var tap = m || aid ? { cell: m ? key : null, areaId: aid } : null;
+    var tr = tapTransition(tapState, tap);
+    tapState = tr.next;
+    if (tr.action === 'open') { clearPreview(); selectArea(aid); }
+    else if (tr.action === 'preview') { renderPreview(tap, m); announce($('fd-preview-text').textContent); }
+    else if (tr.action === 'clear') clearPreview();
+  }
+  // Mesh keys whose square belongs to the selected area (same join rules as the SVG).
+  function selectedKeys() {
+    var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
+    if (!selCells || !state.sel || !state.d) return [];
+    var selIds = (state.sel.detail && state.sel.detail.members) || [state.sel.row.id];
+    return state.d.mesh.filter(function (m) { return selIds.indexOf(selCells[meshKey(m[0], m[1])]) >= 0; })
+      .map(function (m) { return meshKey(m[0], m[1]); });
+  }
+  function findArea(id) {
+    return (state.index && state.index.areas || []).filter(function (a) { return a.id === id; })[0] || null;
+  }
+  function areaName(a) { return a ? (lang === 'ja' ? a.name_ja : a.name_en) : null; }
+  function clearPreview() {
+    tapState = null;
+    state.locCell = null;
+    var el = $('fd-preview');
+    if (el) el.hidden = true;
+    drawViews();
+  }
+  function renderPreview(tap, m) {
+    var el = $('fd-preview');
+    if (!el) return;
+    if (!tap) { el.hidden = true; return; }
+    var name = areaName(findArea(tap.areaId));
+    var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
+    if (name) txt += (txt ? ' — ' : '') + name;
+    var rline = researchCellLine(tap.cell); // research mode: band + share, never a computed share
+    if (rline) txt += (txt ? ' — ' : '') + rline;
+    $('fd-preview-text').textContent = txt;
+    $('fd-preview-open').hidden = !tap.areaId;
+    el.hidden = false;
+  }
 
   function barRows(rows, total, fmt) {
     var max = rows.reduce(function (m, r) { return Math.max(m, r[1]); }, 0) || 1;
@@ -215,23 +582,25 @@
 
   /* ---------------------------------------------------------------- map */
   var map = { draw: null };
+  var mapGeom = null; // shared so listeners wired once keep working across re-renders (Codex P2 on #46)
   function setupMap(d) {
     var fig = $('fd-map'), svg = fig.querySelector('svg'), tip = fig.querySelector('.fd-map__tip');
-    var cells = {};
-    d.mesh.forEach(function (m) { cells[meshKey(m[0], m[1])] = m; });
-    var geom = null;
+    meshCells = {};
+    d.mesh.forEach(function (m) { meshCells[meshKey(m[0], m[1])] = m; });
     function draw() {
       var box = state.box;
       var W = Math.max(280, fig.clientWidth), H = Math.max(280, fig.clientHeight);
       var size = mapSize(W, box);
       if (size.height > H) size = { width: Math.round(W * H / size.height), height: H };
       var ox = (W - size.width) / 2, oy = (H - size.height) / 2;
-      geom = { box: box, size: size, ox: ox, oy: oy };
+      mapGeom = { box: box, size: size, ox: ox, oy: oy };
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
-      var paths = ['', '', '', '', ''], sel = '';
-      var selCells = state.index && state.area ? state.index.cells : null;
-      var selIds = state.area ? (state.area.members || [state.area.id]) : [];
+      var paths = ['', '', '', '', ''], nx = '', sel = '';
+      var rv = state.rview; // research view: cells colour by slice band, absent → no estimate
+      // Cell→area joins are skipped while snapshots disagree; each layer still draws alone.
+      var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
+      var selIds = state.sel ? ((state.sel.detail && state.sel.detail.members) || [state.sel.row.id]) : [];
       d.mesh.forEach(function (m) {
         if (m[0] < box.latMin - 0.1 || m[0] > box.latMax + 0.1 || m[1] < box.lonMin - 0.1 || m[1] > box.lonMax + 0.1) return;
         var a = project(m[0] + MESH_DLAT / 2, m[1] - MESH_DLON / 2, size.width, size.height, box);
@@ -239,8 +608,12 @@
         var w = zoomed ? Math.max(1, b.x - a.x - 1) : Math.max(2.2, b.x - a.x);
         var h = zoomed ? Math.max(1, b.y - a.y - 1) : Math.max(2.2, b.y - a.y);
         var r = 'M' + (a.x + ox).toFixed(1) + ' ' + (a.y + oy).toFixed(1) + 'h' + w.toFixed(1) + 'v' + h.toFixed(1) + 'h' + (-w).toFixed(1) + 'z';
-        paths[bucket(m[2])] += r;
-        if (selCells && selIds.indexOf(selCells[meshKey(m[0], m[1])]) >= 0) sel += r;
+        var k = meshKey(m[0], m[1]);
+        if (rv) {
+          var row = rv.cells ? rv.cells[k] : null; // withheld slice: every square is "no estimate"
+          if (row) paths[row[0]] += r; else nx += r;
+        } else paths[bucket(m[2])] += r;
+        if (selCells && selIds.indexOf(selCells[k]) >= 0) sel += r;
       });
       var outlines = '';
       if (state.index) {
@@ -254,48 +627,100 @@
             '" width="' + Math.max(3, q.x - p.x).toFixed(1) + '" height="' + Math.max(3, q.y - p.y).toFixed(1) + '"></rect>';
         });
       }
+      // The located cell is an exact JIS rectangle rebuilt from its key (never the raw fix).
+      var loc = '';
+      if (state.locCell) {
+        var le = cellEdges(state.locCell.row, state.locCell.col);
+        var lp = project(le[1], le[2], size.width, size.height, box), lq = project(le[0], le[3], size.width, size.height, box);
+        loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
+          '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
+      }
       svg.innerHTML = outlines + paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
-        (sel ? '<path class="fd-map__sel" d="' + sel + '"/>' : '');
+        (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
+        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') + loc;
     }
     function pointer(e) {
       var r = svg.getBoundingClientRect();
       var x = e.clientX - r.left, y = e.clientY - r.top;
-      var ll = unproject(x - geom.ox, y - geom.oy, geom.size.width, geom.size.height, geom.box);
+      var ll = unproject(x - mapGeom.ox, y - mapGeom.oy, mapGeom.size.width, mapGeom.size.height, mapGeom.box);
       return { x: x, y: y, lat: ll.lat, lon: ll.lon, w: r.width };
     }
-    function areaById(id) { return state.index.areas.filter(function (a) { return a.id === id; })[0]; }
     svg.addEventListener('mousemove', function (e) {
-      if (!geom) return;
+      if (!mapGeom) return;
       var p = pointer(e);
-      var m = cells[meshKey(p.lat, p.lon)];
-      var aid = state.index ? areaAt(p.lat, p.lon, state.index) : null;
-      var area = aid && areaById(aid);
+      var m = meshCells[meshKey(p.lat, p.lon)];
+      var aid = state.joins && state.index ? areaAt(p.lat, p.lon, state.index) : null;
+      var area = aid && findArea(aid);
       if (!m && !area) { tip.hidden = true; svg.style.cursor = 'default'; return; }
       svg.style.cursor = area ? 'pointer' : 'default';
       var txt = m ? t('square') + ' · ' + fmtInt(m[2]) + ' ' + t('records') + ' · ' + fmtInt(m[3]) + ' ' + t('species') : '';
-      if (area) txt += (txt ? ' — ' : '') + t('clickHint') + ': ' + (lang === 'ja' ? area.name_ja : area.name_en);
+      if (area) txt += (txt ? ' — ' : '') + areaName(area) + ' (' + t('previewHint') + ')';
+      var hline = m ? researchCellLine(meshKey(p.lat, p.lon)) : null;
+      if (hline) txt += (txt ? ' — ' : '') + hline;
       tip.hidden = false;
       tip.textContent = txt;
-      tip.style.left = Math.max(0, Math.min(p.x + 12, p.w - 300)) + 'px';
-      tip.style.top = Math.max(0, p.y - 34) + 'px';
+      tip.style.left = '0px'; // reset so the measured width is the wrapped width
+      tip.style.left = Math.max(0, Math.min(p.x + 12, p.w - tip.offsetWidth - 6)) + 'px';
+      tip.style.top = Math.max(0, p.y - tip.offsetHeight - 8) + 'px';
     });
     svg.addEventListener('mouseleave', function () { tip.hidden = true; });
-    svg.addEventListener('click', function (e) {
-      if (!geom || !state.index) return;
+    // Tap flow for every pointer kind: first tap previews the square, second tap (or the
+    // preview's Open area button, or the picker) opens it. Touch goes through pointer
+    // events so a scroll that cancels the pointer can never select.
+    var guard = tapGuard();
+    var touchAt = 0; // a touch tap also fires a synthetic click; only one of the two may act
+    function handleTap(e) {
+      if (!mapGeom || !state.index) return;
       var p = pointer(e);
-      var aid = areaAt(p.lat, p.lon, state.index);
-      if (aid) selectArea(aid);
-    });
+      tapAt(p.lat, p.lon); // shared with the street renderer: preview/open flow
+    }
+    // Wire listeners once: a snapshot-mismatch refetch re-renders and calls setupMap again,
+    // and duplicate handlers turned one tap into preview+open (Codex P2 on #46).
+    if (!setupMap.wired) {
+      setupMap.wired = true;
+      if (root.PointerEvent) {
+        svg.addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'mouse') guard.down({ x: e.clientX, y: e.clientY });
+        });
+        svg.addEventListener('pointermove', function (e) { guard.move({ x: e.clientX, y: e.clientY }); });
+        svg.addEventListener('pointercancel', function () { guard.cancel(); });
+        svg.addEventListener('pointerup', function (e) {
+          if (e.pointerType === 'mouse' || !guard.up({ x: e.clientX, y: e.clientY })) return;
+          touchAt = Date.now();
+          handleTap(e);
+        });
+      }
+      svg.addEventListener('click', function (e) {
+        if (Date.now() - touchAt < 600) return; // the touch pointerup already handled this gesture
+        handleTap(e);
+      });
+      if (root.ResizeObserver) {
+        var ro = new root.ResizeObserver(function () { if (map.draw) map.draw(); }); // current draw, never a stale closure
+        ro.observe(fig);
+      }
+    }
     map.draw = draw;
     draw();
-    if (root.ResizeObserver) { var ro = new root.ResizeObserver(draw); ro.observe(fig); }
     $('fd-map-cells').textContent = fmtInt(d.mesh.length);
     $('fd-masked').textContent = fmtInt(d.totals.sensitive_species);
   }
 
   /* ---------------------------------------------------------------- area drill-down */
   var base = '';
+  var src = '';
   function areaUrl(id) { return base + 'areas/' + encodeURIComponent(id) + '.json'; }
+
+  // The kind/month segments always reflect one shared state, wherever the widget is docked.
+  function syncFilters() {
+    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
+    doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
+  }
+  function filterChanged() {
+    state.allSp = state.allPoss = false;
+    syncFilters();
+    applyResearch(); // the research recolour follows the same month/kind selection
+    renderArea();
+  }
 
   function setupPicker() {
     var sel = $('fd-area-pick');
@@ -309,51 +734,112 @@
       '<optgroup label="' + esc(lang === 'ja' ? '島' : 'Islands') + '">' + isles.map(opt).join('') + '</optgroup>';
     sel.addEventListener('change', function () { if (sel.value) selectArea(sel.value); else clearArea(); });
     $('fd-area-back').addEventListener('click', clearArea);
+    // The one kind/month widget: it lives beside the area tables, and while the research
+    // view is on it docks in the map card. Remember where it belongs so it can move back.
+    filtersEl = $('fd-filters');
+    if (filtersEl) { filtersHome = filtersEl.parentNode; filtersNext = filtersEl.nextSibling; }
     doc.querySelectorAll('[data-fd-kind]').forEach(function (b) {
-      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); state.allSp = state.allPoss = false; renderArea(); });
+      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); filterChanged(); });
     });
     $('fd-month').innerHTML = '<button type="button" data-fd-month="0">' + (lang === 'ja' ? '全月' : 'All') + '</button>' +
       MONTHS_EN.map(function (_, i) { return '<button type="button" data-fd-month="' + (i + 1) + '">' + esc(monthName(i + 1, lang)) + '</button>'; }).join('');
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) {
-      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); state.allSp = state.allPoss = false; renderArea(); });
+      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); filterChanged(); });
     });
+    syncFilters();
     $('fd-picker').hidden = false;
-    var hash = (root.location.hash || '').slice(1);
-    if (hash.indexOf('area-') === 0) selectArea(hash.slice(5));
   }
 
+  // Selecting from the picker, a tap or a deep link: the validated index row fits the camera
+  // immediately; detail only fills the tables and never moves the camera afterwards.
   function selectArea(id) {
-    var status = $('fd-area-status');
-    var go = function (a) {
-      state.area = a;
-      state.allSp = false;
-      state.allPoss = false;
-      state.box = zoomBox(a.bbox);
-      $('fd-area-pick').value = a.id;
-      $('fd-area').hidden = false;
-      $('fd-area-back').hidden = false;
-      status.hidden = true;
-      try { root.history.replaceState(null, '', '#area-' + a.id); } catch (e) { /* ignore */ }
-      if (map.draw) map.draw();
-      renderArea();
-    };
+    if (!state.index) return;
+    var row = findArea(id);
+    if (!row) return clearArea(true); // unknown id (bad deep link): Japan view, no history rewrite
     var token = areaRequests.start(id);
-    if (state.cache[id]) return go(state.cache[id]);
-    root.fetch(areaUrl(id), { cache: 'no-cache' })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (a) { state.cache[id] = a; if (areaRequests.isCurrent(token)) go(a); })
-      .catch(function () { if (areaRequests.isCurrent(token)) { status.hidden = false; status.textContent = t('areaError'); } });
+    state.sel = { row: row, detail: null, failed: false };
+    state.allSp = state.allPoss = false;
+    state.box = zoomBox(row.bbox);
+    $('fd-area-pick').value = row.id;
+    $('fd-area').hidden = false;
+    $('fd-area-back').hidden = false;
+    showRetry(false);
+    clearPreview();
+    drawViews();
+    renderSelection();
+    try { root.history.replaceState(null, '', '#area-' + row.id); } catch (e) { /* ignore */ }
+    loadDetail(row, token, false);
   }
 
-  function clearArea() {
+  // Five most-recently-used details, dropped whenever the index snapshot changes.
+  // Entries are reader results ({ok, snapshot, data}), so a known-mismatched file
+  // stays mismatched when served warm — a bare-data cache would forget its snapshot
+  // and silently re-enable joins (Codex P1 on #46).
+  function cacheGet(id) {
+    var hit = state.cache[id];
+    if (hit) { delete state.cache[id]; state.cache[id] = hit; }
+    return hit;
+  }
+  function cachePut(id, res) {
+    delete state.cache[id];
+    state.cache[id] = res;
+    var keys = Object.keys(state.cache);
+    if (keys.length > 5) delete state.cache[keys[0]];
+  }
+
+  // May index/detail joins render together? Only while snapshots agree (or are unknown).
+  function detailJoinOf(res, indexSnap) {
+    return !(res.snapshot && indexSnap && res.snapshot !== indexSnap);
+  }
+
+  function loadDetail(row, token, bypass) {
+    areaMsg(t('loadingArea') + ': ' + areaName(row));
+    var cached = cacheGet(row.id);
+    var got = cached
+      ? Promise.resolve(cached)
+      : root.fetch(areaUrl(row.id), { cache: bypass ? 'reload' : 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(readArea);
+    got.then(function (res) {
+      if (!areaRequests.isCurrent(token)) return; // superseded by a newer selection
+      if (!res.ok) throw new Error('invalid area file');
+      // An index/detail snapshot mismatch earns exactly one refetch with cache bypass.
+      if (res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index && !bypass)
+        return loadDetail(row, token, true);
+      cachePut(row.id, res);
+      state.sel.detail = res.data;
+      state.sel.failed = false;
+      state.detailJoin = detailJoinOf(res, state.snaps.index);
+      areaMsg(null);
+      showRetry(false);
+      renderSelection();
+      drawViews();
+      if (!state.detailJoin) announce(t('snapMismatch'));
+      else announce(areaName(res.data) + ' · ' + fmtInt(res.data.totals.records) + ' ' + t('records') + ' · ' + fmtInt(res.data.totals.species) + ' ' + t('species'));
+    }).catch(function () {
+      if (!areaRequests.isCurrent(token)) return;
+      state.sel.failed = true; // keep the selected area, offer retry
+      areaMsg(t('areaError'));
+      showRetry(true);
+      announce(t('areaError'));
+      renderSelection();
+    });
+  }
+
+  function clearArea(keepHash) {
     areaRequests.start(null);
-    state.area = null;
+    state.sel = null;
+    state.detailJoin = true;
     state.box = JAPAN_BOX;
     $('fd-area').hidden = true;
     $('fd-area-back').hidden = true;
     $('fd-area-pick').value = '';
-    try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ }
-    if (map.draw) map.draw();
+    showRetry(false);
+    areaMsg(null);
+    clearPreview();
+    announce(t('returnedAll'));
+    if (!keepHash) { try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
+    drawViews();
   }
 
   function monthStrip(m, hi) {
@@ -372,21 +858,38 @@
     b.onclick = toggle;
   }
 
+  // Header from the index row (or the detail once it lands); tables only with valid detail.
+  function renderSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    var src = sel.detail || sel.row;
+    $('fd-area-title').textContent = lang === 'ja' ? src.name_ja : src.name_en;
+    var tot = sel.detail ? sel.detail.totals : { records: sel.row.records, species: sel.row.species };
+    var meta = [fmtInt(tot.records) + ' ' + t('records'), fmtInt(tot.species) + ' ' + t('species')];
+    if (sel.detail) {
+      if (tot.squares) meta.push(fmtInt(tot.squares) + ' ' + t('squares'));
+      if (tot.by_name) meta.push(fmtInt(tot.by_name) + ' ' + t('byName'));
+      if (tot.unresolved) meta.push(fmtInt(tot.unresolved) + ' ' + t('unresolved'));
+    }
+    $('fd-area-meta').textContent = meta.join(' · ');
+    if (sel.detail) return renderArea();
+    var ph = '<tbody><tr><td class="fd-empty">' + esc(sel.failed ? t('areaError') : t('loadingArea')) + '</td></tr></tbody>';
+    $('fd-area-months').innerHTML = '';
+    $('fd-area-note').hidden = true;
+    $('fd-area-count').textContent = '';
+    $('fd-poss-count').textContent = '';
+    $('fd-area-species').innerHTML = ph;
+    $('fd-area-possible').innerHTML = ph;
+  }
+
   function renderArea() {
-    var a = state.area;
+    var a = state.sel && state.sel.detail;
     if (!a) return;
     var tot = a.totals;
-    $('fd-area-title').textContent = lang === 'ja' ? a.name_ja : a.name_en;
-    var meta = [fmtInt(tot.records) + ' ' + t('records'), fmtInt(tot.species) + ' ' + t('species')];
-    if (tot.squares) meta.push(fmtInt(tot.squares) + ' ' + t('squares'));
-    if (tot.by_name) meta.push(fmtInt(tot.by_name) + ' ' + t('byName'));
-    if (tot.unresolved) meta.push(fmtInt(tot.unresolved) + ' ' + t('unresolved'));
-    $('fd-area-meta').textContent = meta.join(' · ');
     var note = samplingNote(a.top_localities, tot.records);
     $('fd-area-note').hidden = !note;
     if (note) $('fd-area-note').textContent = t('sampling') + ': ' + note.name + ' (' + note.share + '%).';
-    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
-    doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
+    syncFilters();
     var mmax = Math.max.apply(null, a.months);
     $('fd-area-months').innerHTML = a.months.map(function (v, i) {
       return '<div class="fd-mbar' + (state.month === i + 1 ? ' is-on' : '') + '" title="' + fmtInt(v) + ' ' + esc(t('records')) + '"><span style="height:' +
@@ -458,23 +961,394 @@
     $('fd-unresolved').querySelectorAll('.fd-bar__label').forEach(function (el) { el.style.fontStyle = 'italic'; });
     renderLeads(d);
     renderSources(d);
+    var lb = $('fd-locate');
+    if (lb) lb.disabled = false; // locating needs only the rendered map
+    var sb = $('fd-street');
+    if (sb) sb.disabled = false; // street mode needs only the rendered mesh
+    var rb = $('fd-research');
+    if (rb) rb.disabled = false; // research fetches its own payload on first enable
     doc.querySelector('.fd').classList.add('is-ready');
+  }
+
+  /* ---- locate wiring (device-side only; the runLocate core above the exports is scanned) */
+  function wireLocate() {
+    var btn = $('fd-locate');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      runLocate(root.navigator && root.navigator.geolocation, {
+        highlight: function (cell) {
+          state.locCell = cell;
+          var row = state.d ? state.d.mesh.filter(function (m) { return meshKey(m[0], m[1]) === cell.key; })[0] : null;
+          var areaId = state.joins && state.index && state.index.cells ? (state.index.cells[cell.key] || null) : null;
+          tapState = { cell: cell.key, areaId: areaId }; // the preview carries the separate Open area action
+          renderPreview(tapState, row);
+          drawViews();
+        },
+        status: function (kind) {
+          var msg = t('loc_' + (kind === 'invalid' ? 'unavailable' : kind)) +
+            (kind === 'located' ? ' ' + t('locHint') : '');
+          areaMsg(msg);
+          announce(msg);
+        }
+      });
+    });
+  }
+  /* ---- end locate */
+
+  /* ---- street map wiring (Phase 2). Leaflet, its stylesheet, the GSI Pale tiles and the
+     adapter itself load only from this button press; the SVG stays first paint + fallback */
+  function streetEvent(kind) {
+    var btn = $('fd-street');
+    if (kind === 'ready') { announce(t('streetReady')); return; }
+    if (kind === 'fail') { areaMsg(t('streetFail')); announce(t('streetFail')); }
+    else announce(t('streetExit')); // manual exit: same flow minus the error copy
+    street.on = false;
+    var sec = doc.querySelector('.fd');
+    if (sec) sec.classList.remove('is-street');
+    if (btn) btn.setAttribute('aria-pressed', 'false');
+    drawViews();
+    if (btn) btn.focus(); // focus returns to the initiating control (Escape exits too)
+  }
+  function streetCtx() {
+    return {
+      container: $('fd-map-street'),
+      shared: api, latestOnly: latestOnly,
+      box: function () { return state.box; },
+      mesh: function () { return state.d ? state.d.mesh : []; },
+      tapAt: tapAt, selectedKeys: selectedKeys,
+      locCell: function () { return state.locCell; },
+      researchView: function () { return state.rview; }, // street cells recolour with research
+      onEvent: streetEvent
+    };
+  }
+  function wireStreet() {
+    var btn = $('fd-street');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var tipEl = doc.querySelector('.fd-map .fd-map__tip');
+      if (tipEl) tipEl.hidden = true; // the hidden SVG keeps no stale tooltip
+      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; }
+      if (street.loading || !state.d) return;
+      street.loading = true;
+      btn.setAttribute('aria-busy', 'true');
+      announce(t('streetLoading'));
+      injectAssets(doc, STREET_ASSETS).then(function () {
+        street.loading = false;
+        btn.removeAttribute('aria-busy');
+        if (!root.FungiFieldMap || !root.FungiFieldMap.enter(streetCtx())) return; // enter failed: onEvent('fail') ran
+        street.on = true;
+        areaMsg(null); // a retry that gets this far clears the visible fallback status
+        doc.querySelector('.fd').classList.add('is-street');
+        btn.setAttribute('aria-pressed', 'true');
+      }).catch(function () {
+        street.loading = false;
+        btn.removeAttribute('aria-busy');
+        streetEvent('fail');
+      });
+    });
+  }
+  /* ---- end street */
+
+  /* ---- research filters + place/genus search (Phase 3B). mesh-research.json and
+     japan-outline.json are lazy: neither is requested until Research filters is first
+     pressed or place search is first used. Invalid or absent data degrades to a status;
+     the overview, picker, search that does not need the payload and tables all stay up. */
+  function researchCellLine(key) {
+    var rv = state.rview;
+    if (!rv || !key) return null;
+    var row = rv.cells ? rv.cells[key] : null;
+    if (!row) return t('researchNoEstimate');
+    var s = t('researchEst') + ': ' + countBandLabel(row[0]);
+    s += ' · ' + t('researchShare') + ': ' + (row[1] == null ? t('researchWithheld') : shareBandLabel(row[1]));
+    return s; // the share band is published as-is, never computed here
+  }
+  function applyResearch() {
+    var res = research.res;
+    var usable = research.on && res && res.ok &&
+      researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot);
+    state.rview = usable ? researchView(res.data, state.month, state.kind) : null;
+    var note = '', noteEl = $('fd-research-note');
+    if (research.on && !usable) note = research.loading ? t('researchLoading') : t('researchUnavailable');
+    else if (state.rview && state.rview.withheld) note = t('researchSlice');
+    if (noteEl) { noteEl.hidden = !note; noteEl.textContent = note; }
+    if (note !== research.lastNote) { // announce settled changes only, never each redraw
+      research.lastNote = note;
+      if (note && !research.loading) announce(note);
+    }
+    var lgA = $('fd-legend-all'), lgR = $('fd-legend-research');
+    if (lgA) lgA.hidden = !!state.rview;
+    if (lgR) lgR.hidden = !state.rview;
+    var bar = $('fd-research-bar');
+    if (bar) {
+      // The bar stays up while research is on so its loading/unavailable note is visible;
+      // only the filters dock with a usable view (Codex P2 on #46).
+      bar.hidden = !research.on;
+      var dock = $('fd-filter-dock');
+      if (state.rview && dock && filtersEl) dock.appendChild(filtersEl);
+      else if (filtersEl && filtersHome) filtersHome.insertBefore(filtersEl, filtersNext);
+    }
+    if (search.refresh) search.refresh(); // genus-mode availability may have changed
+    drawViews();
+  }
+  function loadResearch(bypass) {
+    research.fetched = true;
+    research.loading = true;
+    fetchJson(base + 'mesh-research.json', { cache: bypass ? 'reload' : 'no-cache' })
+      .then(readResearch)
+      .then(function (res) {
+        research.res = res;
+        // Standard 0D treatment for a snapshot mismatch: exactly one cache-bypassed
+        // refetch, then research shows unavailable while everything else stays.
+        if (res.ok && !researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot) && !research.bypassed) {
+          research.bypassed = true;
+          research.fetched = false;
+          research.loading = false;
+          return loadResearch(true);
+        }
+        research.loading = false;
+        applyResearch();
+      })
+      .catch(function () {
+        research.res = { ok: false };
+        research.fetched = false; // a failed fetch retries on the next enable
+        research.loading = false;
+        applyResearch();
+      });
+  }
+  function wireResearch() {
+    var btn = $('fd-research');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      research.on = !research.on;
+      btn.setAttribute('aria-pressed', String(research.on));
+      if (research.on && !research.fetched) loadResearch(false); // lazy: first enable fetches once
+      applyResearch();
+      announce(research.on ? t('researchOn') : t('researchOff'));
+    });
+  }
+
+  function ensureGeo() {
+    if (geo.status !== 'idle') return;
+    geo.status = 'loading';
+    if (search.refresh) search.refresh();
+    fetchJson(base + 'japan-outline.json', { cache: 'no-cache' })
+      .then(readMapReference)
+      .then(function (res) {
+        geo.status = res.ok ? 'ready' : 'absent';
+        geo.places = res.ok ? res.data.places : [];
+        if (search.refresh) search.refresh();
+      })
+      .catch(function () {
+        geo.status = 'absent';
+        geo.places = [];
+        if (search.refresh) search.refresh();
+      });
+  }
+  function wireSearch() {
+    var box = $('fd-search'), input = $('fd-search-input'), results = $('fd-search-results');
+    if (!box || !input || !results) return;
+    function note(msg) { var n = $('fd-search-note'); if (n) { n.hidden = !msg; n.textContent = msg || ''; } }
+    function clearResults() {
+      results.hidden = true;
+      results.innerHTML = '';
+      input.setAttribute('aria-expanded', 'false');
+    }
+    function addButton(html, onClick) {
+      var li = doc.createElement('li');
+      var b = doc.createElement('button');
+      b.type = 'button';
+      b.innerHTML = html;
+      b.addEventListener('click', onClick);
+      li.appendChild(b);
+      results.appendChild(li);
+      return b;
+    }
+    function researchReady() {
+      return !!(research.res && research.res.ok &&
+        researchJoins(state.snaps.dashboard, state.snaps.index, research.res.snapshot));
+    }
+    function avail() {
+      if (search.mode === 'place') {
+        input.disabled = geo.status === 'absent';
+        input.placeholder = t('phPlace');
+        $('fd-search-label').textContent = t('searchPlace');
+        note(geo.status === 'absent' ? t('geoAbsent') : geo.status === 'loading' ? t('geoLoading') : '');
+      } else {
+        input.disabled = !researchReady() || !state.index;
+        input.placeholder = t('phGenus');
+        $('fd-search-label').textContent = t('searchGenus');
+        note(input.disabled ? (researchReady() ? t('genusNoIndex') : t('genusUnavailable')) : '');
+      }
+    }
+    function centreOn(p) {
+      state.box = zoomBox([p.at[1], p.at[1], p.at[0], p.at[0]]); // camera only, no selection
+      clearPreview();
+      drawViews();
+      announce(t('searchCentred') + ' ' + (lang === 'ja' ? p.ja : p.en));
+    }
+    function run() {
+      clearResults();
+      var q = input.value;
+      if (!q.trim()) { avail(); return; } // empty query: drop any stale no-matches note
+      if (search.mode === 'place') {
+        if (geo.status !== 'ready') return; // disabled with its reason already shown
+        var hits = searchPlaces(geo.places, q);
+        if (!hits.length) { note(t('noResults')); return; }
+        hits.forEach(function (h) {
+          var p = h.place;
+          addButton(esc(lang === 'ja' ? p.ja : p.en) + ' <span class="fd-search__alt">' + esc(lang === 'ja' ? p.en : p.ja) + '</span>', function () {
+            clearResults();
+            if (p.area_id && findArea(p.area_id)) selectArea(p.area_id); // validated index only
+            else centreOn(p);
+          });
+        });
+      } else {
+        if (!researchReady() || !state.index) return;
+        var rows = 0, more = false;
+        genusResults(research.res.data.genera, q, state.index, 24).forEach(function (g) {
+          g.areas.forEach(function (id) {
+            if (rows >= 8) { more = true; return; }
+            addButton('<i>' + esc(g.genus) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(id))) + '</span>', (function (aid) {
+              return function () { clearResults(); selectArea(aid); };
+            })(id));
+            rows++;
+          });
+        });
+        if (!rows) { note(t('noResults')); return; }
+        if (more) {
+          var li = doc.createElement('li');
+          li.className = 'fd-search__more';
+          li.textContent = t('moreResults');
+          results.appendChild(li);
+        }
+      }
+      results.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+    search.refresh = function () { avail(); if (!results.hidden || input.value) run(); };
+    function setMode(mode) {
+      search.mode = mode;
+      $('fd-search-place').setAttribute('aria-pressed', String(mode === 'place'));
+      $('fd-search-genus').setAttribute('aria-pressed', String(mode === 'genus'));
+      input.value = '';
+      clearResults();
+      avail();
+      if (mode === 'place') ensureGeo(); // geography loads on first place use, focus or not
+      input.focus(); // deliberate focus management on the mode switch
+    }
+    $('fd-search-place').addEventListener('click', function () { setMode('place'); });
+    $('fd-search-genus').addEventListener('click', function () { setMode('genus'); });
+    box.addEventListener('focusin', function () { if (search.mode === 'place') ensureGeo(); });
+    input.addEventListener('input', run);
+    input.addEventListener('keydown', function (e) {
+      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
+      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[0].focus(); }
+      else if (e.key === 'Enter' && btns.length) { e.preventDefault(); btns[0].click(); }
+      else if (e.key === 'Escape') { clearResults(); avail(); }
+    });
+    results.addEventListener('keydown', function (e) {
+      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
+      var i = btns.indexOf(doc.activeElement);
+      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[Math.min(i + 1, btns.length - 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (i <= 0) input.focus(); else btns[i - 1].focus(); }
+      else if (e.key === 'Enter' && i >= 0) { e.preventDefault(); btns[i].click(); }
+      else if (e.key === 'Escape') { clearResults(); input.focus(); }
+    });
+    box.hidden = false;
+    avail();
+  }
+  /* ---- end research + search */
+
+  function fetchJson(url, opts) {
+    return root.fetch(url, opts).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+  }
+
+  function applyDashboard(res) {
+    state.dDone = true;
+    if (res.ok) {
+      state.d = res.data;
+      state.snaps.dashboard = res.snapshot;
+      render(res.data);
+    } else if (!state.d) {
+      $('fd-status').hidden = false;
+      $('fd-status').textContent = t('loadError');
+      announce(t('loadError'));
+    }
+    reconcile();
+  }
+
+  function applyIndex(res) {
+    state.iDone = true;
+    if (res.ok) {
+      state.index = res.data;
+      state.snaps.index = res.snapshot;
+      if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
+      if (!state.pickerDone) { state.pickerDone = true; setupPicker(); }
+      drawViews();
+      if (!state.routed) { // early route: the camera fits from the validated index alone
+        state.routed = true;
+        var id = parseAreaHash(root.location.hash);
+        if (id) selectArea(id);
+      }
+      if (search.refresh) search.refresh(); // genus search needs the validated index
+    } else {
+      areaMsg(t('indexError')); // area selection is disabled; the national layers stay usable
+      announce(t('indexError'));
+    }
+    reconcile();
+  }
+
+  // Dashboard and index load concurrently and validate independently. Once both settle, a
+  // snapshot mismatch earns one cache-bypassed refetch; after that, joins across snapshots
+  // are disabled and each valid layer renders alone.
+  function reconcile() {
+    if (!state.dDone || !state.iDone) return;
+    var plan = resolveSnapshots({ dashboard: state.snaps.dashboard, index: state.snaps.index }, state.bootBypassed);
+    if (plan.refetch && !state.bootBypassed) {
+      state.bootBypassed = true;
+      loadBoot(true);
+      return;
+    }
+    if (!plan.joins && state.joins) {
+      state.joins = false;
+      areaMsg(t('snapMismatch'));
+      announce(t('snapMismatch'));
+      drawViews();
+    }
+  }
+
+  function loadBoot(bypass) {
+    state.dDone = false;
+    state.iDone = false;
+    var opts = { cache: bypass ? 'reload' : 'no-cache' };
+    fetchJson(src, opts).then(readDashboard).then(applyDashboard).catch(function () { applyDashboard({ ok: false }); });
+    fetchJson(base + 'areas/index.json', opts).then(readIndex).then(applyIndex).catch(function () { applyIndex({ ok: false }); });
   }
 
   function start() {
     var el = doc.querySelector('.fd');
     if (!el) return;
-    var src = el.getAttribute('data-src');
+    $('fd-preview-open').addEventListener('click', function () {
+      if (tapState && tapState.areaId) { var id = tapState.areaId; clearPreview(); selectArea(id); }
+    });
+    $('fd-area-retry').addEventListener('click', function () {
+      if (state.sel && state.sel.failed) loadDetail(state.sel.row, areaRequests.start(state.sel.row.id), true);
+    });
+    doc.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
+      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; } // street first, then preview, then area (0C/0D order)
+      var pv = $('fd-preview');
+      if (pv && !pv.hidden) { clearPreview(); return; }
+      if (state.sel) clearArea();
+    });
+    wireLocate();
+    wireStreet();
+    wireResearch();
+    wireSearch();
+    src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
-    root.fetch(src, { cache: 'no-cache' })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { if (!isValid(d)) throw new Error('invalid data'); render(d); })
-      .then(function () { return root.fetch(base + 'areas/index.json', { cache: 'no-cache' }); })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (ix) { state.index = ix; setupPicker(); if (map.draw) map.draw(); })
-      .catch(function () {
-        if (!state.d) { $('fd-status').hidden = false; $('fd-status').textContent = t('loadError'); }
-      });
+    loadBoot(false);
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);

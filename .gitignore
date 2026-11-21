@@ -24,3 +24,9 @@ worker/.wrangler/
 worker/**/.wrangler/
 worker/src/*.js
 worker/worker-configuration.d.ts
+
+# Cross-session task handoff (coordination, not product)
+handoff/
+
+# Vendored dashboard map assets (Leaflet) — not the Bundler vendor/ dir
+!assets/vendor/
