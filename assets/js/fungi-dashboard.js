@@ -849,13 +849,35 @@
     state.box = zoomBox(row.bbox);
     $('fd-area-pick').value = row.id;
     $('fd-area').hidden = false;
-    $('fd-area-back').hidden = false;
+    setCrumb(row);
     showRetry(false);
     clearPreview();
     drawViews();
     renderSelection();
     try { root.history.replaceState(null, '', '#area-' + row.id); } catch (e) { /* ignore */ }
     loadDetail(row, token, false);
+  }
+
+  // Breadcrumb + context line: the selected area's name and headline counts are
+  // page-level context, not text buried inside the dropdown (UI review).
+  function setCrumb(row) {
+    $('fd-area-back').hidden = false;
+    $('fd-crumb-sep').hidden = false;
+    $('fd-crumb-area').hidden = false;
+    $('fd-crumb-area').textContent = areaName(row);
+    var ctx = $('fd-context');
+    if (ctx) {
+      ctx.hidden = false;
+      ctx.innerHTML = esc(areaName(row)) + ' <small>· ' + fmtInt(row.species) + ' ' + t('species') +
+        ' · ' + fmtInt(row.records) + ' ' + t('records') + '</small>';
+    }
+  }
+  function clearCrumb() {
+    $('fd-area-back').hidden = true;
+    $('fd-crumb-sep').hidden = true;
+    $('fd-crumb-area').hidden = true;
+    var ctx = $('fd-context');
+    if (ctx) ctx.hidden = true;
   }
 
   // Five most-recently-used details, dropped whenever the index snapshot changes.
@@ -919,7 +941,7 @@
     state.detailJoin = true;
     state.box = JAPAN_BOX;
     $('fd-area').hidden = true;
-    $('fd-area-back').hidden = true;
+    clearCrumb();
     $('fd-area-pick').value = '';
     showRetry(false);
     areaMsg(null);
