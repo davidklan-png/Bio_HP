@@ -88,6 +88,10 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 .fd-map__isle.is-on { stroke: var(--brand); stroke-opacity: 1; stroke-width: 1.5; }
 .fd-map__sel-halo { fill: none; stroke: var(--fd-sel-halo); stroke-width: 4; }
 .fd-map__sel { fill: none; stroke: var(--fd-sel-core); stroke-width: 2; }
+.fd-map__loc { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linejoin: round; }
+
+.fd-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
+.fd-mapbar .fd-status { flex: 1 1 200px; margin: 0; }
 
 .fd-area { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; scroll-margin-top: 80px; }
 .fd-area__head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 18px; align-items: end; }

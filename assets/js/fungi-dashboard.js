@@ -89,10 +89,52 @@
     if (n < 10000) return 3;
     return 4;
   }
-  // A square's key is its JIS 2nd-mesh row and column: floor(lat / 5') and floor(lon / 7.5').
-  function meshKey(lat, lon) {
-    return Math.floor(lat / MESH_DLAT + 1e-9) + ':' + Math.floor(lon / MESH_DLON + 1e-9);
+  // JIS 2nd mesh, shared with ShroomHunt's mesh_key(): row = floor(lat × 12 + 1e-9),
+  // col = floor(lon × 8 + 1e-9), valid inside the half-open envelope [20,46) × [122,154).
+  // Exact rectangle edges are rebuilt from the key, never from the rounded published centre.
+  function meshCell(lat, lon) {
+    if (typeof lat !== 'number' || typeof lon !== 'number' || !isFinite(lat) || !isFinite(lon)) return null;
+    if (lat < 20 || lat >= 46 || lon < 122 || lon >= 154) return null;
+    var row = Math.floor(lat * 12 + 1e-9), col = Math.floor(lon * 8 + 1e-9);
+    return { row: row, col: col, key: row + ':' + col };
   }
+  function cellEdges(row, col) { return [row / 12, (row + 1) / 12, col / 8, (col + 1) / 8]; }
+  function cellCenter(row, col) { return { lat: (row + 0.5) / 12, lon: (col + 0.5) / 8 }; }
+  function meshKey(lat, lon) { var c = meshCell(lat, lon); return c ? c.key : null; }
+  // A geolocation fix becomes one JIS cell. A fix whose accuracy radius reaches a cell edge
+  // could span more than one square, so it is rejected as too imprecise.
+  var M_PER_DEG = 111320;
+  function locateCell(pos) {
+    var c = pos && pos.coords;
+    if (!c || typeof c.latitude !== 'number' || typeof c.longitude !== 'number' ||
+      !isFinite(c.latitude) || !isFinite(c.longitude)) return { ok: false, reason: 'invalid' };
+    var cell = meshCell(c.latitude, c.longitude);
+    if (!cell) return { ok: false, reason: 'outside' };
+    if (typeof c.accuracy === 'number' && isFinite(c.accuracy) && c.accuracy >= 0) {
+      var e = cellEdges(cell.row, cell.col);
+      var toLat = Math.min(c.latitude - e[0], e[1] - c.latitude) * M_PER_DEG;
+      var toLon = Math.min(c.longitude - e[2], e[3] - c.longitude) * M_PER_DEG * Math.cos((c.latitude * Math.PI) / 180);
+      if (c.accuracy >= Math.min(toLat, toLon)) return { ok: false, reason: 'inaccurate' };
+    }
+    return { ok: true, row: cell.row, col: cell.col, key: cell.key };
+  }
+  /* ---- locate (device-side only: this block must never contain a network request,
+     storage, URL or analytics write — tests scan it) */
+  // One user-initiated fix, no watch. Only the JIS cell leaves this block; the raw position
+  // is discarded inside the callback. Opening the area stays a separate user action.
+  function runLocate(geo, sink) {
+    if (!geo || typeof geo.getCurrentPosition !== 'function') { sink.status('unsupported'); return; }
+    geo.getCurrentPosition(function (pos) {
+      var cell = locateCell(pos);
+      if (!cell.ok) { sink.status(cell.reason); return; }
+      var out = { row: cell.row, col: cell.col, key: cell.key };
+      sink.highlight(out);
+      sink.status('located', out);
+    }, function (err) {
+      sink.status(err && err.code === 1 ? 'denied' : err && err.code === 3 ? 'timeout' : 'unavailable');
+    }, { timeout: 10000, maximumAge: 60000 });
+  }
+  /* ---- end locate */
   // Which drill-down area is under a point: a curated island first, then the area of the ~10 km square.
   function areaAt(lat, lon, index) {
     var hit = null;
@@ -143,6 +185,56 @@
     return !!(d && d.totals && typeof d.totals.records === 'number' &&
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
   }
+
+  // ---- v1 contract readers. v0 files (no schema_version) are tolerated until the 1C
+  // cutover; unknown versions or invalid shapes read as unavailable.
+  function isObj(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  function isSnap(s) { return typeof s === 'string' && /^[0-9a-f]{64}$/.test(s); }
+  function readVersion(d) {
+    if (!isObj(d)) return -1;
+    if (d.schema_version === undefined) return 0;
+    return d.schema_version === 1 ? 1 : -1;
+  }
+  function isAreaKind(k) { return k === 'island' || k === 'tile' || k === 'group'; }
+  function readDashboard(d) {
+    var v = readVersion(d);
+    if (v >= 0 && isValid(d) && (v === 0 || isSnap(d.snapshot)))
+      return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+    return { ok: false };
+  }
+  function readIndex(d) {
+    var v = readVersion(d);
+    if (v < 0 || (v === 1 && !isSnap(d.snapshot))) return { ok: false };
+    if (!isObj(d) || !Array.isArray(d.areas) || !isObj(d.cells)) return { ok: false };
+    var rows = d.areas.every(function (a) {
+      return isObj(a) && typeof a.id === 'string' && isAreaKind(a.kind) &&
+        Array.isArray(a.bbox) && a.bbox.length === 4;
+    });
+    if (!rows) return { ok: false };
+    return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+  }
+  function readArea(d) {
+    var v = readVersion(d);
+    if (v < 0 || (v === 1 && !isSnap(d.snapshot))) return { ok: false };
+    if (!isObj(d) || typeof d.id !== 'string' || !isAreaKind(d.kind) || !Array.isArray(d.bbox) ||
+      d.bbox.length !== 4 || !isObj(d.totals) || typeof d.totals.records !== 'number' ||
+      !Array.isArray(d.months) || !Array.isArray(d.species)) return { ok: false };
+    return { ok: true, version: v, snapshot: v ? d.snapshot : null, data: d };
+  }
+  // What to do when loaded files carry different snapshots: exactly one refetch of the
+  // mismatched files with cache bypass, then joins across snapshots are disabled.
+  function resolveSnapshots(layers, bypassed) {
+    var keys = Object.keys(layers).filter(function (k) { return layers[k]; });
+    if (keys.length < 2) return { refetch: null, joins: true };
+    var first = layers[keys[0]];
+    if (keys.every(function (k) { return layers[k] === first; })) return { refetch: null, joins: true };
+    return bypassed ? { refetch: null, joins: false } : { refetch: keys, joins: true };
+  }
+  // Deep links are #area-<id>. Malformed or unknown ids fall back to the Japan view.
+  function parseAreaHash(hash) {
+    var m = /^#?area-([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(String(hash || ''));
+    return m ? m[1] : null;
+  }
   // Tap flow: a first tap on a square previews it; a second tap on the same square opens its area.
   // prev/tap are null (nothing under the pointer) or { cell: meshKey|null, areaId: area id|null }.
   function tapTransition(prev, tap) {
@@ -178,6 +270,9 @@
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
+    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
+    readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
+    resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
     tapTransition: tapTransition, tapGuard: tapGuard
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
@@ -190,7 +285,18 @@
     species: ['species', '種'],
     square: ['~10 km square', '約10km四方'],
     loadError: ['The dashboard data could not be loaded.', 'ダッシュボードのデータを読み込めませんでした。'],
+    indexError: ['Areas are unavailable right now; the national picture still works.', '地域データは現在利用できません。地図と国内の集計は表示しています。'],
     areaError: ['This area could not be loaded.', 'この地域のデータを読み込めませんでした。'],
+    loadingArea: ['Loading', '読み込み中'],
+    snapMismatch: ['The data files were updated mid-load; each part is shown separately.', '読み込み中にデータが更新されたため、各データを個別に表示しています。'],
+    loc_located: ['Showing the ~10 km square containing your location.', '現在地を含む約10km区画を表示しました。'],
+    loc_denied: ['Location permission was denied.', '位置情報の利用が拒否されました。'],
+    loc_timeout: ['Getting your location timed out.', '位置情報の取得がタイムアウトしました。'],
+    loc_unavailable: ['Your location could not be determined.', '位置情報を取得できませんでした。'],
+    loc_unsupported: ['This browser cannot share your location.', 'このブラウザは位置情報に対応していません。'],
+    loc_inaccurate: ['The location fix is too imprecise to place you in one square.', '位置の精度が低く、区画を特定できません。'],
+    loc_outside: ['Your location is outside the mapped area.', '現在地が地図の範囲外です。'],
+    locHint: ['Use Open area to see it in detail.', '「地域を開く」で詳細を表示できます。'],
     downloaded: ['downloaded', '取得日'],
     previewHint: ['tap to preview', 'タップで概要'],
     openArea: ['Open area', '地域を開く'],
@@ -219,21 +325,35 @@
   function t(k) { return lang === 'ja' ? T[k][1] : T[k][0]; }
   function $(id) { return doc.getElementById(id); }
 
-  var state = { d: null, index: null, area: null, kind: 'm', month: 0, box: JAPAN_BOX, cache: {}, allSp: false, allPoss: false };
+  // sel = { row: validated index row, detail: area file|null, failed: bool }. joins is
+  // false only after a snapshot mismatch survived its one cache-bypassed refetch.
+  var state = { d: null, index: null, sel: null, kind: 'm', month: 0, box: JAPAN_BOX,
+    cache: {}, cacheSnap: undefined, allSp: false, allPoss: false, joins: true, detailJoin: true,
+    locCell: null, snaps: { dashboard: null, index: null },
+    bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
   var areaRequests = latestOnly();
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
 
   // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
   // never pointer movement.
   function announce(msg) { if (msg) { var el = $('fd-live'); if (el) el.textContent = msg; } }
+  // Area load/error status lives in the visible map/picker region (#fd-area-msg), not in the
+  // detail section it describes.
+  function areaMsg(msg) {
+    var el = $('fd-area-msg');
+    if (el) { el.hidden = !msg; el.textContent = msg || ''; }
+  }
+  function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
   function findArea(id) {
     return (state.index && state.index.areas || []).filter(function (a) { return a.id === id; })[0] || null;
   }
   function areaName(a) { return a ? (lang === 'ja' ? a.name_ja : a.name_en) : null; }
   function clearPreview() {
     tapState = null;
+    state.locCell = null;
     var el = $('fd-preview');
     if (el) el.hidden = true;
+    if (map.draw) map.draw();
   }
   function renderPreview(tap, m) {
     var el = $('fd-preview');
@@ -287,8 +407,9 @@
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
       var paths = ['', '', '', '', ''], sel = '';
-      var selCells = state.index && state.area ? state.index.cells : null;
-      var selIds = state.area ? (state.area.members || [state.area.id]) : [];
+      // Cell→area joins are skipped while snapshots disagree; each layer still draws alone.
+      var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
+      var selIds = state.sel ? ((state.sel.detail && state.sel.detail.members) || [state.sel.row.id]) : [];
       d.mesh.forEach(function (m) {
         if (m[0] < box.latMin - 0.1 || m[0] > box.latMax + 0.1 || m[1] < box.lonMin - 0.1 || m[1] > box.lonMax + 0.1) return;
         var a = project(m[0] + MESH_DLAT / 2, m[1] - MESH_DLON / 2, size.width, size.height, box);
@@ -311,8 +432,16 @@
             '" width="' + Math.max(3, q.x - p.x).toFixed(1) + '" height="' + Math.max(3, q.y - p.y).toFixed(1) + '"></rect>';
         });
       }
+      // The located cell is an exact JIS rectangle rebuilt from its key (never the raw fix).
+      var loc = '';
+      if (state.locCell) {
+        var le = cellEdges(state.locCell.row, state.locCell.col);
+        var lp = project(le[1], le[2], size.width, size.height, box), lq = project(le[0], le[3], size.width, size.height, box);
+        loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
+          '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
+      }
       svg.innerHTML = outlines + paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
-        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '');
+        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') + loc;
     }
     function pointer(e) {
       var r = svg.getBoundingClientRect();
@@ -324,7 +453,7 @@
       if (!geom) return;
       var p = pointer(e);
       var m = cells[meshKey(p.lat, p.lon)];
-      var aid = state.index ? areaAt(p.lat, p.lon, state.index) : null;
+      var aid = state.joins && state.index ? areaAt(p.lat, p.lon, state.index) : null;
       var area = aid && findArea(aid);
       if (!m && !area) { tip.hidden = true; svg.style.cursor = 'default'; return; }
       svg.style.cursor = area ? 'pointer' : 'default';
@@ -347,7 +476,7 @@
       var p = pointer(e);
       var key = meshKey(p.lat, p.lon);
       var m = cells[key] || null;
-      var aid = areaAt(p.lat, p.lon, state.index);
+      var aid = state.joins ? areaAt(p.lat, p.lon, state.index) : null;
       var tap = m || aid ? { cell: m ? key : null, areaId: aid } : null;
       var tr = tapTransition(tapState, tap);
       tapState = tr.next;
@@ -380,6 +509,7 @@
 
   /* ---------------------------------------------------------------- area drill-down */
   var base = '';
+  var src = '';
   function areaUrl(id) { return base + 'areas/' + encodeURIComponent(id) + '.json'; }
 
   function setupPicker() {
@@ -403,47 +533,89 @@
       b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); state.allSp = state.allPoss = false; renderArea(); });
     });
     $('fd-picker').hidden = false;
-    var hash = (root.location.hash || '').slice(1);
-    if (hash.indexOf('area-') === 0) selectArea(hash.slice(5));
   }
 
+  // Selecting from the picker, a tap or a deep link: the validated index row fits the camera
+  // immediately; detail only fills the tables and never moves the camera afterwards.
   function selectArea(id) {
-    var status = $('fd-area-status');
-    var go = function (a) {
-      state.area = a;
-      state.allSp = false;
-      state.allPoss = false;
-      state.box = zoomBox(a.bbox);
-      $('fd-area-pick').value = a.id;
-      $('fd-area').hidden = false;
-      $('fd-area-back').hidden = false;
-      status.hidden = true;
-      clearPreview();
-      announce(areaName(a) + ' · ' + fmtInt(a.totals.records) + ' ' + t('records') + ' · ' + fmtInt(a.totals.species) + ' ' + t('species'));
-      try { root.history.replaceState(null, '', '#area-' + a.id); } catch (e) { /* ignore */ }
-      if (map.draw) map.draw();
-      renderArea();
-    };
+    if (!state.index) return;
+    var row = findArea(id);
+    if (!row) return clearArea(true); // unknown id (bad deep link): Japan view, no history rewrite
     var token = areaRequests.start(id);
-    if (state.cache[id]) return go(state.cache[id]);
-    root.fetch(areaUrl(id), { cache: 'no-cache' })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (a) { state.cache[id] = a; if (areaRequests.isCurrent(token)) go(a); })
-      .catch(function () {
-        if (areaRequests.isCurrent(token)) { status.hidden = false; status.textContent = t('areaError'); announce(t('areaError')); }
-      });
+    state.sel = { row: row, detail: null, failed: false };
+    state.allSp = state.allPoss = false;
+    state.box = zoomBox(row.bbox);
+    $('fd-area-pick').value = row.id;
+    $('fd-area').hidden = false;
+    $('fd-area-back').hidden = false;
+    showRetry(false);
+    clearPreview();
+    if (map.draw) map.draw();
+    renderSelection();
+    try { root.history.replaceState(null, '', '#area-' + row.id); } catch (e) { /* ignore */ }
+    loadDetail(row, token, false);
   }
 
-  function clearArea() {
+  // Five most-recently-used details, dropped whenever the index snapshot changes.
+  function cacheGet(id) {
+    var hit = state.cache[id];
+    if (hit) { delete state.cache[id]; state.cache[id] = hit; }
+    return hit;
+  }
+  function cachePut(id, data) {
+    delete state.cache[id];
+    state.cache[id] = data;
+    var keys = Object.keys(state.cache);
+    if (keys.length > 5) delete state.cache[keys[0]];
+  }
+
+  function loadDetail(row, token, bypass) {
+    areaMsg(t('loadingArea') + ': ' + areaName(row));
+    var cached = cacheGet(row.id);
+    var got = cached
+      ? Promise.resolve({ ok: true, snapshot: null, data: cached })
+      : root.fetch(areaUrl(row.id), { cache: bypass ? 'reload' : 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(readArea);
+    got.then(function (res) {
+      if (!areaRequests.isCurrent(token)) return; // superseded by a newer selection
+      if (!res.ok) throw new Error('invalid area file');
+      // An index/detail snapshot mismatch earns exactly one refetch with cache bypass.
+      if (res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index && !bypass)
+        return loadDetail(row, token, true);
+      cachePut(row.id, res.data);
+      state.sel.detail = res.data;
+      state.sel.failed = false;
+      state.detailJoin = !(res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index);
+      areaMsg(null);
+      showRetry(false);
+      renderSelection();
+      if (map.draw) map.draw();
+      if (!state.detailJoin) announce(t('snapMismatch'));
+      else announce(areaName(res.data) + ' · ' + fmtInt(res.data.totals.records) + ' ' + t('records') + ' · ' + fmtInt(res.data.totals.species) + ' ' + t('species'));
+    }).catch(function () {
+      if (!areaRequests.isCurrent(token)) return;
+      state.sel.failed = true; // keep the selected area, offer retry
+      areaMsg(t('areaError'));
+      showRetry(true);
+      announce(t('areaError'));
+      renderSelection();
+    });
+  }
+
+  function clearArea(keepHash) {
     areaRequests.start(null);
-    state.area = null;
+    state.sel = null;
+    state.detailJoin = true;
     state.box = JAPAN_BOX;
     $('fd-area').hidden = true;
     $('fd-area-back').hidden = true;
     $('fd-area-pick').value = '';
+    showRetry(false);
+    areaMsg(null);
     clearPreview();
     announce(t('returnedAll'));
-    try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ }
+    if (!keepHash) { try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
     if (map.draw) map.draw();
   }
 
@@ -463,16 +635,34 @@
     b.onclick = toggle;
   }
 
+  // Header from the index row (or the detail once it lands); tables only with valid detail.
+  function renderSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    var src = sel.detail || sel.row;
+    $('fd-area-title').textContent = lang === 'ja' ? src.name_ja : src.name_en;
+    var tot = sel.detail ? sel.detail.totals : { records: sel.row.records, species: sel.row.species };
+    var meta = [fmtInt(tot.records) + ' ' + t('records'), fmtInt(tot.species) + ' ' + t('species')];
+    if (sel.detail) {
+      if (tot.squares) meta.push(fmtInt(tot.squares) + ' ' + t('squares'));
+      if (tot.by_name) meta.push(fmtInt(tot.by_name) + ' ' + t('byName'));
+      if (tot.unresolved) meta.push(fmtInt(tot.unresolved) + ' ' + t('unresolved'));
+    }
+    $('fd-area-meta').textContent = meta.join(' · ');
+    if (sel.detail) return renderArea();
+    var ph = '<tbody><tr><td class="fd-empty">' + esc(sel.failed ? t('areaError') : t('loadingArea')) + '</td></tr></tbody>';
+    $('fd-area-months').innerHTML = '';
+    $('fd-area-note').hidden = true;
+    $('fd-area-count').textContent = '';
+    $('fd-poss-count').textContent = '';
+    $('fd-area-species').innerHTML = ph;
+    $('fd-area-possible').innerHTML = ph;
+  }
+
   function renderArea() {
-    var a = state.area;
+    var a = state.sel && state.sel.detail;
     if (!a) return;
     var tot = a.totals;
-    $('fd-area-title').textContent = lang === 'ja' ? a.name_ja : a.name_en;
-    var meta = [fmtInt(tot.records) + ' ' + t('records'), fmtInt(tot.species) + ' ' + t('species')];
-    if (tot.squares) meta.push(fmtInt(tot.squares) + ' ' + t('squares'));
-    if (tot.by_name) meta.push(fmtInt(tot.by_name) + ' ' + t('byName'));
-    if (tot.unresolved) meta.push(fmtInt(tot.unresolved) + ' ' + t('unresolved'));
-    $('fd-area-meta').textContent = meta.join(' · ');
     var note = samplingNote(a.top_localities, tot.records);
     $('fd-area-note').hidden = !note;
     if (note) $('fd-area-note').textContent = t('sampling') + ': ' + note.name + ' (' + note.share + '%).';
@@ -549,7 +739,99 @@
     $('fd-unresolved').querySelectorAll('.fd-bar__label').forEach(function (el) { el.style.fontStyle = 'italic'; });
     renderLeads(d);
     renderSources(d);
+    var lb = $('fd-locate');
+    if (lb) lb.disabled = false; // locating needs only the rendered map
     doc.querySelector('.fd').classList.add('is-ready');
+  }
+
+  /* ---- locate wiring (device-side only; the runLocate core above the exports is scanned) */
+  function wireLocate() {
+    var btn = $('fd-locate');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      runLocate(root.navigator && root.navigator.geolocation, {
+        highlight: function (cell) {
+          state.locCell = cell;
+          var row = state.d ? state.d.mesh.filter(function (m) { return meshKey(m[0], m[1]) === cell.key; })[0] : null;
+          var areaId = state.joins && state.index && state.index.cells ? (state.index.cells[cell.key] || null) : null;
+          tapState = { cell: cell.key, areaId: areaId }; // the preview carries the separate Open area action
+          renderPreview(tapState, row);
+          if (map.draw) map.draw();
+        },
+        status: function (kind) {
+          var msg = t('loc_' + (kind === 'invalid' ? 'unavailable' : kind)) +
+            (kind === 'located' ? ' ' + t('locHint') : '');
+          areaMsg(msg);
+          announce(msg);
+        }
+      });
+    });
+  }
+  /* ---- end locate */
+
+  function fetchJson(url, opts) {
+    return root.fetch(url, opts).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+  }
+
+  function applyDashboard(res) {
+    state.dDone = true;
+    if (res.ok) {
+      state.d = res.data;
+      state.snaps.dashboard = res.snapshot;
+      render(res.data);
+    } else if (!state.d) {
+      $('fd-status').hidden = false;
+      $('fd-status').textContent = t('loadError');
+      announce(t('loadError'));
+    }
+    reconcile();
+  }
+
+  function applyIndex(res) {
+    state.iDone = true;
+    if (res.ok) {
+      state.index = res.data;
+      state.snaps.index = res.snapshot;
+      if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
+      if (!state.pickerDone) { state.pickerDone = true; setupPicker(); }
+      if (map.draw) map.draw();
+      if (!state.routed) { // early route: the camera fits from the validated index alone
+        state.routed = true;
+        var id = parseAreaHash(root.location.hash);
+        if (id) selectArea(id);
+      }
+    } else {
+      areaMsg(t('indexError')); // area selection is disabled; the national layers stay usable
+      announce(t('indexError'));
+    }
+    reconcile();
+  }
+
+  // Dashboard and index load concurrently and validate independently. Once both settle, a
+  // snapshot mismatch earns one cache-bypassed refetch; after that, joins across snapshots
+  // are disabled and each valid layer renders alone.
+  function reconcile() {
+    if (!state.dDone || !state.iDone) return;
+    var plan = resolveSnapshots({ dashboard: state.snaps.dashboard, index: state.snaps.index }, state.bootBypassed);
+    if (plan.refetch && !state.bootBypassed) {
+      state.bootBypassed = true;
+      loadBoot(true);
+      return;
+    }
+    if (!plan.joins && state.joins) {
+      state.joins = false;
+      areaMsg(t('snapMismatch'));
+      announce(t('snapMismatch'));
+      if (map.draw) map.draw();
+    }
+  }
+
+  function loadBoot(bypass) {
+    state.dDone = false;
+    state.iDone = false;
+    var opts = { cache: bypass ? 'reload' : 'no-cache' };
+    fetchJson(src, opts).then(readDashboard).then(applyDashboard).catch(function () { applyDashboard({ ok: false }); });
+    fetchJson(base + 'areas/index.json', opts).then(readIndex).then(applyIndex).catch(function () { applyIndex({ ok: false }); });
   }
 
   function start() {
@@ -558,24 +840,20 @@
     $('fd-preview-open').addEventListener('click', function () {
       if (tapState && tapState.areaId) { var id = tapState.areaId; clearPreview(); selectArea(id); }
     });
+    $('fd-area-retry').addEventListener('click', function () {
+      if (state.sel && state.sel.failed) loadDetail(state.sel.row, areaRequests.start(state.sel.row.id), true);
+    });
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
-      if (state.area) clearArea();
+      if (state.sel) clearArea();
     });
-    var src = el.getAttribute('data-src');
+    wireLocate();
+    src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
-    root.fetch(src, { cache: 'no-cache' })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { if (!isValid(d)) throw new Error('invalid data'); render(d); })
-      .then(function () { return root.fetch(base + 'areas/index.json', { cache: 'no-cache' }); })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (ix) { state.index = ix; setupPicker(); if (map.draw) map.draw(); })
-      .catch(function () {
-        if (!state.d) { $('fd-status').hidden = false; $('fd-status').textContent = t('loadError'); announce(t('loadError')); }
-      });
+    loadBoot(false);
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);
