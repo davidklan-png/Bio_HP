@@ -491,7 +491,7 @@
   // Research filters (Phase 3B): mesh-research.json is fetched only on the first enable;
   // a payload that fails validation or joins no loaded snapshot leaves everything else on.
   var research = { on: false, fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
-  var geo = { status: 'idle', places: null }; // reference geography for place search
+  var geo = { status: 'idle', places: null, ref: null }; // reference geography: coast + labels + place search
   var search = { mode: 'place', refresh: null }; // refresh re-applies mode availability + query
   var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
 
@@ -615,14 +615,46 @@
         } else paths[bucket(m[2])] += r;
         if (selCells && selIds.indexOf(selCells[k]) >= 0) sel += r;
       });
+      // Reference geography under the cells: Natural Earth coast (0E) + curated labels.
+      // With a coast present the always-on dashed island boxes go away — selected
+      // islands keep their outline as the selection affordance (plan §5 row 0E).
+      var coast = '', labels = '';
+      if (geo.ref) {
+        geo.ref.land.forEach(function (rings) {
+          rings.forEach(function (ring) {
+            // cull whole rings outside the view by geographic bbox, not per projected point
+            var lo = Infinity, hi = -Infinity, we = Infinity, ea = -Infinity;
+            for (var i = 0; i < ring.length; i++) {
+              if (ring[i][1] < lo) lo = ring[i][1];
+              if (ring[i][1] > hi) hi = ring[i][1];
+              if (ring[i][0] < we) we = ring[i][0];
+              if (ring[i][0] > ea) ea = ring[i][0];
+            }
+            if (hi < box.latMin || lo > box.latMax || ea < box.lonMin || we > box.lonMax) return;
+            var dd = '';
+            for (i = 0; i < ring.length; i++) {
+              var cp = project(ring[i][1], ring[i][0], size.width, size.height, box); // [lon, lat]
+              dd += (i ? 'L' : 'M') + (cp.x + ox).toFixed(1) + ' ' + (cp.y + oy).toFixed(1);
+            }
+            coast += dd + 'Z';
+          });
+        });
+        geo.ref.places.forEach(function (pl) {
+          if (pl.at[1] < box.latMin || pl.at[1] > box.latMax || pl.at[0] < box.lonMin || pl.at[0] > box.lonMax) return;
+          var lp = project(pl.at[1], pl.at[0], size.width, size.height, box);
+          labels += '<text class="fd-map__lbl" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) + '">' +
+            esc(lang === 'ja' ? pl.ja : pl.en) + '</text>';
+        });
+      }
       var outlines = '';
       if (state.index) {
         state.index.areas.forEach(function (ar) {
           if (ar.kind !== 'island') return;
+          var on = selIds.indexOf(ar.id) >= 0;
+          if (geo.ref && !on) return; // the coast replaces the idle dashed boxes
           var bb = ar.bbox;
           var p = project(bb[1], bb[2], size.width, size.height, box), q = project(bb[0], bb[3], size.width, size.height, box);
           if (q.x < 0 || p.x > size.width || q.y < 0 || p.y > size.height) return;
-          var on = selIds.indexOf(ar.id) >= 0;
           outlines += '<rect class="fd-map__isle' + (on ? ' is-on' : '') + '" x="' + (p.x + ox).toFixed(1) + '" y="' + (p.y + oy).toFixed(1) +
             '" width="' + Math.max(3, q.x - p.x).toFixed(1) + '" height="' + Math.max(3, q.y - p.y).toFixed(1) + '"></rect>';
         });
@@ -635,9 +667,11 @@
         loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
-      svg.innerHTML = outlines + paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
+      svg.innerHTML = (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
+        paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
         (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
-        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') + loc;
+        (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') +
+        loc + labels;
     }
     function pointer(e) {
       var r = svg.getBoundingClientRect();
@@ -1136,7 +1170,9 @@
       .then(function (res) {
         geo.status = res.ok ? 'ready' : 'absent';
         geo.places = res.ok ? res.data.places : [];
+        geo.ref = res.ok ? res.data : null;
         if (search.refresh) search.refresh();
+        if (map.draw) map.draw(); // the coast layer belongs to the default view now
       })
       .catch(function () {
         geo.status = 'absent';
@@ -1349,6 +1385,7 @@
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);
+    ensureGeo(); // coast + place labels are part of the default view (31 KB gzip, §8 budget)
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);
