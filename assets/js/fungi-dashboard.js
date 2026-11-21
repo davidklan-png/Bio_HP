@@ -265,6 +265,28 @@
   }
   function bucketClass(n) { return 'fd-map__b' + bucket(n); }
 
+  // Street map (Phase 2) is entered explicitly: the stylesheet, vendored Leaflet and the
+  // street adapter are injected only when the Street map button is pressed, so a plain
+  // page load requests none of them. Scripts carry async=false to keep execution order
+  // (Leaflet defines window.L before the adapter registers itself).
+  var STREET_ASSETS = [
+    { tag: 'link', href: '/assets/vendor/leaflet/leaflet.css' },
+    { tag: 'script', src: '/assets/vendor/leaflet/leaflet.js' },
+    { tag: 'script', src: '/assets/js/fungi-field-map.js' }
+  ];
+  function injectAssets(doc, list) {
+    return Promise.all(list.map(function (a) {
+      return new Promise(function (resolve, reject) {
+        var el = doc.createElement(a.tag);
+        if (a.tag === 'link') { el.rel = 'stylesheet'; el.href = a.href; }
+        else { el.src = a.src; el.async = false; }
+        el.onload = function () { resolve(el); };
+        el.onerror = function () { reject(new Error('could not load ' + (a.href || a.src))); };
+        (doc.head || doc.getElementsByTagName('head')[0]).appendChild(el);
+      });
+    }));
+  }
+
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
@@ -273,7 +295,8 @@
     meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
-    tapTransition: tapTransition, tapGuard: tapGuard
+    tapTransition: tapTransition, tapGuard: tapGuard,
+    STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -305,6 +328,10 @@
     byName: ['matched by place name', '地名で照合'],
     unresolved: ['not identified to species', '種まで未同定'],
     sampling: ['Most records come from one survey site', '記録の多くが1か所の調査地に集中しています'],
+    streetLoading: ['Loading the street map…', '詳細地図を読み込み中…'],
+    streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
+    streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Street map to retry.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「詳細地図」をもう一度押すと再試行できます。'],
+    streetExit: ['Back to the simple map.', '簡易地図に戻りました。'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
     showAll: ['Show all', 'すべて表示'],
@@ -333,6 +360,8 @@
     bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
   var areaRequests = latestOnly();
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
+  var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
+  var street = { on: false, loading: false }; // street-mode session state
 
   // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
   // never pointer movement.
@@ -344,6 +373,32 @@
     if (el) { el.hidden = !msg; el.textContent = msg || ''; }
   }
   function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
+  // Redraw every live renderer: the SVG always, the street map only while it is open.
+  function drawViews() {
+    if (map.draw) map.draw();
+    if (street.on && root.FungiFieldMap && root.FungiFieldMap.isActive()) root.FungiFieldMap.redraw();
+  }
+  // One tap on a square, from any renderer: first tap previews, second opens (0C flow).
+  function tapAt(lat, lon) {
+    if (!state.index) return;
+    var key = meshKey(lat, lon);
+    var m = meshCells[key] || null;
+    var aid = state.joins ? areaAt(lat, lon, state.index) : null;
+    var tap = m || aid ? { cell: m ? key : null, areaId: aid } : null;
+    var tr = tapTransition(tapState, tap);
+    tapState = tr.next;
+    if (tr.action === 'open') { clearPreview(); selectArea(aid); }
+    else if (tr.action === 'preview') { renderPreview(tap, m); announce($('fd-preview-text').textContent); }
+    else if (tr.action === 'clear') clearPreview();
+  }
+  // Mesh keys whose square belongs to the selected area (same join rules as the SVG).
+  function selectedKeys() {
+    var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
+    if (!selCells || !state.sel || !state.d) return [];
+    var selIds = (state.sel.detail && state.sel.detail.members) || [state.sel.row.id];
+    return state.d.mesh.filter(function (m) { return selIds.indexOf(selCells[meshKey(m[0], m[1])]) >= 0; })
+      .map(function (m) { return meshKey(m[0], m[1]); });
+  }
   function findArea(id) {
     return (state.index && state.index.areas || []).filter(function (a) { return a.id === id; })[0] || null;
   }
@@ -353,7 +408,7 @@
     state.locCell = null;
     var el = $('fd-preview');
     if (el) el.hidden = true;
-    if (map.draw) map.draw();
+    drawViews();
   }
   function renderPreview(tap, m) {
     var el = $('fd-preview');
@@ -394,8 +449,8 @@
   var map = { draw: null };
   function setupMap(d) {
     var fig = $('fd-map'), svg = fig.querySelector('svg'), tip = fig.querySelector('.fd-map__tip');
-    var cells = {};
-    d.mesh.forEach(function (m) { cells[meshKey(m[0], m[1])] = m; });
+    meshCells = {};
+    d.mesh.forEach(function (m) { meshCells[meshKey(m[0], m[1])] = m; });
     var geom = null;
     function draw() {
       var box = state.box;
@@ -452,7 +507,7 @@
     svg.addEventListener('mousemove', function (e) {
       if (!geom) return;
       var p = pointer(e);
-      var m = cells[meshKey(p.lat, p.lon)];
+      var m = meshCells[meshKey(p.lat, p.lon)];
       var aid = state.joins && state.index ? areaAt(p.lat, p.lon, state.index) : null;
       var area = aid && findArea(aid);
       if (!m && !area) { tip.hidden = true; svg.style.cursor = 'default'; return; }
@@ -474,15 +529,7 @@
     function handleTap(e) {
       if (!geom || !state.index) return;
       var p = pointer(e);
-      var key = meshKey(p.lat, p.lon);
-      var m = cells[key] || null;
-      var aid = state.joins ? areaAt(p.lat, p.lon, state.index) : null;
-      var tap = m || aid ? { cell: m ? key : null, areaId: aid } : null;
-      var tr = tapTransition(tapState, tap);
-      tapState = tr.next;
-      if (tr.action === 'open') { clearPreview(); selectArea(aid); }
-      else if (tr.action === 'preview') { renderPreview(tap, m); announce($('fd-preview-text').textContent); }
-      else if (tr.action === 'clear') clearPreview();
+      tapAt(p.lat, p.lon); // shared with the street renderer: preview/open flow
     }
     if (root.PointerEvent) {
       svg.addEventListener('pointerdown', function (e) {
@@ -550,7 +597,7 @@
     $('fd-area-back').hidden = false;
     showRetry(false);
     clearPreview();
-    if (map.draw) map.draw();
+    drawViews();
     renderSelection();
     try { root.history.replaceState(null, '', '#area-' + row.id); } catch (e) { /* ignore */ }
     loadDetail(row, token, false);
@@ -590,7 +637,7 @@
       areaMsg(null);
       showRetry(false);
       renderSelection();
-      if (map.draw) map.draw();
+      drawViews();
       if (!state.detailJoin) announce(t('snapMismatch'));
       else announce(areaName(res.data) + ' · ' + fmtInt(res.data.totals.records) + ' ' + t('records') + ' · ' + fmtInt(res.data.totals.species) + ' ' + t('species'));
     }).catch(function () {
@@ -616,7 +663,7 @@
     clearPreview();
     announce(t('returnedAll'));
     if (!keepHash) { try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
-    if (map.draw) map.draw();
+    drawViews();
   }
 
   function monthStrip(m, hi) {
@@ -741,6 +788,8 @@
     renderSources(d);
     var lb = $('fd-locate');
     if (lb) lb.disabled = false; // locating needs only the rendered map
+    var sb = $('fd-street');
+    if (sb) sb.disabled = false; // street mode needs only the rendered mesh
     doc.querySelector('.fd').classList.add('is-ready');
   }
 
@@ -756,7 +805,7 @@
           var areaId = state.joins && state.index && state.index.cells ? (state.index.cells[cell.key] || null) : null;
           tapState = { cell: cell.key, areaId: areaId }; // the preview carries the separate Open area action
           renderPreview(tapState, row);
-          if (map.draw) map.draw();
+          drawViews();
         },
         status: function (kind) {
           var msg = t('loc_' + (kind === 'invalid' ? 'unavailable' : kind)) +
@@ -768,6 +817,59 @@
     });
   }
   /* ---- end locate */
+
+  /* ---- street map wiring (Phase 2). Leaflet, its stylesheet, the GSI Pale tiles and the
+     adapter itself load only from this button press; the SVG stays first paint + fallback */
+  function streetEvent(kind) {
+    var btn = $('fd-street');
+    if (kind === 'ready') { announce(t('streetReady')); return; }
+    if (kind === 'fail') { areaMsg(t('streetFail')); announce(t('streetFail')); }
+    else announce(t('streetExit')); // manual exit: same flow minus the error copy
+    street.on = false;
+    var sec = doc.querySelector('.fd');
+    if (sec) sec.classList.remove('is-street');
+    if (btn) btn.setAttribute('aria-pressed', 'false');
+    drawViews();
+    if (btn) btn.focus(); // focus returns to the initiating control (Escape exits too)
+  }
+  function streetCtx() {
+    return {
+      container: $('fd-map-street'),
+      shared: api, latestOnly: latestOnly,
+      box: function () { return state.box; },
+      mesh: function () { return state.d ? state.d.mesh : []; },
+      tapAt: tapAt, selectedKeys: selectedKeys,
+      locCell: function () { return state.locCell; },
+      onEvent: streetEvent
+    };
+  }
+  function wireStreet() {
+    var btn = $('fd-street');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var tipEl = doc.querySelector('.fd-map .fd-map__tip');
+      if (tipEl) tipEl.hidden = true; // the hidden SVG keeps no stale tooltip
+      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; }
+      if (street.loading || !state.d) return;
+      street.loading = true;
+      btn.setAttribute('aria-busy', 'true');
+      announce(t('streetLoading'));
+      injectAssets(doc, STREET_ASSETS).then(function () {
+        street.loading = false;
+        btn.removeAttribute('aria-busy');
+        if (!root.FungiFieldMap || !root.FungiFieldMap.enter(streetCtx())) return; // enter failed: onEvent('fail') ran
+        street.on = true;
+        areaMsg(null); // a retry that gets this far clears the visible fallback status
+        doc.querySelector('.fd').classList.add('is-street');
+        btn.setAttribute('aria-pressed', 'true');
+      }).catch(function () {
+        street.loading = false;
+        btn.removeAttribute('aria-busy');
+        streetEvent('fail');
+      });
+    });
+  }
+  /* ---- end street */
 
   function fetchJson(url, opts) {
     return root.fetch(url, opts).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -794,7 +896,7 @@
       state.snaps.index = res.snapshot;
       if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
       if (!state.pickerDone) { state.pickerDone = true; setupPicker(); }
-      if (map.draw) map.draw();
+      drawViews();
       if (!state.routed) { // early route: the camera fits from the validated index alone
         state.routed = true;
         var id = parseAreaHash(root.location.hash);
@@ -822,7 +924,7 @@
       state.joins = false;
       areaMsg(t('snapMismatch'));
       announce(t('snapMismatch'));
-      if (map.draw) map.draw();
+      drawViews();
     }
   }
 
@@ -846,11 +948,13 @@
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
+      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; } // street first, then preview, then area (0C/0D order)
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
       if (state.sel) clearArea();
     });
     wireLocate();
+    wireStreet();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);
