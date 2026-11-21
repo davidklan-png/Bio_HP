@@ -441,3 +441,25 @@ describe('fungi-dashboard: locate me', () => {
 // shared v0 fixtures straight from the published (staging) files
 function realIndex() { return require('../assets/data/shroomhunt/areas/index.json'); }
 function realArea() { return require('../assets/data/shroomhunt/areas/okinawa-honto.json'); }
+
+// Codex review fixes on #46.
+describe('detail join decision survives the warm cache (P1)', () => {
+  const { detailJoinOf } = require('../assets/js/fungi-dashboard.js');
+  it('recomputes joins from the reader result, not a fabricated null snapshot', () => {
+    assert.strictEqual(detailJoinOf({ ok: true, snapshot: 'aaa', data: {} }, 'aaa'), true);
+    assert.strictEqual(detailJoinOf({ ok: true, snapshot: 'aaa', data: {} }, 'bbb'), false);
+    // the old bug: a cache hit produced snapshot:null and this returned true for known-mismatched data
+    assert.strictEqual(detailJoinOf({ ok: true, snapshot: 'bbb', data: {} }, 'aaa'), false);
+    assert.strictEqual(detailJoinOf({ ok: true, snapshot: null, data: {} }, 'aaa'), true);   // v0 file
+    assert.strictEqual(detailJoinOf({ ok: true, snapshot: 'aaa', data: {} }, null), true);    // index not yet known
+  });
+});
+
+describe('map listeners are wired once per page (P2)', () => {
+  it('setupMap guards listener wiring and the resize observer calls the current draw', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(/if \(!setupMap\.wired\)/.test(src), 'listeners must attach behind a one-time guard');
+    assert.ok(/ResizeObserver\(function \(\) \{ if \(map\.draw\) map\.draw\(\); \}\)/.test(src),
+      'observer must call the current draw, never a stale closure');
+  });
+});

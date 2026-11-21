@@ -395,6 +395,7 @@
     filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
     meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
+    detailJoinOf: detailJoinOf,
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
     readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
@@ -581,18 +582,18 @@
 
   /* ---------------------------------------------------------------- map */
   var map = { draw: null };
+  var mapGeom = null; // shared so listeners wired once keep working across re-renders (Codex P2 on #46)
   function setupMap(d) {
     var fig = $('fd-map'), svg = fig.querySelector('svg'), tip = fig.querySelector('.fd-map__tip');
     meshCells = {};
     d.mesh.forEach(function (m) { meshCells[meshKey(m[0], m[1])] = m; });
-    var geom = null;
     function draw() {
       var box = state.box;
       var W = Math.max(280, fig.clientWidth), H = Math.max(280, fig.clientHeight);
       var size = mapSize(W, box);
       if (size.height > H) size = { width: Math.round(W * H / size.height), height: H };
       var ox = (W - size.width) / 2, oy = (H - size.height) / 2;
-      geom = { box: box, size: size, ox: ox, oy: oy };
+      mapGeom = { box: box, size: size, ox: ox, oy: oy };
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
       var paths = ['', '', '', '', ''], nx = '', sel = '';
@@ -641,11 +642,11 @@
     function pointer(e) {
       var r = svg.getBoundingClientRect();
       var x = e.clientX - r.left, y = e.clientY - r.top;
-      var ll = unproject(x - geom.ox, y - geom.oy, geom.size.width, geom.size.height, geom.box);
+      var ll = unproject(x - mapGeom.ox, y - mapGeom.oy, mapGeom.size.width, mapGeom.size.height, mapGeom.box);
       return { x: x, y: y, lat: ll.lat, lon: ll.lon, w: r.width };
     }
     svg.addEventListener('mousemove', function (e) {
-      if (!geom) return;
+      if (!mapGeom) return;
       var p = pointer(e);
       var m = meshCells[meshKey(p.lat, p.lon)];
       var aid = state.joins && state.index ? areaAt(p.lat, p.lon, state.index) : null;
@@ -669,29 +670,37 @@
     var guard = tapGuard();
     var touchAt = 0; // a touch tap also fires a synthetic click; only one of the two may act
     function handleTap(e) {
-      if (!geom || !state.index) return;
+      if (!mapGeom || !state.index) return;
       var p = pointer(e);
       tapAt(p.lat, p.lon); // shared with the street renderer: preview/open flow
     }
-    if (root.PointerEvent) {
-      svg.addEventListener('pointerdown', function (e) {
-        if (e.pointerType !== 'mouse') guard.down({ x: e.clientX, y: e.clientY });
-      });
-      svg.addEventListener('pointermove', function (e) { guard.move({ x: e.clientX, y: e.clientY }); });
-      svg.addEventListener('pointercancel', function () { guard.cancel(); });
-      svg.addEventListener('pointerup', function (e) {
-        if (e.pointerType === 'mouse' || !guard.up({ x: e.clientX, y: e.clientY })) return;
-        touchAt = Date.now();
+    // Wire listeners once: a snapshot-mismatch refetch re-renders and calls setupMap again,
+    // and duplicate handlers turned one tap into preview+open (Codex P2 on #46).
+    if (!setupMap.wired) {
+      setupMap.wired = true;
+      if (root.PointerEvent) {
+        svg.addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'mouse') guard.down({ x: e.clientX, y: e.clientY });
+        });
+        svg.addEventListener('pointermove', function (e) { guard.move({ x: e.clientX, y: e.clientY }); });
+        svg.addEventListener('pointercancel', function () { guard.cancel(); });
+        svg.addEventListener('pointerup', function (e) {
+          if (e.pointerType === 'mouse' || !guard.up({ x: e.clientX, y: e.clientY })) return;
+          touchAt = Date.now();
+          handleTap(e);
+        });
+      }
+      svg.addEventListener('click', function (e) {
+        if (Date.now() - touchAt < 600) return; // the touch pointerup already handled this gesture
         handleTap(e);
       });
+      if (root.ResizeObserver) {
+        var ro = new root.ResizeObserver(function () { if (map.draw) map.draw(); }); // current draw, never a stale closure
+        ro.observe(fig);
+      }
     }
-    svg.addEventListener('click', function (e) {
-      if (Date.now() - touchAt < 600) return; // the touch pointerup already handled this gesture
-      handleTap(e);
-    });
     map.draw = draw;
     draw();
-    if (root.ResizeObserver) { var ro = new root.ResizeObserver(draw); ro.observe(fig); }
     $('fd-map-cells').textContent = fmtInt(d.mesh.length);
     $('fd-masked').textContent = fmtInt(d.totals.sensitive_species);
   }
@@ -763,23 +772,31 @@
   }
 
   // Five most-recently-used details, dropped whenever the index snapshot changes.
+  // Entries are reader results ({ok, snapshot, data}), so a known-mismatched file
+  // stays mismatched when served warm — a bare-data cache would forget its snapshot
+  // and silently re-enable joins (Codex P1 on #46).
   function cacheGet(id) {
     var hit = state.cache[id];
     if (hit) { delete state.cache[id]; state.cache[id] = hit; }
     return hit;
   }
-  function cachePut(id, data) {
+  function cachePut(id, res) {
     delete state.cache[id];
-    state.cache[id] = data;
+    state.cache[id] = res;
     var keys = Object.keys(state.cache);
     if (keys.length > 5) delete state.cache[keys[0]];
+  }
+
+  // May index/detail joins render together? Only while snapshots agree (or are unknown).
+  function detailJoinOf(res, indexSnap) {
+    return !(res.snapshot && indexSnap && res.snapshot !== indexSnap);
   }
 
   function loadDetail(row, token, bypass) {
     areaMsg(t('loadingArea') + ': ' + areaName(row));
     var cached = cacheGet(row.id);
     var got = cached
-      ? Promise.resolve({ ok: true, snapshot: null, data: cached })
+      ? Promise.resolve(cached)
       : root.fetch(areaUrl(row.id), { cache: bypass ? 'reload' : 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(readArea);
@@ -789,10 +806,10 @@
       // An index/detail snapshot mismatch earns exactly one refetch with cache bypass.
       if (res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index && !bypass)
         return loadDetail(row, token, true);
-      cachePut(row.id, res.data);
+      cachePut(row.id, res);
       state.sel.detail = res.data;
       state.sel.failed = false;
-      state.detailJoin = !(res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index);
+      state.detailJoin = detailJoinOf(res, state.snaps.index);
       areaMsg(null);
       showRetry(false);
       renderSelection();
@@ -1063,8 +1080,12 @@
     if (lgR) lgR.hidden = !state.rview;
     var bar = $('fd-research-bar');
     if (bar) {
-      if (state.rview) { bar.hidden = false; var dock = $('fd-filter-dock'); if (dock && filtersEl) dock.appendChild(filtersEl); }
-      else { bar.hidden = true; if (filtersEl && filtersHome) filtersHome.insertBefore(filtersEl, filtersNext); }
+      // The bar stays up while research is on so its loading/unavailable note is visible;
+      // only the filters dock with a usable view (Codex P2 on #46).
+      bar.hidden = !research.on;
+      var dock = $('fd-filter-dock');
+      if (state.rview && dock && filtersEl) dock.appendChild(filtersEl);
+      else if (filtersEl && filtersHome) filtersHome.insertBefore(filtersEl, filtersNext);
     }
     if (search.refresh) search.refresh(); // genus-mode availability may have changed
     drawViews();

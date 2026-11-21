@@ -160,3 +160,13 @@ describe('fungi-dashboard: street asset injection', () => {
     await assert.rejects(p);
   });
 });
+
+// Codex review fixes on #46.
+describe('fungi-field-map: national view may display below native tile zoom', () => {
+  it('display floor sits below native tile zoom, so the fitted national view is not raised', () => {
+    assert.strictEqual(fm.TILE_MIN_ZOOM, 5);            // GSI Pale native tiles
+    assert.ok(fm.TILE_MIN_DISPLAY < fm.TILE_MIN_ZOOM, 'display floor must sit below native or Leaflet raises the map');
+    const z = fm.fitZoom({ latMin: 24, latMax: 46, lonMin: 122, lonMax: 154 }, 800, 420);
+    assert.ok(z >= fm.TILE_MIN_DISPLAY, `fitted national zoom ${z} must be >= display floor ${fm.TILE_MIN_DISPLAY}`);
+  });
+});
