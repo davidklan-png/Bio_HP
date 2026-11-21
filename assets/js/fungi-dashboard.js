@@ -99,6 +99,47 @@
     return { row: row, col: col, key: row + ':' + col };
   }
   function cellEdges(row, col) { return [row / 12, (row + 1) / 12, col / 8, (col + 1) / 8]; }
+
+  // Union silhouette of mesh cells: interior edges cancel (each is traversed once per
+  // direction by its two cells), leaving closed boundary rings. A selection then reads
+  // as one region outline instead of a grid of stroked squares (PR #47 review).
+  function boundaryRings(keys, edgesOf) {
+    var dir = new Map(); // "start|end" -> [start, end] with points as "lat,lon" keys
+    keys.forEach(function (k) {
+      var m = /^(\d+):(\d+)$/.exec(String(k == null ? '' : k));
+      if (!m) return;
+      var e = edgesOf(+m[1], +m[2]); // [latMin, latMax, lonMin, lonMax]
+      var pts = [[e[0], e[2]], [e[0], e[3]], [e[1], e[3]], [e[1], e[2]]]; // sw se ne nw, lat/lon
+      for (var i = 0; i < 4; i++) {
+        var a = pts[i], b = pts[(i + 1) % 4];
+        var fwd = a[0] + ',' + a[1] + '|' + b[0] + ',' + b[1];
+        var rev = b[0] + ',' + b[1] + '|' + a[0] + ',' + a[1];
+        if (dir.has(rev)) dir.delete(rev); else dir.set(fwd, [a, b]);
+      }
+    });
+    var outgoing = {}; // startKey -> [end]
+    dir.forEach(function (ed) { var s = ed[0][0] + ',' + ed[0][1]; (outgoing[s] = outgoing[s] || []).push(ed[1]); });
+    var used = {};
+    var rings = [];
+    dir.forEach(function (ed) {
+      var startKey = ed[0][0] + ',' + ed[0][1];
+      if (used[startKey]) return;
+      var ring = [ed[0]];
+      var cur = ed[1], guard = 0, curKey = cur[0] + ',' + cur[1];
+      used[startKey] = used[curKey] = true;
+      while (curKey !== startKey && guard++ < 100000) {
+        ring.push(cur);
+        var nexts = outgoing[curKey] || [], advanced = false;
+        for (var j = 0; j < nexts.length; j++) {
+          var nKey = nexts[j][0] + ',' + nexts[j][1];
+          if (!used[nKey]) { cur = nexts[j]; curKey = nKey; used[nKey] = true; advanced = true; break; }
+        }
+        if (!advanced) break; // defensive: open chain (cannot happen with whole-cell inputs)
+      }
+      if (ring.length >= 4) rings.push(ring); // closed, non-degenerate
+    });
+    return rings;
+  }
   function cellCenter(row, col) { return { lat: (row + 0.5) / 12, lon: (col + 0.5) / 8 }; }
   function meshKey(lat, lon) { var c = meshCell(lat, lon); return c ? c.key : null; }
   // A geolocation fix becomes one JIS cell. A fix whose accuracy radius reaches a cell edge
@@ -394,7 +435,7 @@
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
-    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, locateCell: locateCell, runLocate: runLocate,
+    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, boundaryRings: boundaryRings, locateCell: locateCell, runLocate: runLocate,
     detailJoinOf: detailJoinOf,
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
@@ -596,7 +637,7 @@
       mapGeom = { box: box, size: size, ox: ox, oy: oy };
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
-      var paths = ['', '', '', '', ''], nx = '', sel = '';
+      var paths = ['', '', '', '', ''], nx = '', sel = '', selKeys = [];
       var rv = state.rview; // research view: cells colour by slice band, absent → no estimate
       // Cell→area joins are skipped while snapshots disagree; each layer still draws alone.
       var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
@@ -613,8 +654,20 @@
           var row = rv.cells ? rv.cells[k] : null; // withheld slice: every square is "no estimate"
           if (row) paths[row[0]] += r; else nx += r;
         } else paths[bucket(m[2])] += r;
-        if (selCells && selIds.indexOf(selCells[k]) >= 0) sel += r;
+        if (selCells && selIds.indexOf(selCells[k]) >= 0) selKeys.push(k);
       });
+      // Selection as one dissolved region outline per boundary loop — interior
+      // cell edges cancel, so an area reads as a region, not a grid of squares.
+      if (selKeys.length) {
+        boundaryRings(selKeys, cellEdges).forEach(function (ring) {
+          var dd = '';
+          ring.forEach(function (pt, i) {
+            var p = project(pt[0], pt[1], size.width, size.height, box); // [lat, lon]
+            dd += (i ? 'L' : 'M') + (p.x + ox).toFixed(1) + ' ' + (p.y + oy).toFixed(1);
+          });
+          sel += dd + 'Z';
+        });
+      }
       // Reference geography under the cells: Natural Earth coast (0E) + curated labels.
       // With a coast present the always-on dashed island boxes go away — selected
       // islands keep their outline as the selection affordance (plan §5 row 0E).

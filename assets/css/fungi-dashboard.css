@@ -7,12 +7,12 @@
   /* Sequential record-count buckets: every step holds 3:1 against the panel and the tinted "water";
      the three low steps deliberately spread in lightness so they read apart at a glance (PR #46 review). */
   --fd-b0: #1f8a80; --fd-b1: #14b3a3; --fd-b2: #5eead4; --fd-b3: #f5b249; --fd-b4: #fb7185;
-  --fd-land: #1b2735; --fd-coast: #64748b;
+  --fd-land: #24344a; --fd-coast: #7c8ea3;
   --fd-sel-halo: #0b1220; --fd-sel-core: #5eead4; }
 :root[data-theme="light"] .fd { --ink: #0b1220; --muted: #5a6573; --line: #e3e8ee; --line-strong: #cdd5de; --panel: #ffffff; --elev: #eef2f5;
   --brand: #0d9488; --brand-soft: rgba(13, 148, 136, 0.10); --brand-line: rgba(13, 148, 136, 0.35); --amber: #b45309; --rose: #e11d48;
   --fd-b0: #2f8f84; --fd-b1: #0f7a6d; --fd-b2: #074f47; --fd-b3: #b45309; --fd-b4: #be123c;
-  --fd-land: #e7edf1; --fd-coast: #8fa3b0;
+  --fd-land: #dbe5ec; --fd-coast: #76899a;
   --fd-sel-halo: #ffffff; --fd-sel-core: #0b1220;
   background: #f5f7f9; border-radius: 14px; padding-inline: clamp(14px, 2.4vw, 28px); }
 .fd { --fd-gap: clamp(14px, 2vw, 22px); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--fd-gap); padding-block: clamp(18px, 3vw, 36px); }
@@ -92,9 +92,9 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 .fd-map__isle { fill: none; stroke: var(--muted); stroke-opacity: .45; stroke-width: 1; stroke-dasharray: 3 3; }
 .fd-map__isle.is-on { stroke: var(--brand); stroke-opacity: 1; stroke-width: 1.5; }
 /* Reference geography (Natural Earth coast, plan 0E): land under the cells, labels above them. */
-.fd-map__coast { fill: var(--fd-land); stroke: var(--fd-coast); stroke-width: 1; }
-.fd-map__lbl { fill: var(--ink); font: 500 10.5px var(--mono); text-anchor: middle; dominant-baseline: middle;
-  paint-order: stroke; stroke: var(--panel); stroke-width: 2.5px; stroke-linejoin: round; opacity: .92; pointer-events: none; }
+.fd-map__coast { fill: var(--fd-land); stroke: var(--fd-coast); stroke-width: 1.25; }
+.fd-map__lbl { fill: var(--ink); font: 600 11.5px var(--mono); text-anchor: middle; dominant-baseline: middle;
+  paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
 .fd-map__sel-halo { fill: none; stroke: var(--fd-sel-halo); stroke-width: 4; }
 .fd-map__sel { fill: none; stroke: var(--fd-sel-core); stroke-width: 2; }
 .fd-map__loc { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linejoin: round; }
