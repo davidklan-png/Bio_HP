@@ -78,12 +78,14 @@
     var v = function (n) { var x = cs.getPropertyValue(n).trim(); return x || '#888'; };
     return {
       b: [v('--fd-b0'), v('--fd-b1'), v('--fd-b2'), v('--fd-b3'), v('--fd-b4')],
-      halo: v('--fd-sel-halo'), core: v('--fd-sel-core'), loc: v('--amber')
+      halo: v('--fd-sel-halo'), core: v('--fd-sel-core'), loc: v('--amber'), nx: v('--muted')
     };
   }
 
   // ctx: { container, shared (dashboard api), latestOnly, box(), mesh(), tapAt(lat,lon),
-  //        selectedKeys(), locCell(), onEvent(kind) } with kind 'ready'|'fail'|'exit'.
+  //        selectedKeys(), locCell(), researchView(), onEvent(kind) } with kind
+  // 'ready'|'fail'|'exit'. researchView(), when present, recolours the mesh by the
+  // research slice band instead of all-time counts (absent squares outline only).
   api.enter = function (ctx) {
     if (active) return false;
     var L = root.L, shared = ctx.shared;
@@ -111,15 +113,25 @@
     function buildFills() {
       fillLayers.forEach(function (l) { view.removeLayer(l); });
       fillLayers = [];
-      var buckets = [[], [], [], [], []];
+      var rv = ctx.researchView ? ctx.researchView() : null;
+      var buckets = [[], [], [], [], []], nx = [];
       mesh.forEach(function (mc) {
-        var ring = cellRing(shared.meshKey(mc[0], mc[1]), shared.cellEdges);
-        if (ring) buckets[shared.bucket(mc[2])].push(ring);
+        var key = shared.meshKey(mc[0], mc[1]);
+        var ring = cellRing(key, shared.cellEdges);
+        if (!ring) return;
+        var bi = shared.bucket(mc[2]);
+        if (rv) {
+          var row = rv.cells ? rv.cells[key] : null;
+          bi = row ? row[0] : -1; // absent from the slice → no public estimate, outline only
+        }
+        if (bi < 0) nx.push(ring); else buckets[bi].push(ring);
       });
       buckets.forEach(function (rings, i) {
         if (rings.length)
           fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 1 }).addTo(view));
       });
+      if (nx.length)
+        fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .35, fill: false }).addTo(view));
     }
     var selLayer = null, locLayer = null;
     function drawOverlays() {
