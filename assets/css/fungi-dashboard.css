@@ -208,3 +208,6 @@ html[lang="ja"] .fd-area__title { font-family: "Noto Sans JP", var(--sans) !impo
 .fd-map__street .leaflet-control-zoom a:hover { background: var(--brand-soft); color: var(--brand); }
 .fd-map__street .leaflet-control-attribution { background: color-mix(in srgb, var(--panel) 88%, transparent); color: var(--muted); font: 11px var(--mono); border-radius: var(--radius) 0 0 0; }
 .fd-map__street .leaflet-control-attribution a { color: var(--muted); }
+
+/* Figcaption as a short scannable list instead of a wall of prose. */
+.fd-figcaption { margin: 10px 0 0; padding-left: 1.15em; color: var(--muted); font-size: 13.5px; line-height: 1.55; display: grid; gap: 4px; }
