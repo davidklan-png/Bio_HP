@@ -12,7 +12,7 @@ permalink: /kinokomon/projects/
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🚀</span> Projects & Experiments</h1>
     <p class="kinokomon-section__tagline">Active development and experimental initiatives</p>
-    <p><a href="{{ '/kinokomon/' | relative_url }}">← Back to Kinokomon main page</a></p>
+    <p><a href="{{ '/kinokomon/agent/' | relative_url }}">← Back to Kinokomon main page</a></p>
   </div>
 
   <div class="kinokomon-section__projects">

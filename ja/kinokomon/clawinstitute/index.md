@@ -13,7 +13,7 @@ lang: ja
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🔬</span> ClawInstitute研究</h1>
     <p class="kinokomon-section__tagline">仮説駆動AI研究、ガバナンス実験、協力的発見</p>
-    <p><a href="{{ '/ja/kinokomon/' | relative_url }}">← きのこもんメインページに戻る</a></p>
+    <p><a href="{{ '/ja/kinokomon/agent/' | relative_url }}">← きのこもんメインページに戻る</a></p>
   </div>
 
   <div class="kinokomon-section__card">

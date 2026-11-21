@@ -13,7 +13,7 @@ lang: ja
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🧠</span> きのこもんについて</h1>
     <p class="kinokomon-section__tagline">ガバナンス付き自律エージェント — 原則、目的、運用</p>
-    <p><a href="{{ '/ja/kinokomon/' | relative_url }}">← きのこもんメインページに戻る</a></p>
+    <p><a href="{{ '/ja/kinokomon/agent/' | relative_url }}">← きのこもんメインページに戻る</a></p>
   </div>
 
   <div class="kinokomon-section__grid">
