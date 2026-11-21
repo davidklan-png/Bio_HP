@@ -132,7 +132,7 @@
         if (rings.length)
           // Semi-transparent over the pale tiles: street labels and terrain stay
           // legible under the mesh (David, PR #46 review).
-          fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 0.62 }).addTo(view));
+          fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 0.7 }).addTo(view));
       });
       if (nx.length)
         fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .35, fill: false }).addTo(view));
@@ -143,7 +143,9 @@
       if (locLayer) { view.removeLayer(locLayer); locLayer = null; }
       var keys = ctx.selectedKeys();
       if (keys.length) {
-        var rings = keys.map(function (k) { return cellRing(k, shared.cellEdges); }).filter(Boolean);
+        // One dissolved region outline per boundary loop (interior cell edges cancel),
+        // not a stroked square per cell — same silhouette as the SVG view.
+        var rings = shared.boundaryRings(keys, shared.cellEdges);
         selLayer = L.layerGroup([
           multipoly(rings, { stroke: true, color: pal.halo, weight: 3, fill: false }),
           multipoly(rings, { stroke: true, color: pal.core, weight: 2, fill: false })

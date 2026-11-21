@@ -487,3 +487,34 @@ describe('street fills stay transparent over tiles (PR #46 review)', () => {
     assert.ok(+m[1] > 0.4 && +m[1] < 0.85, `fillOpacity ${m[1]} must let tiles read through`);
   });
 });
+
+// Selection silhouette: interior cell edges cancel, the outline is one region boundary.
+describe('boundaryRings dissolves cell unions (PR #47 review)', () => {
+  const { boundaryRings, cellEdges } = require('../assets/js/fungi-dashboard.js');
+  it('a single cell becomes one 4-point ring', () => {
+    const r = boundaryRings(['300:1000'], cellEdges);
+    assert.strictEqual(r.length, 1);
+    assert.strictEqual(r[0].length, 4);
+  });
+  it('a 2x2 block becomes one ring with no interior edges', () => {
+    const r = boundaryRings(['300:1000', '300:1001', '301:1000', '301:1001'], cellEdges);
+    assert.strictEqual(r.length, 1);
+    assert.strictEqual(r[0].length, 8); // outer boundary only, no shared middle edges
+  });
+  it('an L-shape stays one ring through the concave corner', () => {
+    const r = boundaryRings(['300:1000', '301:1000', '301:1001'], cellEdges);
+    assert.strictEqual(r.length, 1);
+    assert.strictEqual(r[0].length, 8);
+  });
+  it('two separated cells become two rings', () => {
+    const r = boundaryRings(['300:1000', '305:1010'], cellEdges);
+    assert.strictEqual(r.length, 2);
+  });
+  it('rings close on their start point and use exact cell edges', () => {
+    const r = boundaryRings(['300:1000'], cellEdges)[0];
+    const e = cellEdges(300, 1000);
+    const xs = r.map((p) => p[1]), ys = r.map((p) => p[0]);
+    assert.ok(Math.min(...xs) === e[2] && Math.max(...xs) === e[3]);
+    assert.ok(Math.min(...ys) === e[0] && Math.max(...ys) === e[1]);
+  });
+});
