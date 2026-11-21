@@ -25,10 +25,11 @@
       </div>
       <div class="fd-mapbar">
         <button type="button" class="fd-btn" id="fd-locate" disabled>{% if ja %}現在地を表示{% else %}Locate me{% endif %}</button>
+        <button type="button" class="fd-btn" id="fd-street" aria-pressed="false" disabled>{% if ja %}詳細地図{% else %}Street map{% endif %}</button>
         <p class="fd-status" id="fd-area-msg" hidden></p>
         <button type="button" class="fd-btn" id="fd-area-retry" hidden>{% if ja %}再試行{% else %}Retry{% endif %}</button>
       </div>
-      <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div></div>
+      <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div><div class="fd-map__street" id="fd-map-street" role="region" aria-label="{% if ja %}詳細地図（地理院タイル）{% else %}Street map (GSI tiles){% endif %}" hidden></div></div>
       <div class="fd-preview" id="fd-preview" hidden>
         <p class="fd-preview__text" id="fd-preview-text"></p>
         <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
@@ -41,7 +42,7 @@
         <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>1k–9k</span>
         <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>10k+</span>
       </div>
-      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。Escキーで概要を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. Esc dismisses the preview. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
+      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。「詳細地図」ボタンで道路入りの地図に切り替えられます（読み込みはそのときだけ行われます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The Street map button swaps in a road map (its tiles load only then). Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
     </figure>
 
     <div class="fd-card">

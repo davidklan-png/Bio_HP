@@ -83,6 +83,7 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 .fd-picker select { flex: 1 1 220px; min-height: 44px; font: 15px var(--sans); color: var(--ink); background: var(--elev); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 6px 10px; }
 .fd-btn { min-height: 44px; min-width: 44px; font: 500 14px var(--sans); color: var(--brand); background: transparent; border: 1px solid var(--brand-line); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; }
 .fd-btn:hover { background: var(--brand-soft); }
+.fd-btn[aria-pressed="true"] { color: var(--panel); background: var(--brand); border-color: var(--brand); }
 .fd :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .fd-map__isle { fill: none; stroke: var(--muted); stroke-opacity: .45; stroke-width: 1; stroke-dasharray: 3 3; }
 .fd-map__isle.is-on { stroke: var(--brand); stroke-opacity: 1; stroke-width: 1.5; }
@@ -92,6 +93,22 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 
 .fd-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
 .fd-mapbar .fd-status { flex: 1 1 200px; margin: 0; }
+
+/* Street mode (Leaflet + GSI Pale tiles, entered only from the Street map button).
+   The SVG stays the first paint and the fallback; it is hidden while street is on. */
+.fd-map__street { position: absolute; inset: 0; z-index: 1; border-radius: var(--radius); overflow: hidden;
+  touch-action: none; } /* inside this box Leaflet owns pan/pinch; the page keeps scrolling elsewhere */
+.fd-map__street[hidden] { display: none; }
+.fd.is-street .fd-map > svg { display: none; }
+.fd-map__street .leaflet-container { background: var(--panel); font: 12.5px var(--sans); }
+/* Provider credit must stay readable and fully visible on small screens. */
+.fd-map__street .leaflet-control-attribution { background: var(--panel); color: var(--muted); white-space: normal;
+  max-width: 100%; font: 12px var(--sans); padding: 2px 8px; border-top-left-radius: 6px; }
+.fd-map__street .leaflet-control-attribution a { color: var(--brand); text-decoration: underline; }
+.fd-map__street .leaflet-bar { border: 1px solid var(--line-strong); border-radius: var(--radius); }
+.fd-map__street .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; font-size: 20px;
+  color: var(--ink); background: var(--panel); border-bottom-color: var(--line); }
+.fd-map__street .leaflet-bar a:hover { background: var(--elev); }
 
 .fd-area { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; scroll-margin-top: 80px; }
 .fd-area__head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 18px; align-items: end; }
