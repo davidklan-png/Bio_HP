@@ -543,3 +543,29 @@ describe('UI restructure (comprehensive visual pass)', () => {
     assert.ok(dark, 'bucket tokens present');
   });
 });
+
+// Street-as-default + availability-gated research (product review follow-up).
+describe('street map is the default view (no toggle)', () => {
+  it('auto-enters once the mesh renders and retries re-enter after tile failure', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(/if \(!street\.auto\) \{ street\.auto = true; enterStreet\(\); \}/.test(src), 'render() enters street automatically');
+    assert.ok(/if \(street\.failed\) \{ enterStreet\(\); return; \}/.test(src), 'retry re-enters the street map');
+    assert.ok(!src.includes('fd-street'), 'no street toggle remains');
+  });
+  it('the include carries no street button', () => {
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+    assert.ok(!inc.includes('id="fd-street"'));
+  });
+});
+describe('research entry exists only when a payload answers', () => {
+  it('boot probes mesh-research.json and gates the button, genus segment and error notes', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(/loadResearch\(false\); \/\/ availability probe/.test(src), 'probe at boot');
+    assert.ok(src.includes('function researchAvailable()'));
+    assert.ok(src.includes("$('fd-search-genus').hidden = !ok") || src.includes("gb.hidden = !ok"), 'genus segment gated');
+  });
+  it('street squares carry a same-hue edge over busy tiles', () => {
+    const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    assert.ok(/stroke: true, color: pal\.b\[i\], weight: 0\.75/.test(fm), 'cell edges defined on tiles');
+  });
+});
