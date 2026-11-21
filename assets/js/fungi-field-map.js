@@ -15,7 +15,8 @@
   var ATTRIBUTION = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a> · 出典：国土地理院 · GSI淡色地図';
   var ENTRY_MAX_ZOOM = 9;     // street mode is entered no higher than z9 (map-improvement-plan §8)
   var TILE_TIMEOUT = 12000;   // no tile at all within this: back to the SVG
-  var TILE_MIN_ZOOM = 5;      // GSI Pale zoom bands
+  var TILE_MIN_ZOOM = 5;      // GSI Pale zoom bands (native tiles)
+  var TILE_MIN_DISPLAY = 3;   // display floor: national fits land at z3-4, z5 tiles upscale
   var TILE_MAX_ZOOM = 18;
 
   function parseKey(key) {
@@ -64,6 +65,7 @@
   var api = {
     TILE_URL: TILE_URL, ATTRIBUTION: ATTRIBUTION,
     ENTRY_MAX_ZOOM: ENTRY_MAX_ZOOM, TILE_TIMEOUT: TILE_TIMEOUT,
+    TILE_MIN_DISPLAY: TILE_MIN_DISPLAY, TILE_MIN_ZOOM: TILE_MIN_ZOOM,
     parseKey: parseKey, cellRing: cellRing, clampZoom: clampZoom, fitZoom: fitZoom,
     streetMachine: streetMachine, fallbackDecision: fallbackDecision
   };
@@ -157,7 +159,7 @@
 
     m.ready(); // from here (and only here) tile URLs may be constructed
     var tiles = L.tileLayer(TILE_URL, {
-      minZoom: TILE_MIN_ZOOM, maxZoom: TILE_MAX_ZOOM, attribution: ATTRIBUTION,
+      minZoom: TILE_MIN_DISPLAY, minNativeZoom: TILE_MIN_ZOOM, maxZoom: TILE_MAX_ZOOM, attribution: ATTRIBUTION,
       detectRetina: false, keepBuffer: 0, updateWhenIdle: true, updateWhenZooming: false
     });
     var loaded = 0, errored = 0, watchdog = null, settled = false;
