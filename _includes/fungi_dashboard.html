@@ -81,7 +81,14 @@
         <p class="fd-preview__text" id="fd-preview-text"></p>
         <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
       </div>
-      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。地図は国土地理院の道路入りタイルで表示され、読み込めないときは簡易表示に切り替わります。「調査フィルタ」では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません（データはそのときだけ読み込まれます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The map shows GSI street tiles; a simplified view takes over if they cannot load. Research filters recolour the squares by estimated records for a chosen month and kind (loaded on demand); a dashed square has no public estimate. Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
+      <figcaption>
+        <ul class="fd-figcaption">
+          <li>{% if ja %}区画をタップして概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。Escキーで概要を閉じられます。{% else %}Tap a square to preview it; tap it again (or use Open area) for its species, months and what could be found there. Esc dismisses the preview.{% endif %}</li>
+          <li>{% if ja %}地図は国土地理院の道路入りタイルです。読み込めないときは簡易表示に切り替わります。{% else %}The map shows GSI street tiles; a simplified view takes over if they cannot load.{% endif %}</li>
+          <li>{% if ja %}調査フィルタ（データ公開後）では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません。{% else %}Research filters (once its data ships) recolour squares by estimated records for a chosen month and kind; dashed squares have no public estimate.{% endif %}</li>
+          <li>{% if ja %}<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}<span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</li>
+        </ul>
+      </figcaption>
     </figure>
 
     <div class="fd-card">
