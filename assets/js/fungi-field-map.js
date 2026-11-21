@@ -133,7 +133,8 @@
         if (rings.length)
           // Semi-transparent over the pale tiles: street labels and terrain stay
           // legible under the mesh (David, PR #46 review).
-          fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 0.7 }).addTo(view));
+          fillLayers.push(multipoly(rings, { stroke: true, color: pal.b[i], weight: 0.75, opacity: .9,
+            fill: true, fillColor: pal.b[i], fillOpacity: 0.7 }).addTo(view));
       });
       if (nx.length)
         fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .35, fill: false }).addTo(view));
