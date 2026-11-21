@@ -17,12 +17,17 @@
   <div class="fd-grid">
     <figure class="fd-card fd-card--map">
       <h2>{% if ja %}記録の分布（約10km四方ごと）{% else %}Where fungi have been recorded (about 10 km squares){% endif %}</h2>
+      <div class="fd-picker" id="fd-picker" hidden>
+        <label class="fd-sr" for="fd-area-pick">{% if ja %}地域{% else %}Area{% endif %}</label>
+        <select id="fd-area-pick"></select>
+        <button type="button" class="fd-btn" id="fd-area-back" hidden>{% if ja %}← 日本全体{% else %}← All of Japan{% endif %}</button>
+      </div>
       <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div></div>
       <div class="fd-legend" aria-hidden="true">
         <span>{% if ja %}記録数{% else %}Records{% endif %}</span>
         <i class="fd-map__b0"></i>1–9 <i class="fd-map__b1"></i>10–99 <i class="fd-map__b2"></i>100–999 <i class="fd-map__b3"></i>1k–9k <i class="fd-map__b4"></i>10k+
       </div>
-      <figcaption>{% if ja %}<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図から除外しています。{% else %}<span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map.{% endif %}</figcaption>
+      <figcaption>{% if ja %}島や地域をクリックすると、種・月・生息環境と、見つかる可能性のある種を表示します。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Click an island or area to see its species, months, habitats and what could be found there. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
     </figure>
 
     <div class="fd-card">
@@ -43,6 +48,32 @@
       <div id="fd-unresolved" class="fd-cols"></div>
     </div>
   </div>
+
+  <section class="fd-card fd-area" id="fd-area" hidden aria-live="polite">
+    <p class="fd-status" id="fd-area-status" hidden></p>
+    <header class="fd-area__head">
+      <div>
+        <h2 class="fd-area__title" id="fd-area-title"></h2>
+        <p class="fd-area__meta" id="fd-area-meta"></p>
+        <p class="fd-area__note" id="fd-area-note" hidden></p>
+      </div>
+      <div class="fd-months" id="fd-area-months" aria-hidden="true"></div>
+    </header>
+    <div class="fd-filters">
+      <div class="fd-seg" role="group" aria-label="{% if ja %}菌の種類{% else %}Kind of fungus{% endif %}">
+        <button type="button" data-fd-kind="m">{% if ja %}きのこ・目に見える菌{% else %}Mushrooms &amp; visible fungi{% endif %}</button>
+        <button type="button" data-fd-kind="l">{% if ja %}地衣類{% else %}Lichens{% endif %}</button>
+        <button type="button" data-fd-kind="o">{% if ja %}微小菌・DNA{% else %}Microfungi &amp; DNA{% endif %}</button>
+        <button type="button" data-fd-kind="all">{% if ja %}すべて{% else %}All{% endif %}</button>
+      </div>
+      <div class="fd-seg fd-seg--months" id="fd-month" role="group" aria-label="{% if ja %}月{% else %}Month{% endif %}"></div>
+    </div>
+    <h3 class="fd-area__h">{% if ja %}記録された種{% else %}Recorded here{% endif %} <span class="fd-count" id="fd-area-count"></span></h3>
+    <div class="fd-scroll"><table class="fd-table" id="fd-area-species"></table></div>
+    <h3 class="fd-area__h">{% if ja %}見つかる可能性がある種{% else %}Could be found here{% endif %} <span class="fd-count" id="fd-poss-count"></span></h3>
+    <p class="fd-note">{% if ja %}この地域では未記録ですが、近く（国内または近隣国、最大800km）で記録されている種です。距離と緯度の近さで順位付けした推定であり、予測ではありません。月は近くの記録が採集された月です。{% else %}Not yet recorded here, but recorded nearby (in Japan or neighbouring East Asia, up to 800 km away). Ranked by distance and similarity of latitude: a pointer for fieldwork, not a prediction. Months are when the nearby records were made.{% endif %}</p>
+    <div class="fd-scroll"><table class="fd-table" id="fd-area-possible"></table></div>
+  </section>
 
   <section class="fd-card fd-leads">
     <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: recorded next door, never in Japan{% endif %}</h2>
