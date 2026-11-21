@@ -130,7 +130,9 @@
       });
       buckets.forEach(function (rings, i) {
         if (rings.length)
-          fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 1 }).addTo(view));
+          // Semi-transparent over the pale tiles: street labels and terrain stay
+          // legible under the mesh (David, PR #46 review).
+          fillLayers.push(multipoly(rings, { stroke: false, fill: true, fillColor: pal.b[i], fillOpacity: 0.62 }).addTo(view));
       });
       if (nx.length)
         fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .35, fill: false }).addTo(view));
@@ -143,7 +145,7 @@
       if (keys.length) {
         var rings = keys.map(function (k) { return cellRing(k, shared.cellEdges); }).filter(Boolean);
         selLayer = L.layerGroup([
-          multipoly(rings, { stroke: true, color: pal.halo, weight: 4, fill: false }),
+          multipoly(rings, { stroke: true, color: pal.halo, weight: 3, fill: false }),
           multipoly(rings, { stroke: true, color: pal.core, weight: 2, fill: false })
         ]).addTo(view);
       }
