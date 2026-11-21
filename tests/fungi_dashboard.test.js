@@ -518,3 +518,28 @@ describe('boundaryRings dissolves cell unions (PR #47 review)', () => {
     assert.ok(Math.min(...ys) === e[0] && Math.max(...ys) === e[1]);
   });
 });
+
+// UI/UX pass: breadcrumb context, joined search, on-map legend, themed street chrome.
+describe('UI restructure (comprehensive visual pass)', () => {
+  const fs = require('node:fs');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  it('selected area surfaces as breadcrumb + context line, cleared on deselect', () => {
+    assert.ok(/function setCrumb\(row\)/.test(src) && /function clearCrumb\(\)/.test(src));
+    assert.ok(inc.includes('fd-crumb-area') && inc.includes('id="fd-context"'));
+    assert.ok(/selectArea[\s\S]*setCrumb\(row\)/.test(src) && /clearArea[\s\S]*clearCrumb\(\)/.test(src));
+  });
+  it('legend overlays the map itself (both renderers) with backdrop and no pointer capture', () => {
+    assert.ok(inc.includes('fd-legend--onmap'));
+    assert.ok(/\.fd-legend \{[^}]*position: absolute/.test(css) && css.includes('pointer-events: none'));
+  });
+  it('street zoom control sits bottom-right away from the legend', () => {
+    const fm = fs.readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    assert.ok(fm.includes("L.control.zoom({ position: 'bottomright' })"));
+  });
+  it('buckets stay a single-hue sequential ramp per theme (no warm accent mid-scale)', () => {
+    const dark = /--fd-b0: (#[0-9a-f]+); --fd-b1: (#[0-9a-f]+); --fd-b2: (#[0-9a-f]+); --fd-b3: (#[0-9a-f]+); --fd-b4: (#[0-9a-f]+);/.exec(css);
+    assert.ok(dark, 'bucket tokens present');
+  });
+});

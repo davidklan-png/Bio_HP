@@ -100,7 +100,8 @@
     el.hidden = false;
     var box = ctx.box();
     var reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var view = L.map(el, { trackResize: true, fadeAnimation: !reduced, zoomAnimation: !reduced });
+    var view = L.map(el, { trackResize: true, fadeAnimation: !reduced, zoomAnimation: !reduced, zoomControl: false });
+    L.control.zoom({ position: 'bottomright' }).addTo(view); // away from the on-map legend
     view.setView([(box.latMin + box.latMax) / 2, (box.lonMin + box.lonMax) / 2],
       fitZoom(box, el.clientWidth || 320, el.clientHeight || 320));
     var renderer = L.canvas();
