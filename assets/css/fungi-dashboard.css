@@ -100,6 +100,8 @@ html[lang="ja"] .fd-area__title { font-family: "Noto Sans JP", var(--sans) !impo
 .fd-like { display: inline-block; width: 90px; height: 8px; background: var(--elev); border-radius: 4px; overflow: hidden; vertical-align: middle; }
 .fd-like span { display: block; height: 100%; background: var(--amber); }
 .fd-empty { color: var(--muted); padding: 14px !important; }
+.fd-more { justify-self: start; }
+.fd-mbar span[style*="height:0%"] { display: none; }
 .fd-area .fd-scroll { max-height: 440px; }
 .fd-area .fd-table { min-width: 720px; }
 .fd-area .fd-table td:first-child { min-width: 170px; }

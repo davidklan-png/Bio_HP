@@ -124,6 +124,21 @@
     }
     return parts.join(' · ');
   }
+  // Long tables: show the first `limit` rows unless expanded, and say how many are hidden.
+  function visibleRows(list, limit, showAll) {
+    var rows = showAll ? list : list.slice(0, limit);
+    return { rows: rows, hidden: list.length - rows.length };
+  }
+  // Monthly bar height in %: nothing for an empty month, at least 2% for any record.
+  function monthBarHeight(v, max) {
+    if (!v || !max) return 0;
+    return Math.max(2, Math.round((100 * v) / max));
+  }
+  // Area files load asynchronously: only the newest request may update the page.
+  function latestOnly() {
+    var n = 0;
+    return { start: function () { n += 1; return n; }, isCurrent: function (token) { return token === n; } };
+  }
   function isValid(d) {
     return !!(d && d.totals && typeof d.totals.records === 'number' &&
       Array.isArray(d.mesh) && Array.isArray(d.leads) && Array.isArray(d.sources));
@@ -132,7 +147,8 @@
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, meshKey: meshKey, areaAt: areaAt,
-    filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, isValid: isValid
+    filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
+    monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
@@ -153,6 +169,9 @@
     sampling: ['Most records come from one survey site', '記録の多くが1か所の調査地に集中しています'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
+    showAll: ['Show all', 'すべて表示'],
+    showFewer: ['Show fewer', '表示を減らす'],
+    of: ['of', '/'],
     km: ['km', 'km'],
     islands: ['Islands', '島'],
     where: ['Where / habitat', '場所・生息環境'],
@@ -168,7 +187,8 @@
   function t(k) { return lang === 'ja' ? T[k][1] : T[k][0]; }
   function $(id) { return doc.getElementById(id); }
 
-  var state = { d: null, index: null, area: null, kind: 'm', month: 0, box: JAPAN_BOX, cache: {} };
+  var state = { d: null, index: null, area: null, kind: 'm', month: 0, box: JAPAN_BOX, cache: {}, allSp: false, allPoss: false };
+  var areaRequests = latestOnly();
 
   function barRows(rows, total, fmt) {
     var max = rows.reduce(function (m, r) { return Math.max(m, r[1]); }, 0) || 1;
@@ -290,12 +310,12 @@
     sel.addEventListener('change', function () { if (sel.value) selectArea(sel.value); else clearArea(); });
     $('fd-area-back').addEventListener('click', clearArea);
     doc.querySelectorAll('[data-fd-kind]').forEach(function (b) {
-      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); renderArea(); });
+      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); state.allSp = state.allPoss = false; renderArea(); });
     });
     $('fd-month').innerHTML = '<button type="button" data-fd-month="0">' + (lang === 'ja' ? '全月' : 'All') + '</button>' +
       MONTHS_EN.map(function (_, i) { return '<button type="button" data-fd-month="' + (i + 1) + '">' + esc(monthName(i + 1, lang)) + '</button>'; }).join('');
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) {
-      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); renderArea(); });
+      b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); state.allSp = state.allPoss = false; renderArea(); });
     });
     $('fd-picker').hidden = false;
     var hash = (root.location.hash || '').slice(1);
@@ -306,6 +326,8 @@
     var status = $('fd-area-status');
     var go = function (a) {
       state.area = a;
+      state.allSp = false;
+      state.allPoss = false;
       state.box = zoomBox(a.bbox);
       $('fd-area-pick').value = a.id;
       $('fd-area').hidden = false;
@@ -315,14 +337,16 @@
       if (map.draw) map.draw();
       renderArea();
     };
+    var token = areaRequests.start(id);
     if (state.cache[id]) return go(state.cache[id]);
     root.fetch(areaUrl(id), { cache: 'no-cache' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (a) { state.cache[id] = a; go(a); })
-      .catch(function () { status.hidden = false; status.textContent = t('areaError'); });
+      .then(function (a) { state.cache[id] = a; if (areaRequests.isCurrent(token)) go(a); })
+      .catch(function () { if (areaRequests.isCurrent(token)) { status.hidden = false; status.textContent = t('areaError'); } });
   }
 
   function clearArea() {
+    areaRequests.start(null);
     state.area = null;
     state.box = JAPAN_BOX;
     $('fd-area').hidden = true;
@@ -337,6 +361,15 @@
     return '<span class="fd-ms" aria-hidden="true">' + m.map(function (v, i) {
       return '<i class="' + (v ? 'on' : '') + (hi === i + 1 ? ' hi' : '') + '" style="--v:' + (v ? (0.35 + 0.65 * v / max).toFixed(2) : 0) + '"></i>';
     }).join('') + '</span><span class="fd-sr">' + m.map(function (v, i) { return v ? monthName(i + 1, lang) : ''; }).filter(Boolean).join(', ') + '</span>';
+  }
+
+  function moreButton(id, needed, expanded, total, toggle) {
+    var b = $(id);
+    b.hidden = !needed;
+    if (!needed) return;
+    b.textContent = expanded ? t('showFewer') : t('showAll') + ' (' + fmtInt(total) + ')';
+    b.setAttribute('aria-expanded', String(expanded));
+    b.onclick = toggle;
   }
 
   function renderArea() {
@@ -354,18 +387,20 @@
     if (note) $('fd-area-note').textContent = t('sampling') + ': ' + note.name + ' (' + note.share + '%).';
     doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
-    var mmax = Math.max.apply(null, a.months) || 1;
+    var mmax = Math.max.apply(null, a.months);
     $('fd-area-months').innerHTML = a.months.map(function (v, i) {
       return '<div class="fd-mbar' + (state.month === i + 1 ? ' is-on' : '') + '" title="' + fmtInt(v) + ' ' + esc(t('records')) + '"><span style="height:' +
-        Math.max(2, (100 * v) / mmax).toFixed(0) + '%"></span><small>' + esc(monthName(i + 1, lang)) + '</small></div>';
+        monthBarHeight(v, mmax) + '%"></span><small>' + esc(monthName(i + 1, lang)) + '</small></div>';
     }).join('');
 
     var names = a.member_names || {};
     var list = filterSpecies(a.species, state.kind, state.month);
-    $('fd-area-count').textContent = fmtInt(list.length);
+    var spView = visibleRows(list, 300, state.allSp);
+    $('fd-area-count').textContent = spView.hidden ? fmtInt(spView.rows.length) + ' ' + t('of') + ' ' + fmtInt(list.length) : fmtInt(list.length);
+    moreButton('fd-area-more', list.length > 300, state.allSp, list.length, function () { state.allSp = !state.allSp; renderArea(); });
     var head = [t('sp'), t('family'), t('rec'), t('months'), a.kind === 'group' ? t('islands') : t('where'), t('evidence')];
     $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 2 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      list.slice(0, 300).map(function (s) {
+      spView.rows.map(function (s) {
         var where = a.kind === 'group'
           ? (s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')
           : whereText(s, lang);
@@ -375,10 +410,12 @@
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
 
     var poss = filterSpecies(a.possible || [], state.kind, state.month);
-    $('fd-poss-count').textContent = fmtInt(poss.length);
+    var pView = visibleRows(poss, 40, state.allPoss);
+    $('fd-poss-count').textContent = pView.hidden ? fmtInt(pView.rows.length) + ' ' + t('of') + ' ' + fmtInt(poss.length) : fmtInt(poss.length);
+    moreButton('fd-poss-more', poss.length > 40, state.allPoss, poss.length, function () { state.allPoss = !state.allPoss; renderArea(); });
     var phead = [t('sp'), t('family'), t('likelihood'), t('nearest'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      poss.slice(0, 40).map(function (p) {
+      pView.rows.map(function (p) {
         return '<tr><td><a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(p.n) + '" target="_blank" rel="noopener"><i>' + esc(p.n) + '</i></a></td><td>' +
           esc(p.f) + '</td><td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td><td class="fd-where">' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
           esc(lang === 'ja' ? p.wj : p.w) + '</td><td>' + monthStrip(p.m, state.month) + '</td></tr>';

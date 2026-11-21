@@ -143,3 +143,26 @@ describe('fungi-dashboard: habitat column', () => {
     assert.strictEqual(fd.whereText({ h: [], l: [], el: [500, 500] }, 'ja'), '標高500 m');
   });
 });
+
+describe('fungi-dashboard: review fixes', () => {
+  it('limits long tables but reports what is hidden', () => {
+    const list = Array.from({ length: 944 }, (_, i) => i);
+    assert.deepStrictEqual(fd.visibleRows(list, 300, false).hidden, 644);
+    assert.strictEqual(fd.visibleRows(list, 300, false).rows.length, 300);
+    assert.strictEqual(fd.visibleRows(list, 300, true).rows.length, 944);
+    assert.strictEqual(fd.visibleRows(list.slice(0, 12), 300, false).hidden, 0);
+  });
+  it('draws no bar for a month without records', () => {
+    assert.strictEqual(fd.monthBarHeight(0, 50), 0);
+    assert.strictEqual(fd.monthBarHeight(1, 5000), 2);
+    assert.strictEqual(fd.monthBarHeight(50, 50), 100);
+    assert.strictEqual(fd.monthBarHeight(0, 0), 0);
+  });
+  it('only applies the newest area request', () => {
+    const tracker = fd.latestOnly();
+    const first = tracker.start('okinawa-honto');
+    const second = tracker.start('ishigaki');
+    assert.strictEqual(tracker.isCurrent(first), false);
+    assert.strictEqual(tracker.isCurrent(second), true);
+  });
+});
