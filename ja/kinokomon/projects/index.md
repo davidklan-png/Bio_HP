@@ -13,7 +13,7 @@ lang: ja
   <div class="kinokomon-section__intro">
     <h1 class="kinokomon-section__title"><span class="emoji-float">🚀</span> プロジェクトと実験</h1>
     <p class="kinokomon-section__tagline">アクティブな開発と実験的取り組み</p>
-    <p><a href="{{ '/ja/kinokomon/' | relative_url }}">← きのこもんメインページに戻る</a></p>
+    <p><a href="{{ '/ja/kinokomon/agent/' | relative_url }}">← きのこもんメインページに戻る</a></p>
   </div>
 
   <div class="kinokomon-section__projects">
