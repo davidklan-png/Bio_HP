@@ -1,0 +1,53 @@
+name: deploy-chat-api
+# Deploys the JD Concierge chat API (worker/chat-api) to Cloudflare Workers
+# whenever a change to it lands on main. Tests run first; a failing test stops
+# the deploy. Worker secrets (e.g. the model API key) live in Cloudflare and
+# are untouched by `wrangler deploy`.
+#
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   token scoped to: Account / Workers Scripts:Edit,
+#                          Zone (kinokoholic.com) / Workers Routes:Edit
+#   CLOUDFLARE_ACCOUNT_ID  the Cloudflare account ID
+# Runs only on push to main or a manual run, never on pull requests, so the
+# token is never exposed to PR code.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/chat-api/**"
+      - ".github/workflows/deploy-chat-api.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: deploy-chat-api
+  cancel-in-progress: false
+jobs:
+  deploy:
+    # Production only ever comes from main: a manual run on another branch is skipped.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: worker/chat-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Check deploy secrets are configured
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ] || {
+            echo "::error::Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets"; exit 1; }
+      - name: Syntax check and tests
+        run: npm run check && npm test
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker/chat-api
+          command: deploy
