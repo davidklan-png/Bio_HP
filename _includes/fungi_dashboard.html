@@ -23,6 +23,11 @@
         <select id="fd-area-pick"></select>
         <button type="button" class="fd-btn" id="fd-area-back" hidden>{% if ja %}← 日本全体{% else %}← All of Japan{% endif %}</button>
       </div>
+      <div class="fd-mapbar">
+        <button type="button" class="fd-btn" id="fd-locate" disabled>{% if ja %}現在地を表示{% else %}Locate me{% endif %}</button>
+        <p class="fd-status" id="fd-area-msg" hidden></p>
+        <button type="button" class="fd-btn" id="fd-area-retry" hidden>{% if ja %}再試行{% else %}Retry{% endif %}</button>
+      </div>
       <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div></div>
       <div class="fd-preview" id="fd-preview" hidden>
         <p class="fd-preview__text" id="fd-preview-text"></p>
@@ -59,7 +64,6 @@
   </div>
 
   <section class="fd-card fd-area" id="fd-area" hidden>
-    <p class="fd-status" id="fd-area-status" hidden></p>
     <header class="fd-area__head">
       <div>
         <h2 class="fd-area__title" id="fd-area-title"></h2>
