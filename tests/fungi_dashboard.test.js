@@ -579,3 +579,13 @@ describe('street map zoom gestures', () => {
     assert.ok(/\.fd-map__street \{ touch-action: none; \}/.test(css), 'pinch belongs to the map');
   });
 });
+
+// Figcaption restructured into a scannable list (copy pass).
+describe('map figcaption', () => {
+  it('is a short bullet list with the live counters preserved', () => {
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+    const fig = inc.slice(inc.indexOf('<figcaption>'), inc.indexOf('</figcaption>'));
+    assert.ok(fig.includes('fd-figcaption') && (fig.match(/<li>/g) || []).length === 4, 'four bullets');
+    assert.ok(fig.includes('fd-map-cells') && fig.includes('fd-masked'), 'live counters kept');
+  });
+});
