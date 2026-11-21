@@ -569,3 +569,13 @@ describe('research entry exists only when a payload answers', () => {
     assert.ok(/stroke: true, color: pal\.b\[i\], weight: 0\.75/.test(fm), 'cell edges defined on tiles');
   });
 });
+
+// Street map takes standard zoom gestures (product review: keep zoom-in/out).
+describe('street map zoom gestures', () => {
+  it('wheel zoom enabled and the container yields touch gestures to Leaflet', () => {
+    const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+    assert.ok(/scrollWheelZoom: true/.test(fm), 'wheel zoom on');
+    assert.ok(/\.fd-map__street \{ touch-action: none; \}/.test(css), 'pinch belongs to the map');
+  });
+});
