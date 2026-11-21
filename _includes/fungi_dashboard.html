@@ -34,7 +34,6 @@
       <p class="fd-context" id="fd-context" hidden></p>
       <div class="fd-mapbar">
         <button type="button" class="fd-btn" id="fd-locate" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 .5v3M8 12.5v3M.5 8h3M12.5 8h3"/></svg><span>{% if ja %}現在地を表示{% else %}Locate me{% endif %}</span></button>
-        <button type="button" class="fd-btn" id="fd-street" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14 6 2l4 12 4-12"/><circle cx="6" cy="2" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="2" r="1" fill="currentColor" stroke="none"/></svg><span>{% if ja %}詳細地図{% else %}Street map{% endif %}</span></button>
         <button type="button" class="fd-btn" id="fd-research" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 1.5v5L2.5 13a1 1 0 0 0 .9 1.5h9.2a1 1 0 0 0 .9-1.5l-4-6.5v-5"/><path d="M5 1.5h6"/></svg><span>{% if ja %}調査フィルタ{% else %}Research filters{% endif %}</span></button>
         <p class="fd-status" id="fd-area-msg" hidden></p>
         <button type="button" class="fd-btn" id="fd-area-retry" hidden>{% if ja %}再試行{% else %}Retry{% endif %}</button>
@@ -49,7 +48,7 @@
         <div class="fd-search__field">
           <div class="fd-seg" role="group" aria-label="{% if ja %}検索の種類{% else %}Search mode{% endif %}">
             <button type="button" id="fd-search-place" aria-pressed="true">{% if ja %}地名{% else %}Place{% endif %}</button>
-            <button type="button" id="fd-search-genus" aria-pressed="false">{% if ja %}属名{% else %}Genus{% endif %}</button>
+            <button type="button" id="fd-search-genus" aria-pressed="false" hidden>{% if ja %}属名{% else %}Genus{% endif %}</button>
           </div>
           <label class="fd-sr" for="fd-search-input" id="fd-search-label"></label>
           <input type="search" id="fd-search-input" autocomplete="off" spellcheck="false" aria-controls="fd-search-results" aria-expanded="false">
@@ -82,7 +81,7 @@
         <p class="fd-preview__text" id="fd-preview-text"></p>
         <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
       </div>
-      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。「詳細地図」ボタンで道路入りの地図に切り替えられます（読み込みはそのときだけ行われます）。「調査フィルタ」では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません（データはそのときだけ読み込まれます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The Street map button swaps in a road map (its tiles load only then). Research filters recolour the squares by estimated records for a chosen month and kind (loaded on demand); a dashed square has no public estimate. Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
+      <figcaption>{% if ja %}区画をタップまたはクリックすると概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。地図は国土地理院の道路入りタイルで表示され、読み込めないときは簡易表示に切り替わります。「調査フィルタ」では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません（データはそのときだけ読み込まれます）。Escキーで概要と詳細地図を閉じられます。<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}Tap or click a square to preview it; tap it again (or use Open area) to see its species, months, habitats and what could be found there. The map shows GSI street tiles; a simplified view takes over if they cannot load. Research filters recolour the squares by estimated records for a chosen month and kind (loaded on demand); a dashed square has no public estimate. Esc dismisses the preview and leaves the street map. <span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. To protect them, Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</figcaption>
     </figure>
 
     <div class="fd-card">

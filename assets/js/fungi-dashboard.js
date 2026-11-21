@@ -477,7 +477,7 @@
     sampling: ['Most records come from one survey site', '記録の多くが1か所の調査地に集中しています'],
     streetLoading: ['Loading the street map…', '詳細地図を読み込み中…'],
     streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
-    streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Street map to retry.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「詳細地図」をもう一度押すと再試行できます。'],
+    streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Retry for the street map.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「再試行」で詳細地図に戻れます。'],
     streetExit: ['Back to the simple map.', '簡易地図に戻りました。'],
     researchLoading: ['Loading research data…', 'リサーチデータを読み込み中…'],
     researchUnavailable: ['Research data is unavailable; the map keeps showing all-time records.', 'リサーチデータは利用できません。地図は引き続き全期間の記録を表示しています。'],
@@ -1072,8 +1072,7 @@
     renderSources(d);
     var lb = $('fd-locate');
     if (lb) lb.disabled = false; // locating needs only the rendered map
-    var sb = $('fd-street');
-    if (sb) sb.disabled = false; // street mode needs only the rendered mesh
+    if (!street.auto) { street.auto = true; enterStreet(); } // street is the default map
     var rb = $('fd-research');
     if (rb) rb.disabled = false; // research fetches its own payload on first enable
     doc.querySelector('.fd').classList.add('is-ready');
@@ -1107,16 +1106,16 @@
   /* ---- street map wiring (Phase 2). Leaflet, its stylesheet, the GSI Pale tiles and the
      adapter itself load only from this button press; the SVG stays first paint + fallback */
   function streetEvent(kind) {
-    var btn = $('fd-street');
     if (kind === 'ready') { announce(t('streetReady')); return; }
-    if (kind === 'fail') { areaMsg(t('streetFail')); announce(t('streetFail')); }
-    else announce(t('streetExit')); // manual exit: same flow minus the error copy
+    if (kind === 'fail') {
+      street.failed = true;
+      areaMsg(t('streetFail')); announce(t('streetFail'));
+      showRetry(true); // retry re-enters the street map
+    }
     street.on = false;
     var sec = doc.querySelector('.fd');
     if (sec) sec.classList.remove('is-street');
-    if (btn) btn.setAttribute('aria-pressed', 'false');
     drawViews();
-    if (btn) btn.focus(); // focus returns to the initiating control (Escape exits too)
   }
   function streetCtx() {
     return {
@@ -1130,30 +1129,24 @@
       onEvent: streetEvent
     };
   }
-  function wireStreet() {
-    var btn = $('fd-street');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      var tipEl = doc.querySelector('.fd-map .fd-map__tip');
-      if (tipEl) tipEl.hidden = true; // the hidden SVG keeps no stale tooltip
-      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; }
-      if (street.loading || !state.d) return;
-      street.loading = true;
-      btn.setAttribute('aria-busy', 'true');
-      announce(t('streetLoading'));
-      injectAssets(doc, STREET_ASSETS).then(function () {
-        street.loading = false;
-        btn.removeAttribute('aria-busy');
-        if (!root.FungiFieldMap || !root.FungiFieldMap.enter(streetCtx())) return; // enter failed: onEvent('fail') ran
-        street.on = true;
-        areaMsg(null); // a retry that gets this far clears the visible fallback status
-        doc.querySelector('.fd').classList.add('is-street');
-        btn.setAttribute('aria-pressed', 'true');
-      }).catch(function () {
-        street.loading = false;
-        btn.removeAttribute('aria-busy');
-        streetEvent('fail');
-      });
+  // The street map IS the default map (no toggle): Leaflet + GSI Pale enter once the
+  // mesh has rendered. The SVG underneath remains the offline/blocked-tiles fallback.
+  function enterStreet() {
+    var tipEl = doc.querySelector('.fd-map .fd-map__tip');
+    if (tipEl) tipEl.hidden = true; // the hidden SVG keeps no stale tooltip
+    if (street.on || street.loading || !state.d) return;
+    street.loading = true;
+    announce(t('streetLoading'));
+    injectAssets(doc, STREET_ASSETS).then(function () {
+      street.loading = false;
+      if (!root.FungiFieldMap || !root.FungiFieldMap.enter(streetCtx())) return; // enter failed: onEvent('fail') ran
+      street.on = true;
+      street.failed = false;
+      areaMsg(null); // a retry that gets this far clears the visible fallback status
+      doc.querySelector('.fd').classList.add('is-street');
+    }).catch(function () {
+      street.loading = false;
+      streetEvent('fail');
     });
   }
   /* ---- end street */
@@ -1199,6 +1192,15 @@
     if (search.refresh) search.refresh(); // genus-mode availability may have changed
     drawViews();
   }
+  function researchAvailable() {
+    var ok = !!(research.res && research.res.ok);
+    if (!ok) { var nn = $('fd-research-note'); if (nn) { nn.hidden = true; nn.textContent = ''; } }
+    var rb = $('fd-research'), gb = $('fd-search-genus');
+    if (rb) rb.hidden = !ok;
+    if (gb) gb.hidden = !ok;
+    if (!ok && search.mode === 'genus') $('fd-search-place').click(); // back to place search
+    return ok;
+  }
   function loadResearch(bypass) {
     research.fetched = true;
     research.loading = true;
@@ -1215,12 +1217,14 @@
           return loadResearch(true);
         }
         research.loading = false;
+        researchAvailable();
         applyResearch();
       })
       .catch(function () {
         research.res = { ok: false };
         research.fetched = false; // a failed fetch retries on the next enable
         research.loading = false;
+        researchAvailable();
         applyResearch();
       });
   }
@@ -1443,24 +1447,24 @@
       if (tapState && tapState.areaId) { var id = tapState.areaId; clearPreview(); selectArea(id); }
     });
     $('fd-area-retry').addEventListener('click', function () {
+      if (street.failed) { enterStreet(); return; } // blocked tiles: retry re-enters the default street map
       if (state.sel && state.sel.failed) loadDetail(state.sel.row, areaRequests.start(state.sel.row.id), true);
     });
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
-      if (street.on) { if (root.FungiFieldMap) root.FungiFieldMap.exit(); return; } // street first, then preview, then area (0C/0D order)
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
       if (state.sel) clearArea();
     });
     wireLocate();
-    wireStreet();
     wireResearch();
     wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);
-    ensureGeo(); // coast + place labels are part of the default view (31 KB gzip, §8 budget)
+    ensureGeo();
+    loadResearch(false); // availability probe: the Research entry exists only if a payload answers // coast + place labels are part of the default view (31 KB gzip, §8 budget)
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);
