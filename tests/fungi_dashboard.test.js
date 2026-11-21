@@ -463,3 +463,27 @@ describe('map listeners are wired once per page (P2)', () => {
       'observer must call the current draw, never a stale closure');
   });
 });
+
+// Geography in the default view (PR #46 review: coast + labels, not search-only).
+describe('reference geography renders in the default SVG view', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  it('loads japan-outline.json at boot, not only on first search', () => {
+    assert.ok(/loadBoot\(false\);\s*\n\s*ensureGeo\(\)/.test(src), 'boot must kick off the geography fetch');
+  });
+  it('draws the coast under the cells and place labels above them', () => {
+    assert.ok(src.includes("'<path class=\"fd-map__coast\" d=\"' + coast"), 'coast path renders first');
+    assert.ok(src.includes("loc + labels"), 'labels render last, above the cells');
+  });
+  it('drops the idle dashed island boxes once a coast is present', () => {
+    assert.ok(src.includes('if (geo.ref && !on) return;'), 'selected islands keep their outline, idle boxes yield to the coast');
+  });
+});
+
+describe('street fills stay transparent over tiles (PR #46 review)', () => {
+  it('cell fills are semi-transparent so tile labels stay legible', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    const m = /fillOpacity:\s*([0-9.]+)/.exec(src);
+    assert.ok(m, 'fills carry an explicit fillOpacity');
+    assert.ok(+m[1] > 0.4 && +m[1] < 0.85, `fillOpacity ${m[1]} must let tiles read through`);
+  });
+});
