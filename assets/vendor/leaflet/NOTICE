@@ -1,0 +1,17 @@
+Leaflet 1.9.4, vendored same-origin. No CDN is used at runtime.
+
+Source: https://unpkg.com/leaflet@1.9.4/dist/ (npm package leaflet@1.9.4;
+registry.npmjs.org/leaflet/-/leaflet-1.9.4.tgz). Every file below is byte-identical
+to that tarball. License: BSD 2-Clause -- see LICENSE.
+
+Files: leaflet.js, leaflet.css, images/ (only the files leaflet.css references).
+Injected by assets/js/fungi-dashboard.js solely when the Street map button is
+pressed; a plain page load never fetches anything from this directory.
+
+SHA-256:
+db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a  leaflet.js
+a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6  leaflet.css
+53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb  LICENSE
+066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf  images/layers-2x.png
+1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6  images/layers.png
+574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437  images/marker-icon.png
