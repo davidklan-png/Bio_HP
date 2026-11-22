@@ -211,3 +211,9 @@ html[lang="ja"] .fd-area__title { font-family: "Noto Sans JP", var(--sans) !impo
 
 /* Figcaption as a short scannable list instead of a wall of prose. */
 .fd-figcaption { margin: 10px 0 0; padding-left: 1.15em; color: var(--muted); font-size: 13.5px; line-height: 1.55; display: grid; gap: 4px; }
+
+/* Product round: the map + slicers are the page; stats cards live below. */
+.fd-grid { grid-template-columns: minmax(0, 1fr); max-width: 1160px; margin-inline: auto; }
+.fd-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--fd-gap); margin-top: var(--fd-gap); }
+.fd-bottom .fd-card--wide { grid-column: 1 / -1; }
+.fd-title__ja { display: block; font-size: 0.55em; font-weight: 500; color: var(--muted); margin-top: 4px; }
