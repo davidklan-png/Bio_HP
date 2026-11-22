@@ -100,11 +100,11 @@
     </div>
     <h3 class="fd-area__h">{% if ja %}記録された種{% else %}Recorded here{% endif %} <span class="fd-count" id="fd-area-count"></span></h3>
     <div class="fd-scroll"><table class="fd-table" id="fd-area-species"></table></div>
-    <button type="button" class="fd-btn fd-more" id="fd-area-more" hidden></button>
+    <button type="button" class="fd-btn fd-more" id="fd-area-more" aria-label="{% if ja %}さらに表示{% else %}Show more{% endif %}" hidden></button>
     <h3 class="fd-area__h">{% if ja %}見つかる可能性がある種{% else %}Could be found here{% endif %} <span class="fd-count" id="fd-poss-count"></span></h3>
     <p class="fd-note">{% if ja %}この地域では未記録ですが、近く（国内または近隣国、最大800km）で記録されている種です。距離と緯度の近さで順位付けした推定であり、予測ではありません。月は近くの記録が採集された月です。{% else %}Not yet recorded here, but recorded nearby (in Japan or neighbouring East Asia, up to 800 km away). Ranked by distance and similarity of latitude: a pointer for fieldwork, not a prediction. Months are when the nearby records were made.{% endif %}</p>
     <div class="fd-scroll"><table class="fd-table" id="fd-area-possible"></table></div>
-    <button type="button" class="fd-btn fd-more" id="fd-poss-more" hidden></button>
+    <button type="button" class="fd-btn fd-more" id="fd-poss-more" aria-label="{% if ja %}さらに表示{% else %}Show more{% endif %}" hidden></button>
   </section>
 
   <div class="fd-bottom">
