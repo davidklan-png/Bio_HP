@@ -439,8 +439,19 @@ describe('fungi-dashboard: locate me', () => {
 });
 
 // shared v0 fixtures straight from the published (staging) files
-function realIndex() { return require('../assets/data/shroomhunt/areas/index.json'); }
-function realArea() { return require('../assets/data/shroomhunt/areas/okinawa-honto.json'); }
+// Owned fixtures, not the live published files: the v0/v1 reader tests must not
+// flip verdicts when a data PR changes what is deployed (broke on the v1 cutover).
+function realIndex() {
+  return { areas: [{ id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', name_ja: '沖縄本島',
+    group_en: 'Okinawa', group_ja: '沖縄', bbox: [26.0, 26.9, 127.6, 128.4], records: 10, species: 5 }],
+    cells: { '314:1021': 'okinawa-honto' } };
+}
+function realArea() {
+  return { id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', name_ja: '沖縄本島',
+    group_en: 'Okinawa', group_ja: '沖縄', bbox: [26.0, 26.9, 127.6, 128.4],
+    totals: { records: 10, by_name: 0, species: 5, unresolved: 1, squares: 2 },
+    months: new Array(12).fill(0), top_localities: [], species: [], possible: [] };
+}
 
 // Codex review fixes on #46.
 describe('detail join decision survives the warm cache (P1)', () => {
