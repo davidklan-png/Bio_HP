@@ -591,12 +591,52 @@ describe('street map zoom gestures', () => {
   });
 });
 
-// Figcaption restructured into a scannable list (copy pass).
-describe('map figcaption', () => {
-  it('is a short bullet list with the live counters preserved', () => {
-    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
-    const fig = inc.slice(inc.indexOf('<figcaption>'), inc.indexOf('</figcaption>'));
-    assert.ok(fig.includes('fd-figcaption') && (fig.match(/<li>/g) || []).length === 4, 'four bullets');
-    assert.ok(fig.includes('fd-map-cells') && fig.includes('fd-masked'), 'live counters kept');
+
+// Product round: title, layout, kind slicer removal, Name search, street slice rebuild.
+describe('product round: app identity and layout', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  it('app name is Shroom Hunter and the old title is gone', () => {
+    assert.ok(inc.includes('Shroom Hunter') && inc.includes('シュルームハンター'));
+    assert.ok(!inc.includes('What fungi are recorded in Japan'));
+  });
+  it('map section capped; stats cards moved below the area records', () => {
+    assert.ok(inc.indexOf('id="fd-area"') < inc.indexOf('fd-bottom'), 'area section precedes the bottom stats');
+    assert.ok(inc.indexOf('fd-bottom') < inc.indexOf('What the evidence is'.replace('What the evidence is', 'fd-evidence')));
+    assert.ok(/\.fd-grid \{[^}]*max-width/.test(css), 'map region has a max width');
+  });
+  it('kind slicer removed; month remains', () => {
+    assert.ok(!inc.includes('data-fd-kind'));
+    assert.ok(inc.includes('id="fd-month"'));
+    assert.ok(!src.includes("[data-fd-kind]"));
+  });
+  it('figcaption copy removed but live counters kept for assistive tech', () => {
+    assert.ok(!inc.includes('fd-figcaption'));
+    assert.ok(inc.includes('id="fd-map-cells"') && inc.includes('id="fd-masked"'));
+  });
+});
+
+describe('name search matches common names and aliases', () => {
+  const fd = require('../assets/js/fungi-dashboard.js');
+  const ix = { areas: [{ id: 'okisle', kind: 'island', name_en: 'Ok Island', name_ja: '島', bbox: [26, 27, 127, 128] }] };
+  const genera = [
+    ['Amanita', ['okisle'], ['Amanita', 'テングタケ属', 'amanita']],
+    ['Tricholoma', ['okisle'], ['Tricholoma', 'キシメジ属', 'matsutake', 'マツタケ']]
+  ];
+  it('matches Latin, English alias and Japanese alias by prefix', () => {
+    const q = (x) => fd.genusResults(genera, x, ix);
+    assert.strictEqual(q('Aman')[0].genus, 'Amanita');
+    assert.strictEqual(q('matsutake')[0].genus, 'Tricholoma');
+    assert.strictEqual(q('マツタケ')[0].genus, 'Tricholoma');
+    assert.ok(q('テング')[0].label.includes('テングタケ属'));
+    assert.strictEqual(q('zzz').length, 0);
+  });
+});
+
+describe('street fills rebuild when the research slice changes', () => {
+  it('redraw compares the slice key, not just the palette', () => {
+    const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    assert.ok(fm.includes('rvKey !== lastRvKey'), 'slice change triggers buildFills');
   });
 });
