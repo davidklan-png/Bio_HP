@@ -133,6 +133,13 @@ describe('fungi-dashboard: drill-down helpers', () => {
     assert.strictEqual(fd.samplingNote(null), null); // field not shipped yet: renders exactly as today
     assert.strictEqual(fd.samplingNote(['x']), null);
   });
+  it('reads the leads total from candidates, falling back to pre-rename bundles', () => {
+    // lead_totals.candidates (TASK-017); the fallback covers dashboard.json copies
+    // published before the rename — drop the fallback after the next publish.
+    assert.strictEqual(fd.leadsTotal({ candidates: 5781, with_mo: 10 }), 5781);
+    assert.strictEqual(fd.leadsTotal({ neighbour_only: 5781, with_mo: 10 }), 5781);
+    assert.strictEqual(fd.leadsTotal(null), undefined);
+  });
   it('names months in both languages', () => {
     assert.strictEqual(fd.monthName(1, 'en'), 'Jan');
     assert.strictEqual(fd.monthName(12, 'ja'), '12月');
