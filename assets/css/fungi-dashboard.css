@@ -73,9 +73,11 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 /* border-collapse: separate — collapsed borders break sticky th backgrounds in
    Chromium/Safari (scrolled rows bleed through the header); spacing 0 renders identically. */
 .fd-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
-/* z-index: 1 — without it, composited (trackpad/wheel) scrolling paints tbody text
-   over the sticky header in Chromium; verified by wheel-event repro, not just scrollTop. */
-.fd-table th { position: sticky; top: 0; z-index: 1; background: var(--elev); text-align: left; font-weight: 600; color: var(--muted); padding: 9px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+/* z-index + isolation — composited (trackpad/wheel) scrolling paints tbody text over the
+   sticky header otherwise: z-index fixes Chromium, but WebKit ignores z-index on table
+   cells, so isolation: isolate creates the stacking context there. Wheel-event verified
+   in both engines (programmatic scrollTop does not trigger the bug). */
+.fd-table th { position: sticky; top: 0; z-index: 1; isolation: isolate; background: var(--elev); text-align: left; font-weight: 600; color: var(--muted); padding: 9px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
 .fd-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top; }
 .fd-table td.num, .fd-table th:nth-child(3), .fd-table th:nth-child(4) { text-align: right; font-family: var(--mono); white-space: nowrap; }
 .fd-table a { color: var(--brand); }
