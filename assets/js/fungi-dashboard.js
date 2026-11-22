@@ -1056,7 +1056,10 @@
         '</td><td class="num">' + fmtInt(l[2]) + '</td><td class="num">' + fmtInt(l[3]) + '</td><td>' + esc(triage(l[4], lang)) + '</td></tr>';
     }).join('');
     $('fd-leads').innerHTML = '<thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody>';
-    $('fd-lead-total').textContent = fmtInt(d.lead_totals.neighbour_only);
+    // lead_totals.candidates (renamed from neighbour_only, TASK-017); the fallback
+    // covers dashboard.json copies published before the rename — drop it after the
+    // next dashboard publish.
+    $('fd-lead-total').textContent = fmtInt(d.lead_totals.candidates != null ? d.lead_totals.candidates : d.lead_totals.neighbour_only);
     $('fd-lead-mo').textContent = fmtInt(d.lead_totals.with_mo);
     $('fd-lead-unres').textContent = fmtInt(d.lead_totals.with_unresolved_jp_genus);
   }
