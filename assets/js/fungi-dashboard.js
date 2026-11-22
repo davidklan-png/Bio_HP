@@ -443,7 +443,7 @@
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
-    filterSpecies: filterSpecies, samplingNote: samplingNote, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
+    filterSpecies: filterSpecies, samplingNote: samplingNote, leadsTotal: leadsTotal, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
     meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, boundaryRings: boundaryRings, locateCell: locateCell, runLocate: runLocate,
     detailJoinOf: detailJoinOf,
@@ -1046,6 +1046,11 @@
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noPossible')) + '</td></tr></tbody>';
   }
 
+  // lead_totals.candidates (renamed from neighbour_only, TASK-017); the fallback covers
+  // dashboard.json copies published before the rename — drop it after the next publish.
+  function leadsTotal(lt) {
+    return lt ? (lt.candidates != null ? lt.candidates : lt.neighbour_only) : undefined;
+  }
   function renderLeads(d) {
     var head = lang === 'ja'
       ? ['種', '科', '近隣国の記録', 'MOの記録', '次の確認']
@@ -1056,10 +1061,7 @@
         '</td><td class="num">' + fmtInt(l[2]) + '</td><td class="num">' + fmtInt(l[3]) + '</td><td>' + esc(triage(l[4], lang)) + '</td></tr>';
     }).join('');
     $('fd-leads').innerHTML = '<thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody>';
-    // lead_totals.candidates (renamed from neighbour_only, TASK-017); the fallback
-    // covers dashboard.json copies published before the rename — drop it after the
-    // next dashboard publish.
-    $('fd-lead-total').textContent = fmtInt(d.lead_totals.candidates != null ? d.lead_totals.candidates : d.lead_totals.neighbour_only);
+    $('fd-lead-total').textContent = fmtInt(leadsTotal(d.lead_totals));
     $('fd-lead-mo').textContent = fmtInt(d.lead_totals.with_mo);
     $('fd-lead-unres').textContent = fmtInt(d.lead_totals.with_unresolved_jp_genus);
   }
