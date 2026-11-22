@@ -108,7 +108,7 @@
     view.setView([(box.latMin + box.latMax) / 2, (box.lonMin + box.lonMax) / 2],
       fitZoom(box, el.clientWidth || 320, el.clientHeight || 320));
     var renderer = L.canvas();
-    var pal = palette(el), palKey = pal.b.join() + pal.core;
+    var pal = palette(el), palKey = pal.b.join() + pal.core, lastRvKey = null;
     var mesh = ctx.mesh();
     var fillLayers = [];
 
@@ -213,7 +213,12 @@
       redraw: function (force) {
         if (!active) return;
         var fresh = palette(el);
-        if (force || fresh.b.join() + fresh.core !== palKey) { pal = fresh; palKey = fresh.b.join() + fresh.core; buildFills(); }
+        var rv = ctx.researchView ? ctx.researchView() : null;
+        var rvKey = rv ? rv.month + ':' + rv.kind : '';
+        if (force || fresh.b.join() + fresh.core !== palKey || rvKey !== lastRvKey) {
+          pal = fresh; palKey = fresh.b.join() + fresh.core; lastRvKey = rvKey;
+          buildFills(); // re-bands cells for the active research slice
+        }
         var b = ctx.box();
         if (b !== fitted) {
           fitted = b;

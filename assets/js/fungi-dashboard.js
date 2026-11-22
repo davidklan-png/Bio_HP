@@ -347,6 +347,8 @@
   }
   // Reviewed genera → coarse links. Only known leaf areas (island/tile) survive; unknown
   // ids and groups drop, and a genus left with no areas drops entirely.
+  // Name search: Latin genus plus common names/aliases in EN and JA. Payload rows are
+  // [genus, areas] or [genus, areas, [label_en, label_ja, alias, ...]] (additive, v1).
   function genusResults(genera, q, index, limit) {
     var needle = foldQuery(q);
     if (!needle) return [];
@@ -356,9 +358,14 @@
     });
     var cap = limit == null ? 8 : limit;
     return (genera || []).map(function (g) {
-      if (foldQuery(g[0]).indexOf(needle) !== 0) return null;
+      var names = [g[0]].concat(g[2] || []);
+      var hit = null;
+      for (var i = 0; i < names.length; i++) {
+        if (foldQuery(names[i]).indexOf(needle) === 0) { hit = names[i]; break; }
+      }
+      if (hit === null) return null;
       var areas = (g[1] || []).filter(function (id) { return !!leaves[id]; });
-      return areas.length ? { genus: g[0], areas: areas } : null;
+      return areas.length ? { genus: g[0], label: g[2] && g[2][1] ? g[0] + ' · ' + g[2][1] : g[0], matched: hit, areas: areas } : null;
     }).filter(Boolean).slice(0, cap);
   }
   function readMapReference(d) {
@@ -489,9 +496,9 @@
     researchOn: ['Research view on: squares are coloured by estimated records for the selected month and kind.', 'リサーチ表示オン：区画を選択した月・種類の推定記録数で色分けしました。'],
     researchOff: ['Research view off: squares show all-time records again.', 'リサーチ表示オフ：区画は全期間の記録数表示に戻りました。'],
     searchPlace: ['Search places', '地名を検索'],
-    searchGenus: ['Search reviewed genera', '審査済みの属を検索'],
+    searchGenus: ['Search by name: Latin genus, English or Japanese common name', '名前で検索：属名・英名・和名'],
     phPlace: ['e.g. Naha, 屋久島', '例：Naha、屋久島'],
-    phGenus: ['Latin genus name, e.g. Amanita', 'ラテン語の属名（例：Amanita）'],
+    phGenus: ['e.g. Amanita, matsutake, テングタケ', '例：Amanita、マツタケ、テングタケ'],
     noResults: ['No matches.', '該当なし。'],
     moreResults: ['More matches — keep typing to narrow down', '他にも該当 — 入力を絞ってください'],
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
@@ -521,7 +528,7 @@
 
   // sel = { row: validated index row, detail: area file|null, failed: bool }. joins is
   // false only after a snapshot mismatch survived its one cache-bypassed refetch.
-  var state = { d: null, index: null, sel: null, kind: 'm', month: 0, box: JAPAN_BOX,
+  var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // kind slicer removed; 'all' only
     cache: {}, cacheSnap: undefined, allSp: false, allPoss: false, joins: true, detailJoin: true,
     locCell: null, snaps: { dashboard: null, index: null },
     bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
@@ -799,7 +806,6 @@
 
   // The kind/month segments always reflect one shared state, wherever the widget is docked.
   function syncFilters() {
-    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
   }
   function filterChanged() {
@@ -825,9 +831,6 @@
     // view is on it docks in the map card. Remember where it belongs so it can move back.
     filtersEl = $('fd-filters');
     if (filtersEl) { filtersHome = filtersEl.parentNode; filtersNext = filtersEl.nextSibling; }
-    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) {
-      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); filterChanged(); });
-    });
     $('fd-month').innerHTML = '<button type="button" data-fd-month="0">' + (lang === 'ja' ? '全月' : 'All') + '</button>' +
       MONTHS_EN.map(function (_, i) { return '<button type="button" data-fd-month="' + (i + 1) + '">' + esc(monthName(i + 1, lang)) + '</button>'; }).join('');
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) {
@@ -1323,7 +1326,7 @@
         genusResults(research.res.data.genera, q, state.index, 24).forEach(function (g) {
           g.areas.forEach(function (id) {
             if (rows >= 8) { more = true; return; }
-            addButton('<i>' + esc(g.genus) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(id))) + '</span>', (function (aid) {
+            addButton('<i>' + esc(g.label) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(id))) + '</span>', (function (aid) {
               return function () { clearResults(); selectArea(aid); };
             })(id));
             rows++;

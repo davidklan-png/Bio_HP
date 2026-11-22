@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
-    <p class="fd-kicker">{% if ja %}きのこモン · 日本の菌類ダッシュボード{% else %}Kinokomon · Japan fungi dashboard{% endif %}</p>
-    <h1 class="fd-title">{% if ja %}日本の菌類：記録の現状と、次に探すべきもの{% else %}What fungi are recorded in Japan, and where to look next{% endif %}</h1>
+    <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
+    <h1 class="fd-title">Shroom Hunter<span class="fd-title__ja" lang="ja">シュルームハンター</span></h1>
     <p class="fd-lede">{% if ja %}GBIFに集約された日本の菌類記録（博物館標本、DNA試料、観察記録）を集計し、近隣国では記録があるのに日本では未記録の種を「調査の手がかり」として抽出しています。毒きのこや食べられないものも含む、すべての菌類が対象です。{% else %}Every fungus record for Japan held by GBIF (museum specimens, DNA samples and field observations), summarised, plus a list of species recorded in neighbouring East Asia but never in Japan. Edible, inedible and poisonous fungi alike.{% endif %}</p>
     <p class="fd-status" id="fd-status" hidden></p>
     <p class="fd-sr" id="fd-live" role="status" aria-live="polite"></p>
@@ -48,7 +48,7 @@
         <div class="fd-search__field">
           <div class="fd-seg" role="group" aria-label="{% if ja %}検索の種類{% else %}Search mode{% endif %}">
             <button type="button" id="fd-search-place" aria-pressed="true">{% if ja %}地名{% else %}Place{% endif %}</button>
-            <button type="button" id="fd-search-genus" aria-pressed="false" hidden>{% if ja %}属名{% else %}Genus{% endif %}</button>
+            <button type="button" id="fd-search-genus" aria-pressed="false" hidden>{% if ja %}名前{% else %}Name{% endif %}</button>
           </div>
           <label class="fd-sr" for="fd-search-input" id="fd-search-label"></label>
           <input type="search" id="fd-search-input" autocomplete="off" spellcheck="false" aria-controls="fd-search-results" aria-expanded="false">
@@ -81,16 +81,33 @@
         <p class="fd-preview__text" id="fd-preview-text"></p>
         <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
       </div>
-      <figcaption>
-        <ul class="fd-figcaption">
-          <li>{% if ja %}区画をタップして概要を表示し、もう一度タップ（または「地域を開く」）で種・月・生息環境と見つかる可能性のある種を表示します。Escキーで概要を閉じられます。{% else %}Tap a square to preview it; tap it again (or use Open area) for its species, months and what could be found there. Esc dismisses the preview.{% endif %}</li>
-          <li>{% if ja %}地図は国土地理院の道路入りタイルです。読み込めないときは簡易表示に切り替わります。{% else %}The map shows GSI street tiles; a simplified view takes over if they cannot load.{% endif %}</li>
-          <li>{% if ja %}調査フィルタ（データ公開後）では、選んだ月と菌の種類ごとの推定記録数で区画の色が変わり、破線の区画は公開推定値がありません。{% else %}Research filters (once its data ships) recolour squares by estimated records for a chosen month and kind; dashed squares have no public estimate.{% endif %}</li>
-          <li>{% if ja %}<span id="fd-map-cells"></span>区画。空白は「菌がいない」ではなく「記録がない」場所です。レッドリスト掲載種と商業採取の対象種（<span id="fd-masked"></span>種）は保護のため地図と一覧から除外しています。{% else %}<span id="fd-map-cells"></span> squares. Blank areas mean no records, not no fungi. Red List and commercially collected species (<span id="fd-masked"></span>) are left off the map and out of every list.{% endif %}</li>
-        </ul>
-      </figcaption>
+      <span class="fd-sr"><span id="fd-map-cells"></span> squares · masked <span id="fd-masked"></span></span>
     </figure>
 
+  </div>
+
+  <section class="fd-card fd-area" id="fd-area" hidden>
+    <header class="fd-area__head">
+      <div>
+        <h2 class="fd-area__title" id="fd-area-title"></h2>
+        <p class="fd-area__meta" id="fd-area-meta"></p>
+        <p class="fd-area__note" id="fd-area-note" hidden></p>
+      </div>
+      <div class="fd-months" id="fd-area-months" aria-hidden="true"></div>
+    </header>
+    <div class="fd-filters" id="fd-filters">
+      <div class="fd-seg fd-seg--months" id="fd-month" role="group" aria-label="{% if ja %}月{% else %}Month{% endif %}"></div>
+    </div>
+    <h3 class="fd-area__h">{% if ja %}記録された種{% else %}Recorded here{% endif %} <span class="fd-count" id="fd-area-count"></span></h3>
+    <div class="fd-scroll"><table class="fd-table" id="fd-area-species"></table></div>
+    <button type="button" class="fd-btn fd-more" id="fd-area-more" hidden></button>
+    <h3 class="fd-area__h">{% if ja %}見つかる可能性がある種{% else %}Could be found here{% endif %} <span class="fd-count" id="fd-poss-count"></span></h3>
+    <p class="fd-note">{% if ja %}この地域では未記録ですが、近く（国内または近隣国、最大800km）で記録されている種です。距離と緯度の近さで順位付けした推定であり、予測ではありません。月は近くの記録が採集された月です。{% else %}Not yet recorded here, but recorded nearby (in Japan or neighbouring East Asia, up to 800 km away). Ranked by distance and similarity of latitude: a pointer for fieldwork, not a prediction. Months are when the nearby records were made.{% endif %}</p>
+    <div class="fd-scroll"><table class="fd-table" id="fd-area-possible"></table></div>
+    <button type="button" class="fd-btn fd-more" id="fd-poss-more" hidden></button>
+  </section>
+
+  <div class="fd-bottom">
     <div class="fd-card">
       <h2>{% if ja %}記録の種類{% else %}What the evidence is{% endif %}</h2>
       <div id="fd-evidence"></div>
@@ -109,33 +126,7 @@
       <div id="fd-unresolved" class="fd-cols"></div>
     </div>
   </div>
-
-  <section class="fd-card fd-area" id="fd-area" hidden>
-    <header class="fd-area__head">
-      <div>
-        <h2 class="fd-area__title" id="fd-area-title"></h2>
-        <p class="fd-area__meta" id="fd-area-meta"></p>
-        <p class="fd-area__note" id="fd-area-note" hidden></p>
-      </div>
-      <div class="fd-months" id="fd-area-months" aria-hidden="true"></div>
-    </header>
-    <div class="fd-filters" id="fd-filters">
-      <div class="fd-seg" role="group" aria-label="{% if ja %}菌の種類{% else %}Kind of fungus{% endif %}">
-        <button type="button" data-fd-kind="m">{% if ja %}きのこ・目に見える菌{% else %}Mushrooms &amp; visible fungi{% endif %}</button>
-        <button type="button" data-fd-kind="l">{% if ja %}地衣類{% else %}Lichens{% endif %}</button>
-        <button type="button" data-fd-kind="o">{% if ja %}微小菌・DNA{% else %}Microfungi &amp; DNA{% endif %}</button>
-        <button type="button" data-fd-kind="all">{% if ja %}すべて{% else %}All{% endif %}</button>
-      </div>
-      <div class="fd-seg fd-seg--months" id="fd-month" role="group" aria-label="{% if ja %}月{% else %}Month{% endif %}"></div>
-    </div>
-    <h3 class="fd-area__h">{% if ja %}記録された種{% else %}Recorded here{% endif %} <span class="fd-count" id="fd-area-count"></span></h3>
-    <div class="fd-scroll"><table class="fd-table" id="fd-area-species"></table></div>
-    <button type="button" class="fd-btn fd-more" id="fd-area-more" hidden></button>
-    <h3 class="fd-area__h">{% if ja %}見つかる可能性がある種{% else %}Could be found here{% endif %} <span class="fd-count" id="fd-poss-count"></span></h3>
-    <p class="fd-note">{% if ja %}この地域では未記録ですが、近く（国内または近隣国、最大800km）で記録されている種です。距離と緯度の近さで順位付けした推定であり、予測ではありません。月は近くの記録が採集された月です。{% else %}Not yet recorded here, but recorded nearby (in Japan or neighbouring East Asia, up to 800 km away). Ranked by distance and similarity of latitude: a pointer for fieldwork, not a prediction. Months are when the nearby records were made.{% endif %}</p>
-    <div class="fd-scroll"><table class="fd-table" id="fd-area-possible"></table></div>
-    <button type="button" class="fd-btn fd-more" id="fd-poss-more" hidden></button>
-  </section>
+  </div>
 
   <section class="fd-card fd-leads">
     <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: recorded next door, never in Japan{% endif %}</h2>
