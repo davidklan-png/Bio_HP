@@ -127,9 +127,11 @@ describe('fungi-dashboard: drill-down helpers', () => {
     assert.deepStrictEqual(fd.filterSpecies(list, 'all', 11).map((x) => x.n), ['Suillus granulatus', 'Aspergillus niger']);
     assert.deepStrictEqual(fd.filterSpecies(list, 'l', 12), []);
   });
-  it('flags areas where one site dominates the records', () => {
-    assert.deepStrictEqual(fd.samplingNote([['Oku', 3596], ['Yonaha Blue', 3321]], 11416), { name: 'Oku', share: 31 });
-    assert.strictEqual(fd.samplingNote([['Naha', 10]], 1000), null);
+  it('flags areas where one survey dominates the records (dominant_source = [title, share])', () => {
+    assert.deepStrictEqual(fd.samplingNote(['Okinawa fungal survey', 0.61]), { title: 'Okinawa fungal survey', share: 61 });
+    assert.strictEqual(fd.samplingNote(['Naha', 0.29]), null);
+    assert.strictEqual(fd.samplingNote(null), null); // field not shipped yet: renders exactly as today
+    assert.strictEqual(fd.samplingNote(['x']), null);
   });
   it('names months in both languages', () => {
     assert.strictEqual(fd.monthName(1, 'en'), 'Jan');
@@ -450,7 +452,7 @@ function realArea() {
   return { id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', name_ja: '沖縄本島',
     group_en: 'Okinawa', group_ja: '沖縄', bbox: [26.0, 26.9, 127.6, 128.4],
     totals: { records: 10, by_name: 0, species: 5, unresolved: 1, squares: 2 },
-    months: new Array(12).fill(0), top_localities: [], species: [], possible: [] };
+    months: new Array(12).fill(0), species: [], possible: [] };
 }
 
 // Codex review fixes on #46.
@@ -651,5 +653,24 @@ describe('readResearch accepts the names element', () => {
     assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], 'Amanita']])).ok, false);
     assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], [1]]])).ok, false);
     assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], [], []]])).ok, false);
+  });
+});
+
+// TASK-005: masking notice on name search; Where column hidden until habitat ships.
+describe('masking notice and hidden Where column (TASK-005)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  it('name search carries a persistent bilingual caption, repeated on empty results', () => {
+    assert.ok(/masking: \['/.test(src), 'bilingual T.masking entry exists');
+    assert.ok(src.includes(") : t('masking')"), 'an enabled name-search input shows the caption persistently');
+    assert.ok(src.includes("note(t('noResults') + ' ' + t('masking'))"), 'empty name results repeat the caption');
+  });
+  it('hides the Where column while has_habitat is false; groups keep listing islands', () => {
+    assert.ok(src.includes("var showWhere = a.kind === 'group' || (a.has_habitat !== false && !(state.index && state.index.has_habitat === false))"),
+      'per-area and index-level has_habitat both gate the column');
+    assert.ok(src.includes('if (showWhere) head.push(a.kind === \'group\' ? t(\'islands\') : t(\'where\'))'));
+    assert.ok(src.includes("var where = a.kind === 'group'"), 'groups still render their islands cell');
+  });
+  it('reads dominant_source, never top_localities', () => {
+    assert.ok(src.includes('samplingNote(a.dominant_source)') && !src.includes('top_localities'));
   });
 });

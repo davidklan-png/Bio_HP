@@ -190,11 +190,12 @@
       return (kind === 'all' || s.k === kind) && (!month || (s.m && s.m[month - 1] > 0));
     });
   }
-  // One locality holding 30%+ of an area's records means the list reflects a survey site, not the area.
-  function samplingNote(top, total) {
-    if (!top || !top.length || !total) return null;
-    var share = Math.round((100 * top[0][1]) / total);
-    return share >= 30 ? { name: top[0][0], share: share } : null;
+  // One survey holding 30%+ of an area's records means the list reflects that survey, not the
+  // area. dominant_source = [title, share 0–1]; ShroomHunt ships it with a later data publish,
+  // so absence must leave the note hidden exactly as before.
+  function samplingNote(src) {
+    if (!Array.isArray(src) || typeof src[0] !== 'string' || typeof src[1] !== 'number') return null;
+    return src[1] >= 0.3 ? { title: src[0], share: Math.round(src[1] * 100) } : null;
   }
   // Habitat column: habitat / host notes if any, else localities, plus the elevation range.
   function whereText(s, lang) {
@@ -483,7 +484,7 @@
     squares: ['squares', '区画'],
     byName: ['matched by place name', '地名で照合'],
     unresolved: ['not identified to species', '種まで未同定'],
-    sampling: ['Most records come from one survey site', '記録の多くが1か所の調査地に集中しています'],
+    sampling: ['≈{share}% of records in this area come from one survey ({title}).', 'この地域の記録の約{share}%は1つの調査（{title}）によるものです。'],
     streetLoading: ['Loading the street map…', '詳細地図を読み込み中…'],
     streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
     streetFail: ['Street map tiles are unavailable, so the simple map is back. Press Retry for the street map.', '詳細地図のタイルを取得できないため、簡易地図に戻りました。「再試行」で詳細地図に戻れます。'],
@@ -507,6 +508,7 @@
     geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
     genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
     genusNoIndex: ['Genus search is unavailable: the area list could not be loaded.', '地域一覧を読み込めないため、属名検索は利用できません。'],
+    masking: ['Some species are deliberately excluded from search and maps to protect sensitive sites and prevent over-collection.', '敏感な産地の保護と乱獲防止のため、一部の種は検索や地図から意図的に除外しています。'],
     searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
@@ -999,10 +1001,9 @@
   function renderArea() {
     var a = state.sel && state.sel.detail;
     if (!a) return;
-    var tot = a.totals;
-    var note = samplingNote(a.top_localities, tot.records);
+    var note = samplingNote(a.dominant_source);
     $('fd-area-note').hidden = !note;
-    if (note) $('fd-area-note').textContent = t('sampling') + ': ' + note.name + ' (' + note.share + '%).';
+    if (note) $('fd-area-note').textContent = t('sampling').replace('{share}', note.share).replace('{title}', note.title);
     syncFilters();
     var mmax = Math.max.apply(null, a.months);
     $('fd-area-months').innerHTML = a.months.map(function (v, i) {
@@ -1015,7 +1016,13 @@
     var spView = visibleRows(list, 300, state.allSp);
     $('fd-area-count').textContent = spView.hidden ? fmtInt(spView.rows.length) + ' ' + t('of') + ' ' + fmtInt(list.length) : fmtInt(list.length);
     moreButton('fd-area-more', list.length > 300, state.allSp, list.length, function () { state.allSp = !state.allSp; renderArea(); });
-    var head = [t('sp'), t('family'), t('rec'), t('months'), a.kind === 'group' ? t('islands') : t('where'), t('evidence')];
+    // The Where column waits for a governed habitat field: hidden while the publish
+    // (index-level has_habitat) or the area itself says none ships; groups keep
+    // listing member islands.
+    var showWhere = a.kind === 'group' || (a.has_habitat !== false && !(state.index && state.index.has_habitat === false));
+    var head = [t('sp'), t('family'), t('rec'), t('months')];
+    if (showWhere) head.push(a.kind === 'group' ? t('islands') : t('where'));
+    head.push(t('evidence'));
     $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 2 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       spView.rows.map(function (s) {
         var where = a.kind === 'group'
@@ -1023,7 +1030,7 @@
           : whereText(s, lang);
         var ev = Object.keys(s.e || {}).map(function (k) { return T['ev_' + k] ? t('ev_' + k) : k; }).join(', ');
         return '<tr><td><a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a></td><td>' +
-          esc(s.f) + '</td><td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td><td class="fd-where">' + esc(where) + '</td><td>' + esc(ev) + '</td></tr>';
+          esc(s.f) + '</td><td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td>' + (showWhere ? '<td class="fd-where">' + esc(where) + '</td>' : '') + '<td>' + esc(ev) + '</td></tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
 
     var poss = filterSpecies(a.possible || [], state.kind, state.month);
@@ -1297,7 +1304,9 @@
         input.disabled = !researchReady() || !state.index;
         input.placeholder = t('phGenus');
         $('fd-search-label').textContent = t('searchGenus');
-        note(input.disabled ? (researchReady() ? t('genusNoIndex') : t('genusUnavailable')) : '');
+        // Persistent caption under the name-search input: masked species never match,
+        // so the reader is told why (generic wording only, never a masked taxon).
+        note(input.disabled ? (researchReady() ? t('genusNoIndex') : t('genusUnavailable')) : t('masking'));
       }
     }
     function centreOn(p) {
@@ -1334,7 +1343,7 @@
             rows++;
           });
         });
-        if (!rows) { note(t('noResults')); return; }
+        if (!rows) { note(t('noResults') + ' ' + t('masking')); return; }
         if (more) {
           var li = doc.createElement('li');
           li.className = 'fd-search__more';
