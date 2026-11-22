@@ -969,6 +969,8 @@
     var b = $(id);
     b.hidden = !needed;
     if (!needed) return;
+    // textContent becomes the accessible name; drop the static aria-label from the include
+    b.removeAttribute('aria-label');
     b.textContent = expanded ? t('showFewer') : t('showAll') + ' (' + fmtInt(total) + ')';
     b.setAttribute('aria-expanded', String(expanded));
     b.onclick = toggle;
