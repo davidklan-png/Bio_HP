@@ -2,6 +2,9 @@
    so dark and light themes both work.
    styles.css re-asserts dark tokens on every Jekyll page, so the dashboard pins its own palette
    for each theme (values copied from site.css) instead of inheriting. */
+/* Author display rules (.fd-area grid, .fd-btn inline-flex + min sizes) beat the UA [hidden]
+   style, so #fd-area and the more-buttons rendered before JS filled them. This wins everything. */
+[hidden] { display: none !important; }
 .fd { --ink: #e8eef5; --muted: #8895a4; --line: #1f2a37; --line-strong: #2a3949; --panel: #10161e; --elev: #182230;
   --brand: #5eead4; --brand-soft: rgba(94, 234, 212, 0.12); --brand-line: rgba(94, 234, 212, 0.32); --amber: #f5b249; --rose: #fb7185;
   /* Sequential record-count buckets: every step holds 3:1 against the panel and the tinted "water";

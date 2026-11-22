@@ -681,3 +681,41 @@ describe('masking notice and hidden Where column (TASK-005)', () => {
     assert.ok(src.includes('samplingNote(a.dominant_source)') && !src.includes('top_localities'));
   });
 });
+
+// TASK-006: author display rules were beating the UA [hidden] style — #fd-area
+// rendered on load with empty tables and the label-less more-buttons showed as
+// empty 44x44 boxes. No browser in tests, so these are source-level assertions.
+describe('[hidden] stays hidden (TASK-006)', () => {
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  // Rule bodies never nest (media queries contribute their inner rules only).
+  const rules = (css.replace(/\/\*[\s\S]*?\*\//g, '').match(/[^{}]+\{[^{}]*\}/g) || [])
+    .map((r) => /^([^{}]+)\{([^{}]*)\}$/.exec(r).slice(1));
+  it('carries a global [hidden] { display: none !important; } rule', () => {
+    assert.ok(css.includes('[hidden] { display: none !important; }'));
+  });
+  it('no [hidden] selector sets a display other than none (nothing can beat the !important)', () => {
+    for (const [sel, decls] of rules) {
+      if (!sel.includes('[hidden]')) continue;
+      const display = /(^|;)\s*display\s*:\s*([^;!]+)/.exec(decls);
+      if (display) assert.strictEqual(display[2].split('!')[0].trim(), 'none', sel.trim());
+    }
+  });
+  it('every button in the include has a non-empty accessible name, hidden ones included', () => {
+    const liquid = /\{%-?[\s\S]*?-?%\}/g; // strip before judging emptiness: only one branch renders
+    const buttons = inc.match(/<button\b[\s\S]*?<\/button>/g) || [];
+    assert.ok(buttons.length >= 8, `parsed ${buttons.length} buttons`);
+    for (const b of buttons) {
+      const attrs = /^<button\b([^>]*)>/.exec(b)[1];
+      const id = /id="([^"]*)"/.exec(attrs)?.[1] || attrs.trim();
+      const aria = /aria-(?:label|labelledby)="([^"]*)"/.exec(attrs);
+      const name = aria ? aria[1].replace(liquid, '').trim()
+        : b.replace(/<[^>]*>/g, '').replace(liquid, '').trim();
+      assert.ok(name !== '', `button #${id} has no accessible name`);
+    }
+  });
+  it('#fd-area ships hidden in the include', () => {
+    const tag = /<section\b[^>]*\bid="fd-area"[^>]*>/.exec(inc);
+    assert.ok(tag && /\bhidden\b/.test(tag[0]), 'the area section must not render before JS fills it');
+  });
+});
