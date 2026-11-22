@@ -640,3 +640,16 @@ describe('street fills rebuild when the research slice changes', () => {
     assert.ok(fm.includes('rvKey !== lastRvKey'), 'slice change triggers buildFills');
   });
 });
+
+// PR #55 Codex P1: the reader must accept three-element genus rows (names).
+describe('readResearch accepts the names element', () => {
+  const fd = require('../assets/js/fungi-dashboard.js');
+  const base = (genera) => ({ schema_version: 1, snapshot: 'a'.repeat(64), slices: [], genera });
+  it('accepts two- and three-element rows; rejects malformed thirds', () => {
+    assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle']]])).ok, true);
+    assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], ['Amanita', 'テングタケ属']]])).ok, true);
+    assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], 'Amanita']])).ok, false);
+    assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], [1]]])).ok, false);
+    assert.strictEqual(fd.readResearch(base([['Amanita', ['okisle'], [], []]])).ok, false);
+  });
+});
