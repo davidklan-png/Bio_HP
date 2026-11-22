@@ -297,8 +297,10 @@
     });
     if (!sliceOk) return { ok: false };
     var genusOk = d.genera.every(function (g) {
-      return Array.isArray(g) && g.length === 2 && typeof g[0] === 'string' &&
-        Array.isArray(g[1]) && g[1].every(function (id) { return typeof id === 'string'; });
+      // rows are [genus, areas] or [genus, areas, [label_en, label_ja, alias, ...]] (additive, v1)
+      if (!Array.isArray(g) || (g.length !== 2 && g.length !== 3) || typeof g[0] !== 'string') return false;
+      if (!Array.isArray(g[1]) || !g[1].every(function (id) { return typeof id === 'string'; })) return false;
+      return g.length === 2 || (Array.isArray(g[2]) && g[2].every(function (n) { return typeof n === 'string'; }));
     });
     if (!genusOk) return { ok: false };
     return { ok: true, snapshot: d.snapshot, data: d };
