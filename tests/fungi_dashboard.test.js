@@ -814,11 +814,12 @@ describe('key-based GBIF links (TASK-007)', () => {
     assert.strictEqual((src.match(/taxon\/search/g) || []).length, 1, 'exactly one taxon/search constant');
   });
   it('routes every species-link render site through the helper', () => {
-    // Phase 1a added the Overview top-5 lists (gbifNameLink), so: definition +
-    // three table sites + the overview link builder
+    // TASK-010 moved the two area tables onto speciesNameCell (button + ↗ sibling; the
+    // degrade path reuses it), so the sites are: name cell, detail links, leads, overview.
     assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 5, 'one definition plus four call sites');
-    assert.ok(src.includes('gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n)'), 'area species table');
-    assert.ok(src.includes('gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n)'), 'could-be-found table');
+    assert.ok(src.includes('gbifTaxonUrl(colKey || undefined, legacyKey || undefined, name)'), 'species name cell');
+    assert.ok(src.includes('speciesNameCell(s.c, s.lk, s.n'), 'area species table renders the name cell');
+    assert.ok(src.includes('speciesNameCell(p.c, p.lk, p.n'), 'could-be-found table renders the name cell');
     assert.ok(src.includes('gbifTaxonUrl(l[5], l[6], l[0])'), 'leads table');
     assert.ok(src.includes('gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n)'), 'overview top-5 lists');
   });
@@ -844,7 +845,7 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-23-3'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-23-4'), 'CSS stamp bumped');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -1038,5 +1039,224 @@ describe('TASK-009: data and method section (six subsections, both languages)', 
     const ja = inc.includes('隠している種名を公表することはありません');
     const en = inc.includes('Masked taxa are never named here');
     assert.ok(ja || en, 'the no-naming promise must read in the rendered language');
+  });
+});
+
+// TASK-010 (spec item 8): inline species details behind name toggles, ⚠/固有 markers,
+// the GBIF ↗ sibling link and #species-<key> deep links, fed by the per-genus species
+// bundles ShroomHunt publishes under species/ (index.json + <genus-slug>.json).
+describe('TASK-010: species bundle readers', () => {
+  it('readSpeciesIndex accepts the published index shape and rejects anything else', () => {
+    const good = { schema_version: 1, snapshot: 'a'.repeat(64), generated: '2026-11-22', genera: 2, species: 3,
+      files: { amanita: { sha256: 'b'.repeat(64), bytes: 100, species: 2 } } };
+    const r = fd.readSpeciesIndex(good);
+    assert.strictEqual(r.ok, true);
+    assert.deepStrictEqual(Object.keys(r.files), ['amanita']);
+    for (const bad of [{}, { schema_version: 1 }, { schema_version: 0, files: {} }, { schema_version: 1, files: [] }, { schema_version: 1, files: 'x' }, null])
+      assert.strictEqual(fd.readSpeciesIndex(bad).ok, false, JSON.stringify(bad));
+  });
+  it('readSpeciesGenus accepts the published genus shape and rejects anything else', () => {
+    const good = { genus: 'Amanita', schema_version: 1, species: [{ key: '5TYZ9', name: 'Amanita muscaria' }] };
+    assert.strictEqual(fd.readSpeciesGenus(good).ok, true);
+    assert.strictEqual(fd.readSpeciesGenus(good).entries[0].name, 'Amanita muscaria');
+    for (const bad of [{}, { genus: 'A' }, { schema_version: 1 }, { schema_version: 0, species: [] }, { schema_version: 1, species: {} }, { schema_version: 1, species: ['x'] }, null])
+      assert.strictEqual(fd.readSpeciesGenus(bad).ok, false, JSON.stringify(bad));
+  });
+  it('speciesSlugFor takes the lowercase first token of the name', () => {
+    assert.strictEqual(fd.speciesSlugFor('Amanita muscaria var. alba'), 'amanita');
+    assert.strictEqual(fd.speciesSlugFor('  Russula '), 'russula');
+    assert.strictEqual(fd.speciesSlugFor('X'), 'x');
+    assert.strictEqual(fd.speciesSlugFor(''), null);
+    assert.strictEqual(fd.speciesSlugFor(null), null);
+  });
+  it('findSpeciesEntry matches the COL key, then the legacy key, then the exact name', () => {
+    const entries = [
+      { key: '5TYZ9', legacy_key: null, name: 'Amanita muscaria' },
+      { key: null, legacy_key: '8961574', name: 'Amanita pantherina' },
+      { key: '65ZFG', legacy_key: null, name: 'Amanita eijii' }
+    ];
+    assert.strictEqual(fd.findSpeciesEntry(entries, '5TYZ9', null, 'wrong name').name, 'Amanita muscaria');
+    assert.strictEqual(fd.findSpeciesEntry(entries, null, '8961574', 'wrong name').name, 'Amanita pantherina');
+    assert.strictEqual(fd.findSpeciesEntry(entries, null, null, 'Amanita eijii').name, 'Amanita eijii');
+    assert.strictEqual(fd.findSpeciesEntry(entries, 'ZZZ', '999', 'nope'), null);
+    assert.strictEqual(fd.findSpeciesEntry(null, '5TYZ9', null, 'x'), null);
+  });
+});
+
+describe('TASK-010: markers gate on the flags', () => {
+  it('speciesMarkers is all-false for a bare entry', () => {
+    assert.deepStrictEqual(fd.speciesMarkers({ external: { mhlw_url: null, endemic_hosoya2016: false } }), { toxic: false, endemic: false });
+    assert.deepStrictEqual(fd.speciesMarkers({}), { toxic: false, endemic: false });
+    assert.deepStrictEqual(fd.speciesMarkers(null), { toxic: false, endemic: false });
+  });
+  it('toxic needs a truthy mhlw_url; endemic needs exactly true', () => {
+    assert.strictEqual(fd.speciesMarkers({ external: { mhlw_url: 'https://www.mhlw.go.jp/x' } }).toxic, true);
+    assert.strictEqual(fd.speciesMarkers({ external: { mhlw_url: '' } }).toxic, false);
+    assert.strictEqual(fd.speciesMarkers({ external: { endemic_hosoya2016: true } }).endemic, true);
+    assert.strictEqual(fd.speciesMarkers({ external: { endemic_hosoya2016: 1 } }).endemic, false);
+    assert.strictEqual(fd.speciesMarkers({ external: { endemic_hosoya2016: 'yes' } }).endemic, false);
+  });
+  it('markersHtml emits each marker only when true, with aria-labels in both languages', () => {
+    assert.strictEqual(fd.markersHtml({ toxic: false, endemic: false }, 'en'), '');
+    const toxic = fd.markersHtml({ toxic: true, endemic: false }, 'en');
+    assert.ok(toxic.includes('⚠'), 'the ⚠ glyph');
+    assert.ok(toxic.includes('aria-label="Toxic: see the MHLW risk profile"'));
+    assert.ok(toxic.includes('title="Toxic: see the MHLW risk profile"'), 'tooltip carries the same text');
+    assert.ok(!toxic.includes('固有'), 'no endemic marker');
+    const endemic = fd.markersHtml({ toxic: false, endemic: true }, 'ja');
+    assert.ok(endemic.includes('>固有<'));
+    assert.ok(endemic.includes('aria-label="2016年の保全状況に基づく固有種（細矢ほか 2016）"'));
+    const both = fd.markersHtml({ toxic: true, endemic: true }, 'ja');
+    assert.ok(both.includes('⚠') && both.includes('固有'));
+    assert.ok(both.includes('aria-label="毒：厚労省のリスクプロファイル参照"'));
+  });
+});
+
+describe('TASK-010: details row assembly', () => {
+  const full = {
+    key: '5TYZ9', legacy_key: null, name: 'Amanita muscaria', name_ja: 'ベニテングタケ',
+    family: 'Amanitaceae', order: 'Agaricales', class: 'Agaricomycetes', kind: 'm',
+    records_by_tier: { s: 41, d: 2, o: 7 }, fruiting_months: [0, 0, 0, 0, 3, 9, 14, 8, 0, 0, 0, 0],
+    area_ids: ['t1', 't2', 't3'], elevation_band: null, host_genera: null, east_asia: true,
+    could_be_found_area_ids: [], first_decade: 1900, last_decade: 2020,
+    external: {
+      wikidata_qid: 'Q131262',
+      wikipedia_ja: 'https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%8B%E3%83%86%E3%83%B3%E3%82%B0%E3%82%BF%E3%82%B1',
+      wikipedia_en: 'https://en.wikipedia.org/wiki/Amanita_muscaria',
+      photo: { thumb_url: 'https://commons.wikimedia.org/w/thumb.php?f=X.jpg&w=96',
+        file_page: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+        author: 'Dan Molter', licence: 'CC BY-SA 3.0',
+        licence_url: 'https://creativecommons.org/licenses/by-sa/3.0' },
+      mhlw_url: 'https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/shokuhin/syokuchu/poison/index.html',
+      endemic_hosoya2016: false,
+      literature: [
+        { doi: 'https://doi.org/10.2307/j.1', title: 'First study', year: 1999 },
+        { doi: 'https://doi.org/10.2307/j.2', title: 'Second study', year: 2011 }
+      ],
+      mushroomexpert_url: 'https://www.mushroomexpert.com/amanita_muscaria.html', mushroomexpert_level: 'species'
+    }
+  };
+  it('renders the photo credit line: author · licence link · file link (only when photo present)', () => {
+    const html = fd.speciesDetailsHtml(full, 'en', 0);
+    assert.ok(html.includes('<img src="https://commons.wikimedia.org/w/thumb.php?f=X.jpg&amp;w=96"'));
+    assert.ok(html.includes('Dan Molter'));
+    assert.ok(html.includes('href="https://creativecommons.org/licenses/by-sa/3.0"'));
+    assert.ok(html.includes('CC BY-SA 3.0</a>'));
+    assert.ok(html.includes('href="https://commons.wikimedia.org/wiki/File:X.jpg"'));
+    const bare = fd.speciesDetailsHtml({ ...full, external: { wikidata_qid: null } }, 'en', 0);
+    assert.ok(!bare.includes('<img'), 'no photo, no image element');
+    assert.ok(!bare.includes('Dan Molter'));
+  });
+  it('renders the link row only-if-present, Wikipedia ja preferred over en', () => {
+    const html = fd.speciesDetailsHtml(full, 'en', 0);
+    assert.ok(html.includes('href="https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%8B%E3%83%86%E3%83%B3%E3%82%B0%E3%82%BF%E3%82%B1"'));
+    assert.ok(!html.includes('href="https://en.wikipedia.org/wiki/Amanita_muscaria"'), 'ja link wins when present');
+    assert.ok(html.includes('href="https://www.gbif.org/taxon/5TYZ9"'), 'GBIF link from the COL key');
+    assert.ok(html.includes('href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/shokuhin/syokuchu/poison/index.html"'));
+    assert.ok(html.includes('Literature (2)'), 'the literature count');
+    assert.ok(html.includes('href="https://doi.org/10.2307/j.1"') && html.includes('href="https://doi.org/10.2307/j.2"'));
+    assert.ok(html.includes('MushroomExpert (North America)'));
+    assert.ok(html.includes('href="https://www.mushroomexpert.com/amanita_muscaria.html"'));
+    const enOnly = fd.speciesDetailsHtml({ ...full, external: { ...full.external, wikipedia_ja: null } }, 'en', 0);
+    assert.ok(enOnly.includes('href="https://en.wikipedia.org/wiki/Amanita_muscaria"'), 'en link is the fallback');
+    const legacyOnly = fd.speciesDetailsHtml({ ...full, key: null, legacy_key: 7571796, external: {} }, 'en', 0);
+    assert.ok(legacyOnly.includes('href="https://www.gbif.org/species/7571796"'), 'legacy key falls through');
+    assert.ok(legacyOnly.includes('>GBIF</a>'), 'GBIF stays even with no external sources');
+    for (const gone of ['Wikipedia', 'MHLW', 'Literature', 'MushroomExpert'])
+      assert.ok(!legacyOnly.includes('>' + gone), 'no ' + gone + ' link without a source');
+  });
+  it('carries the fixed not-for-edibility line in both languages', () => {
+    assert.ok(fd.speciesDetailsHtml(full, 'en', 0).includes('Not for deciding whether a mushroom is edible.'));
+    assert.ok(fd.speciesDetailsHtml(full, 'ja', 0).includes('食用可否の判断に用いないでください。'));
+    assert.ok(fd.speciesDetailsHtml({ key: 'X', name: 'Bare' , external: {} }, 'en', 0).includes('Not for deciding whether a mushroom is edible.'));
+  });
+  it('assembles the fact line: tiers · month strip · area count · East Asia, endemic note only when true', () => {
+    const html = fd.speciesDetailsHtml(full, 'en', 6);
+    assert.ok(html.includes('41 specimen'));
+    assert.ok(html.includes('2 DNA') && html.includes('7 sighting'));
+    assert.ok(html.includes('fd-ms'), 'the month strip is reused');
+    assert.ok(html.includes('3 areas'));
+    assert.ok(html.includes('Recorded in neighbouring East Asia: yes'));
+    assert.ok(!html.includes('Endemic as of 2016'), 'no endemic note when the flag is false');
+    const ja = fd.speciesDetailsHtml({ ...full, east_asia: false, external: { endemic_hosoya2016: true, wikipedia_en: null } }, 'ja', 0);
+    assert.ok(ja.includes('近隣の東アジアでの記録：なし'));
+    assert.ok(ja.includes('2016年時点の固有種（細矢ほか 2016）'), 'the endemic note beside the East Asia line');
+    assert.ok(ja.includes('3地域'));
+  });
+});
+
+describe('TASK-010: name cell, degradation and the ↗ link', () => {
+  it('renders a button toggle with the GBIF ↗ sibling and data attributes', () => {
+    const html = fd.speciesNameCell('5TYZ9', null, 'Amanita muscaria', false, 'en');
+    assert.ok(html.includes('<button type="button" class="fd-name-toggle" aria-expanded="false"'));
+    assert.ok(html.includes('data-sp-col="5TYZ9"') && html.includes('data-sp-legacy=""') && html.includes('data-sp-name="Amanita muscaria"'));
+    assert.ok(html.includes('<i>Amanita muscaria</i>'));
+    const arrow = /<a class="fd-gbif"[^>]*>/.exec(html)[0];
+    assert.ok(arrow.includes('href="https://www.gbif.org/taxon/5TYZ9"'));
+    assert.ok(arrow.includes('aria-label="Open in GBIF (new tab)"'));
+    assert.ok(arrow.includes('target="_blank"'));
+    const ja = fd.speciesNameCell(null, 8961574, 'Amanita pantherina', false, 'ja');
+    assert.ok(ja.includes('aria-label="GBIFで開く（新しいタブ）"'));
+    assert.ok(ja.includes('href="https://www.gbif.org/species/8961574"'));
+  });
+  it('degrades to the plain linked name when the bundles are unavailable', () => {
+    const html = fd.speciesNameCell('5TYZ9', null, 'Amanita muscaria', true, 'en');
+    assert.ok(html.startsWith('<a '), 'a plain anchor, no button');
+    assert.ok(!html.includes('fd-name-toggle') && !html.includes('fd-gbif'));
+    assert.ok(html.includes('href="https://www.gbif.org/taxon/5TYZ9"'));
+    assert.ok(html.includes('<i>Amanita muscaria</i>'));
+  });
+});
+
+describe('TASK-010: #species- deep links', () => {
+  it('parseSpeciesHash accepts COL and legacy keys, rejects everything else', () => {
+    assert.strictEqual(fd.parseSpeciesHash('#species-5TYZ9'), '5TYZ9');
+    assert.strictEqual(fd.parseSpeciesHash('species-8961574'), '8961574');
+    assert.strictEqual(fd.parseSpeciesHash('#species-ABCdef123'), 'ABCdef123');
+    for (const bad of ['#species-', '#SPECIES-x', '#species-x_y', '#species-x y', '#area-x', '#species', '', '#foo'])
+      assert.strictEqual(fd.parseSpeciesHash(bad), null, bad);
+  });
+  it('routes species hashes to the deep-link attempt inside the hash router', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(/routeFromLocation[\s\S]*?parseSpeciesHash\(h\)[\s\S]*?trySpeciesHash\(\)/.test(src),
+      'routeFromLocation parses species hashes and attempts the deep link');
+    assert.ok(src.includes('scrollIntoView({ block: \'center\' })'), 'an opened deep link scrolls into view');
+    assert.ok(src.includes('st(\'noPage\', lang)'), 'unresolvable keys get the no-page line');
+  });
+  it('shows the no-page card without saying why (both languages)', () => {
+    assert.strictEqual(fd.st('noPage', 'en'), 'No public page for this taxon');
+    assert.strictEqual(fd.st('noPage', 'ja'), 'この分類群の公開ページはありません');
+  });
+});
+
+describe('TASK-010: interaction and network wiring (source-level)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  it('one detail row open at a time; a second click on the same toggle closes it', () => {
+    assert.ok(/function toggleSpecies\(btn\) \{[\s\S]*?if \(openDetail && openDetail\.btn === btn\) return closeSpeciesDetail\(\);[\s\S]*?closeSpeciesDetail\(\);/.test(src),
+      'the open path closes any other row first and re-clicks close');
+  });
+  it('Esc closes the detail row and the card before the preview and the area', () => {
+    const esc = /doc\.addEventListener\('keydown', function \(e\) \{[\s\S]*?\}\);/.exec(src)[0];
+    const iDetail = esc.indexOf('closeSpeciesDetail()');
+    const iCard = esc.indexOf('hideSpeciesCard()');
+    const iPreview = esc.indexOf("var pv = $('fd-preview')");
+    assert.ok(iDetail >= 0 && iCard > iDetail && iPreview > iCard, 'detail row → card → preview → area');
+  });
+  it('tables delegate toggle clicks, so rebuilt rows keep working', () => {
+    assert.ok(src.includes("'fd-area-species', 'fd-area-possible'"), 'both tables delegate');
+    assert.ok(src.includes("e.target.closest('.fd-name-toggle')"), 'the delegate resolves the toggle');
+  });
+  it('loaded genus files backfill markers onto every matching row', () => {
+    assert.ok(/function backfillMarkers\(slug, entries\)[\s\S]*?insertAdjacentHTML\('beforeend'/.test(src));
+  });
+  it('makes no browser calls to Wikidata, Commons or Wikipedia APIs', () => {
+    for (const banned of ['api.wikidata', 'commons.wikimedia.org/w/api.php', 'wikipedia.org/w/api.php', 'query.wikidata', 'specimen?'])
+      assert.ok(!src.includes(banned), 'no ' + banned + ' API calls');
+    assert.ok(src.includes("base + 'species/index.json'") && src.includes("base + 'species/' + encodeURIComponent(slug)"),
+      'the only species fetches are the bundle index and genus files');
+  });
+  it('the include ships the deep-link card container', () => {
+    assert.ok(inc.includes('id="fd-species-card"'));
   });
 });

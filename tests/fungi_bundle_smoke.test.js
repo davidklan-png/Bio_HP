@@ -42,4 +42,15 @@ describe('fungi bundle smoke: the shipped files load through the page readers', 
   it('mesh-research.json validates', { skip }, () => {
     assert.strictEqual(fd.readResearch(load('mesh-research.json')).ok, true);
   });
+  // TASK-010: the species bundles are optional until the next data publish ships;
+  // when present, the index and a sample of genus files must pass the page readers.
+  const speciesSkip = (!existsSync(bundleDir) && 'shroomhunt bundle directory absent') ||
+    (!existsSync(new URL('species/index.json', bundleDir)) && 'species bundles not shipped yet');
+  it('species/index.json and its genus files validate', { skip: speciesSkip }, () => {
+    const idx = fd.readSpeciesIndex(load('species/index.json'));
+    assert.strictEqual(idx.ok, true);
+    const slugs = Object.keys(idx.files).sort().slice(0, 5);
+    assert.ok(slugs.length > 0, 'the bundle must ship at least one genus file');
+    for (const s of slugs) assert.strictEqual(fd.readSpeciesGenus(load('species/' + s + '.json')).ok, true, s);
+  });
 });
