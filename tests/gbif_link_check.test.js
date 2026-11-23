@@ -34,6 +34,12 @@ describe('gbif link check: sampler', () => {
     const many = sampleGbifUrls({ dashboard: { leads: Array.from({ length: 50 }, (_, i) => lead(i + 1, null)) }, areas: [] }, 10);
     assert.strictEqual(many.length, 10);
   });
+  it('keeps lead links in the sample when every URL is a name search (PR #59 review)', () => {
+    const all = (p) => ({ species: Array.from({ length: 40 }, (_, i) => ({ n: p + i })), possible: [] });
+    const lead = ['Phallus lutescens', 'Phallaceae', 196, 2, 'genus known in Japan', undefined, undefined];
+    const urls = sampleGbifUrls({ dashboard: { leads: [lead] }, areas: [all('a'), all('b')] }, 10);
+    assert.ok(urls.includes('https://www.gbif.org/taxon/search?q=Phallus%20lutescens'));
+  });
   it('caps each kind bucket, tops short buckets up with search URLs and dedupes', () => {
     const all = (p) => ({ species: Array.from({ length: 40 }, (_, i) => ({ n: p + i })), possible: [] });
     const urls = sampleGbifUrls({ dashboard: { leads: [] }, areas: [all('a'), all('b')] }, 10);

@@ -36,7 +36,9 @@ export function sampleGbifUrls({ dashboard, areas }, perKind = 10) {
   const leads = spread(((dashboard && dashboard.leads) || []).map((l) => [l[5] || undefined, l[6] || undefined, l[0]]), perKind);
   const buckets = { taxon: [], species: [], search: [] };
   const spare = []; // keyless rows beyond the search cap: they refill the total
-  for (const args of [...spread(rows, perKind * 4), ...leads]) {
+  // leads first (PR #59 review): with keyless payloads every URL is a search, so
+  // area rows would fill the bucket and spare before any lead link is checked
+  for (const args of [...leads, ...spread(rows, perKind * 4)]) {
     if (args[2] == null) continue; // a row without a name can't produce a link
     const kind = args[0] ? 'taxon' : args[1] ? 'species' : 'search';
     if (buckets[kind].length < perKind) buckets[kind].push(gbifTaxonUrl(...args));
