@@ -610,10 +610,13 @@ describe('product round: app identity and layout', () => {
     assert.ok(inc.includes('Shroom Hunter') && inc.includes('シュルームハンター'));
     assert.ok(!inc.includes('What fungi are recorded in Japan'));
   });
-  it('map section capped; stats cards moved below the area records', () => {
-    assert.ok(inc.indexOf('id="fd-area"') < inc.indexOf('fd-bottom'), 'area section precedes the bottom stats');
-    assert.ok(inc.indexOf('fd-bottom') < inc.indexOf('What the evidence is'.replace('What the evidence is', 'fd-evidence')));
-    assert.ok(/\.fd-grid \{[^}]*max-width/.test(css), 'map region has a max width');
+  it('workspace: map column + inspector side by side; national stats below (TASK-007)', () => {
+    assert.ok(inc.includes('class="fd-workspace"') && inc.includes('class="fd-mapcol"'));
+    assert.ok(inc.indexOf('fd-mapcol') < inc.indexOf('fd-inspector'), 'map left, inspector right');
+    assert.ok(inc.indexOf('id="fd-area"') < inc.indexOf('fd-national'), 'the inspector precedes the national stats');
+    assert.ok(!css.includes('max-width: 920px'), 'the 920 px product-round cap is gone');
+    assert.ok(css.includes('@media (min-width: 1024px)'), 'two columns from 1024 px');
+    assert.ok(css.includes('minmax(0, 1.4fr) minmax(360px, 1fr)'), 'the task column widths');
   });
   it('kind slicer removed; month remains', () => {
     assert.ok(!inc.includes('data-fd-kind'));
@@ -671,14 +674,85 @@ describe('masking notice and hidden Where column (TASK-005)', () => {
     assert.ok(src.includes(") : t('masking')"), 'an enabled name-search input shows the caption persistently');
     assert.ok(src.includes("note(t('noResults') + ' ' + t('masking'))"), 'empty name results repeat the caption');
   });
-  it('hides the Where column while has_habitat is false; groups keep listing islands', () => {
-    assert.ok(src.includes("var showWhere = a.kind === 'group' || (a.has_habitat !== false && !(state.index && state.index.has_habitat === false))"),
-      'per-area and index-level has_habitat both gate the column');
-    assert.ok(src.includes('if (showWhere) head.push(a.kind === \'group\' ? t(\'islands\') : t(\'where\'))'));
-    assert.ok(src.includes("var where = a.kind === 'group'"), 'groups still render their islands cell');
+  it('hides the Where column while has_habitat is false; groups show islands as a row subline (TASK-007)', () => {
+    assert.ok(src.includes("var showWhere = a.kind !== 'group' && (a.has_habitat !== false && !(state.index && state.index.has_habitat === false))"),
+      'per-area and index-level has_habitat both gate the column; groups never get one');
+    assert.ok(src.includes("if (showWhere) head.push(t('where'))"));
+    assert.ok(src.includes("a.kind === 'group'"), 'groups still render their member islands');
   });
   it('reads dominant_source, never top_localities', () => {
     assert.ok(src.includes('samplingNote(a.dominant_source)') && !src.includes('top_localities'));
+  });
+});
+
+// TASK-007: workspace layout — inspector aggregates, tabs, history actions.
+describe('TASK-007: inspector aggregates', () => {
+  const species = [
+    { n: 'A', f: 'Russulaceae', r: 10, e: { s: 6, d: 4 } },
+    { n: 'B', f: 'Russulaceae', r: 7, e: { s: 7 } },
+    { n: 'C', f: 'Amanitaceae', r: 9, e: { o: 9 } },
+    { n: 'D', f: 'Amanitaceae', r: 9, e: {} },
+    { n: 'E', r: 3 }
+  ];
+  it('areaEvidenceMix sums each row evidence and sorts by records desc', () => {
+    assert.deepStrictEqual(fd.areaEvidenceMix(species), [['s', 13], ['o', 9], ['d', 4]]);
+  });
+  it('areaEvidenceMix tolerates rows without evidence and empty input', () => {
+    assert.deepStrictEqual(fd.areaEvidenceMix([{ r: 1 }, { e: null }]), []);
+    assert.deepStrictEqual(fd.areaEvidenceMix(null), []);
+  });
+  it('topFamilies counts species and records per family, ties broken by records', () => {
+    assert.deepStrictEqual(fd.topFamilies(species, 3),
+      [['Amanitaceae', 2, 18], ['Russulaceae', 2, 17]]);
+    assert.deepStrictEqual(fd.topFamilies(species, 1), [['Amanitaceae', 2, 18]]);
+  });
+  it('topFamilies skips rows without a family and defaults to six rows', () => {
+    assert.deepStrictEqual(fd.topFamilies([{ f: 'F', r: 1 }, { r: 1 }], 6), [['F', 1, 1]]);
+    const many = Array.from({ length: 9 }, (_, i) => ({ f: 'F' + i, r: 1 }));
+    assert.strictEqual(fd.topFamilies(many).length, 6);
+    assert.deepStrictEqual(fd.topFamilies(null), []);
+  });
+});
+
+describe('TASK-007: inspector tabs', () => {
+  it('wraps forward and backward through Overview, Recorded, Possible', () => {
+    assert.strictEqual(fd.nextTab('overview', 1), 'recorded');
+    assert.strictEqual(fd.nextTab('recorded', 1), 'possible');
+    assert.strictEqual(fd.nextTab('possible', 1), 'overview');
+    assert.strictEqual(fd.nextTab('overview', -1), 'possible');
+    assert.strictEqual(fd.nextTab('recorded', -1), 'overview');
+  });
+  it('falls back to the first tab for unknown names', () => {
+    assert.strictEqual(fd.nextTab('bogus', 1), 'recorded');
+    assert.strictEqual(fd.nextTab(null, 1), 'recorded');
+  });
+  it('ships a tablist with three tabs, panels and a roving tabindex', () => {
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+    assert.ok(inc.includes('role="tablist"'));
+    for (const n of ['overview', 'recorded', 'possible']) {
+      assert.ok(inc.includes('id="fd-tab-' + n + '"'), 'tab ' + n);
+      assert.ok(inc.includes('id="fd-panel-' + n + '"'), 'panel ' + n);
+    }
+    const recorded = /<button[^>]*id="fd-tab-recorded"[^>]*>/.exec(inc)[0];
+    assert.ok(recorded.includes('tabindex="-1"'), 'inactive tabs start out of the tab order');
+    assert.ok(recorded.includes('aria-controls="fd-panel-recorded"'));
+  });
+});
+
+describe('TASK-007: history actions', () => {
+  it('maps sources to push, replace or no write', () => {
+    assert.strictEqual(fd.historyAction('init'), 'replace'); // deep-link load keeps one entry
+    assert.strictEqual(fd.historyAction('popstate'), null);  // Back/Forward never re-pushes
+    for (const s of ['picker', 'tap', 'suggestion', 'search', 'preview', undefined])
+      assert.strictEqual(fd.historyAction(s), 'push', 'source ' + s);
+  });
+  it('selectArea routes every history write through historyAction, clearArea pushes', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(/var act = historyAction\(source\)/.test(src), 'one decision point');
+    assert.ok(src.includes("root.history[act + 'State']"), 'act picks push vs replace');
+    assert.ok(/clearArea[\s\S]*?pushState/.test(src), 'the crumb clear pushes the bare path');
+    assert.ok(src.includes("addEventListener('popstate'"), 'popstate listener wired');
+    assert.ok(src.includes("addEventListener('hashchange'"), 'hashchange listener wired');
   });
 });
 
@@ -739,10 +813,13 @@ describe('key-based GBIF links (TASK-007)', () => {
     assert.ok(!src.includes('species/search'), 'the legacy /species/search?q= pattern must be gone');
     assert.strictEqual((src.match(/taxon\/search/g) || []).length, 1, 'exactly one taxon/search constant');
   });
-  it('routes all three render sites through the helper', () => {
-    assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 4, 'one definition plus exactly three call sites');
+  it('routes every species-link render site through the helper', () => {
+    // Phase 1a added the Overview top-5 lists (gbifNameLink), so: definition +
+    // three table sites + the overview link builder
+    assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 5, 'one definition plus four call sites');
     assert.ok(src.includes('gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n)'), 'area species table');
     assert.ok(src.includes('gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n)'), 'could-be-found table');
     assert.ok(src.includes('gbifTaxonUrl(l[5], l[6], l[0])'), 'leads table');
+    assert.ok(src.includes('gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n)'), 'overview top-5 lists');
   });
 });
