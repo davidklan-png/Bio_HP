@@ -172,12 +172,19 @@
       detectRetina: false, keepBuffer: 0, updateWhenIdle: true, updateWhenZooming: false
     });
     var loaded = 0, errored = 0, watchdog = null, settled = false;
-    var themeObs = null;
+    var themeObs = null, sizeObs = null;
+    // Container resizes that are not window resizes (the workspace grid reflows across
+    // 1024 px): Leaflet's trackResize only watches the window, so feed it invalidateSize.
+    if (root.ResizeObserver) {
+      sizeObs = new root.ResizeObserver(function () { view.invalidateSize(); });
+      sizeObs.observe(el);
+    }
     function close(kind) {
       if (!req.isCurrent(token)) return;
       if (watchdog) { clearTimeout(watchdog); watchdog = null; }
       req.start(null); // later tile callbacks belong to a dead session
       if (themeObs) themeObs.disconnect();
+      if (sizeObs) sizeObs.disconnect();
       view.remove();
       el.hidden = true;
       active = null;
