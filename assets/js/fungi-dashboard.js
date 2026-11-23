@@ -382,6 +382,68 @@
       return areas.length ? { genus: g[0], label: g[2] && g[2][1] ? g[0] + ' · ' + g[2][1] : g[0], matched: hit, areas: areas } : null;
     }).filter(Boolean).slice(0, cap);
   }
+  // ---- unified search (TASK-008): one combobox over index areas, reference-geography
+  // places and reviewed genera. Areas match on name_en/name_ja through foldQuery
+  // (case- and diacritic-insensitive, JA included); rank exact > prefix > substring,
+  // picker order (groups, islands, tiles — each south-to-north) within a rank.
+  function isLatinQuery(q) { return /^[a-z]{3,}$/.test(foldQuery(q)); }
+  function areaMatches(areas, q) {
+    var needle = foldQuery(q);
+    if (!needle || !areas) return [];
+    var kindOrder = { group: 0, island: 1, tile: 2 };
+    return areas
+      .filter(function (a) { return a.name_en || a.name_ja; }) // a nameless tile never surfaces
+      .map(function (a) {
+        var rank = 3;
+        [a.name_en, a.name_ja].forEach(function (nm) {
+          var f = foldQuery(nm);
+          if (!f) return;
+          if (f === needle) rank = 0;
+          else if (f.indexOf(needle) === 0) rank = Math.min(rank, 1);
+          else if (f.indexOf(needle) >= 0) rank = Math.min(rank, 2);
+        });
+        return rank < 3 ? { area: a, rank: rank } : null;
+      })
+      .filter(Boolean)
+      .sort(function (x, y) {
+        return x.rank - y.rank || (kindOrder[x.area.kind] - kindOrder[y.area.kind]) || (x.area.bbox[0] - y.area.bbox[0]);
+      })
+      .map(function (x) { return { area: x.area }; });
+  }
+  // The empty state (focus, no query): the dropdown's former contents, same order as
+  // the old setupPicker() — island groups then islands, each south-to-north. No cap.
+  function suggestGroups(areas) {
+    var byLat = function (a, b) { return a.bbox[0] - b.bbox[0]; };
+    var wrap = function (rows) { return rows.map(function (a) { return { area: a }; }); };
+    var out = [];
+    var groups = (areas || []).filter(function (a) { return a.kind === 'group'; }).sort(byLat);
+    var islands = (areas || []).filter(function (a) { return a.kind === 'island'; }).sort(byLat);
+    if (groups.length) out.push({ group: 'groups', items: wrap(groups), more: 0 });
+    if (islands.length) out.push({ group: 'islands', items: wrap(islands), more: 0 });
+    return out;
+  }
+  // One query, three sources: {areas: index rows|null, places: geography|null,
+  // genera: research rows|null} → [{group: 'areas'|'places'|'genera', items, more}],
+  // in that order, each capped at `limit` (8) with the overflow counted in `more`.
+  // Items: {area} | {place, rank} | {genus, label, areaId} — one option per genus × area.
+  function searchAll(query, src, limit) {
+    var cap = limit == null ? 8 : limit;
+    src = src || {};
+    function cut(group, items) {
+      return { group: group, items: items.slice(0, cap), more: Math.max(0, items.length - cap) };
+    }
+    var groups = [];
+    var areas = areaMatches(src.areas, query);
+    if (areas.length) groups.push(cut('areas', areas));
+    var places = searchPlaces(src.places, query, Infinity);
+    if (places.length) groups.push(cut('places', places));
+    var genera = [];
+    genusResults(src.genera, query, { areas: src.areas }, Infinity).forEach(function (g) {
+      g.areas.forEach(function (id) { genera.push({ genus: g.genus, label: g.label, areaId: id }); });
+    });
+    if (genera.length) groups.push(cut('genera', genera));
+    return groups;
+  }
   function readMapReference(d) {
     if (!isObj(d) || d.schema_version !== 1 || !isObj(d.source) || !Array.isArray(d.bbox) ||
       d.bbox.length !== 4 || !Array.isArray(d.land) || !Array.isArray(d.places)) return { ok: false };
@@ -504,6 +566,7 @@
     readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
     foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
+    isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll,
     tapTransition: tapTransition, tapGuard: tapGuard,
     areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, nextTab: nextTab, historyAction: historyAction,
     STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
@@ -551,16 +614,19 @@
     researchWithheld: ['withheld', '非公開'],
     researchOn: ['Research view on: squares are coloured by estimated records for the selected month and kind.', 'リサーチ表示オン：区画を選択した月・種類の推定記録数で色分けしました。'],
     researchOff: ['Research view off: squares show all-time records again.', 'リサーチ表示オフ：区画は全期間の記録数表示に戻りました。'],
-    searchPlace: ['Search places', '地名を検索'],
-    searchGenus: ['Search by name: Latin genus, English or Japanese common name', '名前で検索：属名・英名・和名'],
-    phPlace: ['e.g. Naha, 屋久島', '例：Naha、屋久島'],
-    phGenus: ['e.g. Amanita, matsutake, テングタケ', '例：Amanita、マツタケ、テングタケ'],
+    searchCount: ['results', '件の結果'],
+    searchUnavailable: ['Search is unavailable: neither the area list nor the place names could be loaded.', '地域一覧も地名データも読み込めないため、検索は利用できません。'],
+    sgAreas: ['Areas', '地域'],
+    sgPlaces: ['Places', '地名'],
+    sgGenera: ['Genera', '属名'],
+    sgGroups: ['Island groups', '島しょ群'],
+    sgIslands: ['Islands', '島'],
+    genusLoad: ['Search genus names (loads research data)', '属名を検索する（リサーチデータを読み込む）'],
+    moreCount: ['+{n} more', '他{n}件'],
     noResults: ['No matches.', '該当なし。'],
-    moreResults: ['More matches — keep typing to narrow down', '他にも該当 — 入力を絞ってください'],
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
     geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
     genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
-    genusNoIndex: ['Genus search is unavailable: the area list could not be loaded.', '地域一覧を読み込めないため、属名検索は利用できません。'],
     masking: ['Some species are deliberately excluded from search and maps to protect sensitive sites and prevent over-collection.', '敏感な産地の保護と乱獲防止のため、一部の種は検索や地図から意図的に除外しています。'],
     searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
@@ -597,7 +663,7 @@
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // kind slicer removed; 'all' only
     cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     locCell: null, snaps: { dashboard: null, index: null },
-    bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
+    bootBypassed: false, dDone: false, iDone: false, routed: false };
   var areaRequests = latestOnly();
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
   var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
@@ -606,7 +672,7 @@
   // a payload that fails validation or joins no loaded snapshot leaves everything else on.
   var research = { on: false, fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
   var geo = { status: 'idle', places: null, ref: null }; // reference geography: coast + labels + place search
-  var search = { mode: 'place', refresh: null }; // refresh re-applies mode availability + query
+  var search = { refresh: null }; // refresh re-applies availability + re-runs the query
   var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
 
   // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
@@ -885,17 +951,10 @@
     renderArea();
   }
 
-  function setupPicker() {
-    var sel = $('fd-area-pick');
-    var areas = state.index.areas.slice();
-    var nm = function (a) { return lang === 'ja' ? a.name_ja : a.name_en; };
-    var groups = areas.filter(function (a) { return a.kind === 'group'; }).sort(function (a, b) { return a.bbox[0] - b.bbox[0]; });
-    var isles = areas.filter(function (a) { return a.kind === 'island'; }).sort(function (a, b) { return a.bbox[0] - b.bbox[0]; });
-    var opt = function (a) { return '<option value="' + esc(a.id) + '">' + esc(nm(a)) + ' (' + fmtInt(a.species) + ' ' + esc(t('species')) + ')</option>'; };
-    sel.innerHTML = '<option value="">' + esc(lang === 'ja' ? '地域を選ぶ（または地図をクリック）' : 'Choose an area, or click the map') + '</option>' +
-      '<optgroup label="' + esc(lang === 'ja' ? '島しょ群' : 'Island groups') + '">' + groups.map(opt).join('') + '</optgroup>' +
-      '<optgroup label="' + esc(lang === 'ja' ? '島' : 'Islands') + '">' + isles.map(opt).join('') + '</optgroup>';
-    sel.addEventListener('change', function () { if (sel.value) selectArea(sel.value); else clearArea(); });
+  // Toolbar wiring (TASK-008): the area picker is gone — its contents are the search
+  // box's empty-state suggestions — so what remains is static widget wiring that no
+  // longer needs the index to arrive first (the old picker never wired on index failure).
+  function setupToolbar() {
     // Wrap, don't pass clearArea directly: the click Event would land in keepHash and
     // read as truthy, silently skipping the bare-path push (TASK-007 history fix).
     $('fd-area-back').addEventListener('click', function () { clearArea(); });
@@ -909,11 +968,10 @@
       b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); filterChanged(); });
     });
     syncFilters();
-    $('fd-picker').hidden = false;
   }
 
-  // Selecting from the picker, a tap, a suggestion or a deep link: the validated index row
-  // fits the camera immediately; detail only fills the tables and never moves the camera
+  // Selecting from the search box, a tap, a suggestion or a deep link: the validated index
+  // row fits the camera immediately; detail only fills the tables and never moves the camera
   // afterwards. source feeds historyAction: user selections push, the initial deep link
   // replaces, a popstate reroute writes nothing.
   function selectArea(id, source) {
@@ -924,7 +982,6 @@
     state.sel = { row: row, detail: null, failed: false };
     state.spLimit = state.possLimit = AREA_ROWS;
     state.box = zoomBox(row.bbox);
-    $('fd-area-pick').value = row.id;
     $('fd-area').hidden = false;
     var jp = $('fd-japan');
     if (jp) jp.hidden = true;
@@ -1024,7 +1081,6 @@
     var jp = $('fd-japan');
     if (jp) jp.hidden = false;
     clearCrumb();
-    $('fd-area-pick').value = '';
     showRetry(false);
     areaMsg(null);
     clearPreview();
@@ -1203,7 +1259,7 @@
     var g = $('fd-japan-groups');
     if (g && ix) {
       var groups = ix.areas.filter(function (a) { return a.kind === 'group'; })
-        .sort(function (a, b) { return a.bbox[0] - b.bbox[0]; }); // same order as setupPicker()
+        .sort(function (a, b) { return a.bbox[0] - b.bbox[0]; }); // same order as the search suggestions
       g.innerHTML = groups.map(function (a) {
         return '<button type="button">' + esc(lang === 'ja' ? a.name_ja : a.name_en) + '</button>';
       }).join('');
@@ -1305,6 +1361,7 @@
     if (kind === 'ready') { announce(t('streetReady')); return; }
     if (kind === 'fail') {
       street.failed = true;
+      street.ownsMsg = true; // this line belongs to the street map; only it may clear it
       areaMsg(t('streetFail')); announce(t('streetFail'));
       showRetry(true); // retry re-enters the street map
     }
@@ -1338,7 +1395,9 @@
       if (!root.FungiFieldMap || !root.FungiFieldMap.enter(streetCtx())) return; // enter failed: onEvent('fail') ran
       street.on = true;
       street.failed = false;
-      areaMsg(null); // a retry that gets this far clears the visible fallback status
+      // A street retry that gets this far clears its own fallback line — never the
+      // index-failure status, which the boot-time auto-enter used to race away (TASK-008).
+      if (street.ownsMsg) { street.ownsMsg = false; areaMsg(null); }
       doc.querySelector('.fd').classList.add('is-street');
     }).catch(function () {
       street.loading = false;
@@ -1391,10 +1450,8 @@
   function researchAvailable() {
     var ok = !!(research.res && research.res.ok);
     if (!ok) { var nn = $('fd-research-note'); if (nn) { nn.hidden = true; nn.textContent = ''; } }
-    var rb = $('fd-research'), gb = $('fd-search-genus');
+    var rb = $('fd-research');
     if (rb) rb.hidden = !ok;
-    if (gb) gb.hidden = !ok;
-    if (!ok && search.mode === 'genus') $('fd-search-place').click(); // back to place search
     return ok;
   }
   function loadResearch(bypass) {
@@ -1458,40 +1515,37 @@
   function wireSearch() {
     var box = $('fd-search'), input = $('fd-search-input'), results = $('fd-search-results');
     if (!box || !input || !results) return;
-    function note(msg) { var n = $('fd-search-note'); if (n) { n.hidden = !msg; n.textContent = msg || ''; } }
-    function clearResults() {
+    var noteEl = $('fd-search-note');
+    function note(msg) { if (noteEl) { noteEl.hidden = !msg; noteEl.textContent = msg || ''; } }
+    var options = []; // [{el, pick}] in DOM order; focus never leaves the input (APG combobox)
+    var active = -1;
+    var seq = 0;      // unique ids for aria-activedescendant / aria-labelledby
+    var countTimer = null;
+    function clearPopup() {
+      if (countTimer) { clearTimeout(countTimer); countTimer = null; }
       results.hidden = true;
       results.innerHTML = '';
       input.setAttribute('aria-expanded', 'false');
-    }
-    function addButton(html, onClick) {
-      var li = doc.createElement('li');
-      var b = doc.createElement('button');
-      b.type = 'button';
-      b.innerHTML = html;
-      b.addEventListener('click', onClick);
-      li.appendChild(b);
-      results.appendChild(li);
-      return b;
+      input.removeAttribute('aria-activedescendant');
+      active = -1;
+      options = [];
     }
     function researchReady() {
       return !!(research.res && research.res.ok &&
         researchJoins(state.snaps.dashboard, state.snaps.index, research.res.snapshot));
     }
+    // Disabled only when nothing searchable remains: no index AND no geography. Research
+    // failure never blocks the others — it degrades to a note inside the results.
     function avail() {
-      if (search.mode === 'place') {
-        input.disabled = geo.status === 'absent';
-        input.placeholder = t('phPlace');
-        $('fd-search-label').textContent = t('searchPlace');
-        note(geo.status === 'absent' ? t('geoAbsent') : geo.status === 'loading' ? t('geoLoading') : '');
-      } else {
-        input.disabled = !researchReady() || !state.index;
-        input.placeholder = t('phGenus');
-        $('fd-search-label').textContent = t('searchGenus');
-        // Persistent caption under the name-search input: masked species never match,
-        // so the reader is told why (generic wording only, never a masked taxon).
-        note(input.disabled ? (researchReady() ? t('genusNoIndex') : t('genusUnavailable')) : t('masking'));
-      }
+      var dead = !state.index && geo.status === 'absent';
+      input.disabled = dead;
+      note(dead ? t('searchUnavailable') : geo.status === 'absent' ? t('geoAbsent') :
+        geo.status === 'loading' ? t('geoLoading') : (researchReady() ? t('masking') : ''));
+    }
+    function open() { results.hidden = false; input.setAttribute('aria-expanded', 'true'); }
+    function announceCount(n) { // debounced: one line per settled result set, never per keystroke
+      if (countTimer) clearTimeout(countTimer);
+      countTimer = setTimeout(function () { announce(fmtInt(n) + ' ' + t('searchCount')); }, 600);
     }
     function centreOn(p) {
       state.box = zoomBox([p.at[1], p.at[1], p.at[0], p.at[0]]); // camera only, no selection
@@ -1499,74 +1553,126 @@
       drawViews();
       announce(t('searchCentred') + ' ' + (lang === 'ja' ? p.ja : p.en));
     }
+    function finish(label) { input.value = label; clearPopup(); avail(); }
+    function groupEl(title) {
+      var li = doc.createElement('li');
+      li.setAttribute('role', 'group');
+      var h = doc.createElement('p');
+      h.className = 'fd-search__head';
+      h.id = 'fdsg-' + (++seq);
+      h.textContent = title;
+      li.setAttribute('aria-labelledby', h.id);
+      li.appendChild(h);
+      return li;
+    }
+    function textLi(text) { var li = doc.createElement('li'); li.className = 'fd-search__more'; li.textContent = text; return li; }
+    function addOption(li, html, pick) {
+      var el = doc.createElement('div');
+      el.className = 'fd-search__opt';
+      el.setAttribute('role', 'option');
+      el.id = 'fdso-' + (++seq);
+      el.innerHTML = html;
+      // Focus stays on the combobox: swallow mousedown so the blur-close cannot race the click.
+      el.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      el.addEventListener('click', function (e) { e.preventDefault(); pick(); });
+      li.appendChild(el);
+      options.push({ el: el, pick: pick });
+    }
+    function setActive(i) {
+      active = i;
+      options.forEach(function (o, j) { o.el.setAttribute('aria-selected', String(j === i)); });
+      input.setAttribute('aria-activedescendant', options[i].el.id);
+      options[i].el.scrollIntoView({ block: 'nearest' });
+    }
+    var HEADS = { groups: 'sgGroups', islands: 'sgIslands', areas: 'sgAreas', places: 'sgPlaces', genera: 'sgGenera' };
+    function renderGroups(groups) {
+      var count = 0;
+      groups.forEach(function (g) {
+        var li = groupEl(t(HEADS[g.group] || 'sgAreas'));
+        g.items.forEach(function (item) {
+          if (item.area) {
+            var row = item.area;
+            addOption(li, esc(areaName(row)) + ' <span class="fd-search__alt">' + fmtInt(row.species || 0) + ' ' + esc(t('species')) + '</span>',
+              function () { selectArea(row.id, 'search'); finish(areaName(row)); });
+          } else if (item.place) {
+            var p = item.place;
+            addOption(li, esc(lang === 'ja' ? p.ja : p.en) + ' <span class="fd-search__alt">' + esc(lang === 'ja' ? p.en : p.ja) + '</span>',
+              function () {
+                if (p.area_id && findArea(p.area_id)) selectArea(p.area_id, 'search'); // validated index only
+                else centreOn(p);
+                finish(lang === 'ja' ? p.ja : p.en);
+              });
+          } else {
+            addOption(li, '<i>' + esc(item.label) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(item.areaId))) + '</span>',
+              function () { selectArea(item.areaId, 'search'); finish(areaName(findArea(item.areaId))); });
+          }
+          count++;
+        });
+        if (g.more > 0) li.appendChild(textLi(t('moreCount').replace('{n}', fmtInt(g.more))));
+        results.appendChild(li);
+      });
+      return count;
+    }
     function run() {
-      clearResults();
-      var q = input.value;
-      if (!q.trim()) { avail(); return; } // empty query: drop any stale no-matches note
-      if (search.mode === 'place') {
-        if (geo.status !== 'ready') return; // disabled with its reason already shown
-        var hits = searchPlaces(geo.places, q);
-        if (!hits.length) { note(t('noResults')); return; }
-        hits.forEach(function (h) {
-          var p = h.place;
-          addButton(esc(lang === 'ja' ? p.ja : p.en) + ' <span class="fd-search__alt">' + esc(lang === 'ja' ? p.en : p.ja) + '</span>', function () {
-            clearResults();
-            if (p.area_id && findArea(p.area_id)) selectArea(p.area_id); // validated index only
-            else centreOn(p);
-          });
-        });
-      } else {
-        if (!researchReady() || !state.index) return;
-        var rows = 0, more = false;
-        genusResults(research.res.data.genera, q, state.index, 24).forEach(function (g) {
-          g.areas.forEach(function (id) {
-            if (rows >= 8) { more = true; return; }
-            addButton('<i>' + esc(g.label) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(id))) + '</span>', (function (aid) {
-              return function () { clearResults(); selectArea(aid); };
-            })(id));
-            rows++;
-          });
-        });
-        if (!rows) { note(t('noResults') + ' ' + t('masking')); return; }
-        if (more) {
-          var li = doc.createElement('li');
-          li.className = 'fd-search__more';
-          li.textContent = t('moreResults');
-          results.appendChild(li);
-        }
+      clearPopup();
+      note('');   // PR #61 review: a stale "No matches." must not survive into new results
+      var q = input.value.trim();
+      if (!q) { // empty state: the dropdown's former contents as suggestions
+        if (state.index && !input.disabled) { open(); announceCount(renderGroups(suggestGroups(state.index.areas))); }
+        return;
       }
-      results.hidden = false;
-      input.setAttribute('aria-expanded', 'true');
+      var groups = searchAll(input.value, {
+        areas: state.index ? state.index.areas : null,
+        places: geo.status === 'ready' ? geo.places : null,
+        genera: researchReady() ? research.res.data.genera : null
+      });
+      renderGroups(groups);
+      if (!researchReady() && isLatinQuery(q)) {
+        var li = groupEl(t('sgGenera'));
+        if (research.res && !research.res.ok) {
+          li.appendChild(textLi(t('genusUnavailable'))); // muted note, never blocks the groups above
+        } else {
+          addOption(li, esc(t('genusLoad')), function () { // lazy: the load's search.refresh re-runs the query
+            if (!research.fetched && !research.loading) loadResearch(false);
+            note(t('researchLoading'));
+          });
+        }
+        results.appendChild(li);
+      }
+      if (!results.children.length) { note(t('noResults') + (researchReady() ? ' ' + t('masking') : '')); return; }
+      open();
+      announceCount(options.length);
     }
-    search.refresh = function () { avail(); if (!results.hidden || input.value) run(); };
-    function setMode(mode) {
-      search.mode = mode;
-      $('fd-search-place').setAttribute('aria-pressed', String(mode === 'place'));
-      $('fd-search-genus').setAttribute('aria-pressed', String(mode === 'genus'));
-      input.value = '';
-      clearResults();
-      avail();
-      if (mode === 'place') ensureGeo(); // geography loads on first place use, focus or not
-      input.focus(); // deliberate focus management on the mode switch
-    }
-    $('fd-search-place').addEventListener('click', function () { setMode('place'); });
-    $('fd-search-genus').addEventListener('click', function () { setMode('genus'); });
-    box.addEventListener('focusin', function () { if (search.mode === 'place') ensureGeo(); });
+    // PR #61 review: a focused empty input re-runs too, so suggestions appear as soon
+    // as the async area index lands instead of waiting for a keystroke
+    search.refresh = function () { avail(); if (!results.hidden || doc.activeElement === input) run(); };
+    input.addEventListener('focus', function () { if (input.disabled || !results.hidden) return; run(); });
     input.addEventListener('input', run);
+    input.addEventListener('blur', function () { clearPopup(); }); // Tab leaves: the popup goes with the focus
     input.addEventListener('keydown', function (e) {
-      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
-      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[0].focus(); }
-      else if (e.key === 'Enter' && btns.length) { e.preventDefault(); btns[0].click(); }
-      else if (e.key === 'Escape') { clearResults(); avail(); }
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (results.hidden) run(); // arrows reopen after Esc
+        if (!options.length) return;
+        setActive(e.key === 'ArrowDown'
+          ? (active < 0 ? 0 : Math.min(active + 1, options.length - 1))
+          : (active < 0 ? options.length - 1 : Math.max(active - 1, 0)));
+      } else if ((e.key === 'Home' || e.key === 'End') && !results.hidden && options.length) {
+        e.preventDefault();
+        setActive(e.key === 'Home' ? 0 : options.length - 1);
+      } else if (e.key === 'Enter' && !results.hidden && options.length) {
+        e.preventDefault();
+        pickOption(active < 0 ? 0 : active);
+      } else if (e.key === 'Escape') {
+        // Esc closes, then clears — and never reaches the page-level handler, which
+        // would otherwise drop the selected area from inside the search box.
+        e.preventDefault();
+        if (!results.hidden) clearPopup();
+        else if (input.value) input.value = '';
+      }
     });
-    results.addEventListener('keydown', function (e) {
-      var btns = Array.prototype.slice.call(results.querySelectorAll('button'));
-      var i = btns.indexOf(doc.activeElement);
-      if (e.key === 'ArrowDown' && btns.length) { e.preventDefault(); btns[Math.min(i + 1, btns.length - 1)].focus(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); if (i <= 0) input.focus(); else btns[i - 1].focus(); }
-      else if (e.key === 'Enter' && i >= 0) { e.preventDefault(); btns[i].click(); }
-      else if (e.key === 'Escape') { clearResults(); input.focus(); }
-    });
+    function pickOption(i) { options[i].pick(); }
     box.hidden = false;
     avail();
   }
@@ -1596,7 +1702,6 @@
       state.index = res.data;
       state.snaps.index = res.snapshot;
       if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
-      if (!state.pickerDone) { state.pickerDone = true; setupPicker(); }
       renderJapan(); // the island-group suggestions need the validated index
       drawViews();
       if (!state.routed) { // early route: the camera fits from the validated index alone
@@ -1689,13 +1794,13 @@
     root.addEventListener('hashchange', routeFromLocation);
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
-      if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
       if (state.sel) clearArea();
     });
     wireLocate();
     wireResearch();
+    setupToolbar();
     wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
