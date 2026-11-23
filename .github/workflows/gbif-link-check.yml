@@ -1,0 +1,21 @@
+name: GBIF Link Check
+
+on:
+  schedule:
+    - cron: '23 4 * * 1'   # Every Monday at 04:23 UTC
+  workflow_dispatch:        # Allow manual trigger
+
+jobs:
+  gbif-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check sampled GBIF links
+        run: node scripts/gbif_link_check.mjs
