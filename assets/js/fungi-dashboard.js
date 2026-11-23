@@ -56,6 +56,17 @@
   }
   function monthName(i, lang) { return lang === 'ja' ? i + '月' : MONTHS_EN[i - 1]; }
 
+  // Species links (spec item 5): a COL backbone key gives a stable taxon page,
+  // the legacy backbone key still resolves (/species/<key> redirects on GBIF's
+  // side), and only a keyless row falls back to a name search. Keys arrive with
+  // the next data publish; until then every row takes the search branch.
+  var GBIF_SEARCH = 'https://www.gbif.org/taxon/search?q=';
+  function gbifTaxonUrl(colKey, legacyKey, name) {
+    if (colKey) return 'https://www.gbif.org/taxon/' + colKey;
+    if (legacyKey) return 'https://www.gbif.org/species/' + legacyKey;
+    return GBIF_SEARCH + encodeURIComponent(name);
+  }
+
   // ---- projection: equirectangular with longitudes shrunk by cos(reference latitude)
   function lonScale(box) { return Math.cos((((box || JAPAN_BOX).refLat) * Math.PI) / 180); }
   function mapSize(width, box) {
@@ -482,7 +493,7 @@
   }
 
   var api = {
-    JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc,
+    JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc, gbifTaxonUrl: gbifTaxonUrl,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, leadsTotal: leadsTotal, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
@@ -1084,8 +1095,9 @@
     }
   }
 
-  function gbifLink(name) {
-    return '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(name) + '" target="_blank" rel="noopener"><i>' + esc(name) + '</i></a>';
+  function gbifNameLink(row) {
+    // key-based like the table rows (PR #59); keyless rows fall through to search
+    return '<a href="' + gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n) + '" target="_blank" rel="noopener"><i>' + esc(row.n) + '</i></a>';
   }
   function italicise(sel) {
     doc.querySelectorAll(sel + ' .fd-bar__label').forEach(function (el) { el.style.fontStyle = 'italic'; });
@@ -1107,17 +1119,17 @@
     var seeAll = function (tab) {
       return '<button type="button" class="fd-seeall" data-goto="' + tab + '">' + esc(t('seeAll')) + '</button>';
     };
-    var li = function (name, sub) {
-      return '<li><span class="fd-cell">' + gbifLink(name) + '<span class="fd-cell__sub">' + sub + '</span></span></li>';
+    var li = function (row, sub) {
+      return '<li><span class="fd-cell">' + gbifNameLink(row) + '<span class="fd-cell__sub">' + sub + '</span></span></li>';
     };
     $('fd-ov-top').innerHTML =
       '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topRecorded')) + '</h3>' + seeAll('recorded') + '</div>' +
       '<ul class="fd-ovlist">' + top.map(function (s) {
-        return li(s.n, esc(s.f) + ' · ' + fmtInt(s.r) + ' ' + esc(t('rec')));
+        return li(s, esc(s.f) + ' · ' + fmtInt(s.r) + ' ' + esc(t('rec')));
       }).join('') + '</ul>' +
       '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topPossible')) + '</h3>' + seeAll('possible') + '</div>' +
       '<ul class="fd-ovlist">' + tp.map(function (p) {
-        return li(p.n, esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + esc(t('km')) + ' · ' + esc(lang === 'ja' ? p.wj : p.w));
+        return li(p, esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + esc(t('km')) + ' · ' + esc(lang === 'ja' ? p.wj : p.w));
       }).join('') + '</ul>';
   }
 
@@ -1157,7 +1169,7 @@
         if (ev) sub.push(esc(ev));
         if (a.kind === 'group')
           sub.push(esc((s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')));
-        return '<tr><td class="fd-cell">' + gbifLink(s.n) + '<span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
+        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a><span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
           '<td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td>' +
           (showWhere ? '<td class="fd-where">' + esc(whereText(s, lang)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
@@ -1171,7 +1183,7 @@
     var phead = [t('sp'), t('likelihood'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       pView.rows.map(function (p) {
-        return '<tr><td class="fd-cell">' + gbifLink(p.n) + '<span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
+        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n) + '" target="_blank" rel="noopener"><i>' + esc(p.n) + '</i></a><span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
           esc(lang === 'ja' ? p.wj : p.w) + '</span></td>' +
           '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
           '<td>' + monthStrip(p.m, state.month) + '</td></tr>';
@@ -1216,7 +1228,7 @@
       ? ['種', '科', '近隣国の記録', 'MOの記録', '次の確認']
       : ['Species', 'Family', 'Records next door', 'Mushroom Observer', 'What to check'];
     var body = d.leads.map(function (l) {
-      var url = 'https://www.gbif.org/species/search?q=' + encodeURIComponent(l[0]);
+      var url = gbifTaxonUrl(l[5], l[6], l[0]);
       return '<tr><td><a href="' + url + '" target="_blank" rel="noopener"><i>' + esc(l[0]) + '</i></a></td><td>' + esc(l[1] || '') +
         '</td><td class="num">' + fmtInt(l[2]) + '</td><td class="num">' + fmtInt(l[3]) + '</td><td>' + esc(triage(l[4], lang)) + '</td></tr>';
     }).join('');
