@@ -844,7 +844,7 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-23-2'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-23-3'), 'CSS stamp bumped');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -957,5 +957,86 @@ describe('TASK-008: empty-state suggestions and lazy genus option', () => {
     assert.strictEqual(fd.isLatinQuery('na ha'), false);
     assert.strictEqual(fd.isLatinQuery('マツタケ'), false);
     assert.strictEqual(fd.isLatinQuery(''), false);
+  });
+});
+
+// TASK-009 (spec item 10): the Data and Method footer. Two runtime values come from
+// the loaded dashboard.json (snapshot date, missing-coordinate share); everything else
+// is pinned bilingual copy, asserted at source level like the blocks above.
+describe('TASK-009: method helpers', () => {
+  it('reads the snapshot date from the loaded data, dashing when absent', () => {
+    assert.strictEqual(fd.methodSnapshot({ generated: '2026-11-22' }), '2026-11-22');
+    assert.strictEqual(fd.methodSnapshot({ generated: '' }), '–');
+    assert.strictEqual(fd.methodSnapshot({ generated: null }), '–');
+    assert.strictEqual(fd.methodSnapshot({}), '–');
+    assert.strictEqual(fd.methodSnapshot(null), '–');
+  });
+  it('computes the missing-coordinate share as 100 − georeferenced/records', () => {
+    assert.strictEqual(fd.missingCoordsPct({ totals: { records: 345509, georeferenced: 148207 } }), '57%');
+    assert.strictEqual(fd.missingCoordsPct({ totals: { records: 200, georeferenced: 150 } }), '25%');
+    assert.strictEqual(fd.missingCoordsPct({ totals: { records: 100, georeferenced: 100 } }), '0%');
+    assert.strictEqual(fd.missingCoordsPct({ totals: { records: 100, georeferenced: 0 } }), '100%');
+  });
+  it('dashes on absent or unusable totals instead of NaN', () => {
+    for (const bad of [
+      { totals: { records: 345509 } }, { totals: { georeferenced: 1 } },
+      { totals: { records: 0, georeferenced: 0 } }, { totals: null }, {}, null
+    ]) assert.strictEqual(fd.missingCoordsPct(bad), '–');
+  });
+  it('renders both values from the live published bundle', () => {
+    const data = require('../assets/data/shroomhunt/dashboard.json');
+    assert.strictEqual(fd.methodSnapshot(data), data.generated);
+    const expected = Math.round(100 - (100 * data.totals.georeferenced) / data.totals.records) + '%';
+    assert.notStrictEqual(expected, '–');
+    assert.strictEqual(fd.missingCoordsPct(data), expected);
+  });
+  it('renderSources fills the snapshot and missing spans through the helpers', () => {
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.ok(src.includes('methodSnapshot(d)'), 'snapshot through the helper');
+    assert.ok(src.includes('missingCoordsPct(d)'), 'missing share through the helper');
+  });
+});
+
+describe('TASK-009: data and method section (six subsections, both languages)', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  it('ships all six subsection headings in EN and JA', () => {
+    for (const [en, ja] of [
+      ['Data', 'データ'], ['Method', '方法'], ['Protection', '保護'], ['Caveats', '注意点'],
+      ['Markers and sources', '記号と出典'], ['Licence and citation', 'ライセンスと引用']
+    ]) {
+      assert.ok(inc.includes(`<h3>{% if ja %}${ja}{% else %}${en}{% endif %}</h3>`), `heading ${en}/${ja}`);
+    }
+  });
+  it('collapses the subsections: six details, exactly one open', () => {
+    assert.strictEqual((inc.match(/<details class="fd-method__sec"/g) || []).length, 6);
+    assert.strictEqual((inc.match(/<details class="fd-method__sec" open>/g) || []).length, 1);
+  });
+  it('carries every pinned DOI and source URL verbatim', () => {
+    for (const u of [
+      'https://doi.org/10.15468/dl.ng3tup',
+      'https://doi.org/10.15468/dl.4ybwrt',
+      'https://doi.org/10.15468/dl.8xq5m7',
+      'https://doi.org/10.15468/dl.akuuf8',
+      'https://doi.org/10.15468/dl.pzk484',
+      'https://www.env.go.jp/nature/kisho/5th-rl-2025-book/05-5thredlist-fungi.pdf',
+      'https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/shokuhin/syokuchu/poison/index.html',
+      'https://agriknowledge.affrc.go.jp/RN/2010910274.pdf',
+      'https://www.jstage.jst.go.jp/browse/mycosci/-char/en',
+      'https://www.mushroomexpert.com/'
+    ]) assert.ok(inc.includes(u), u);
+  });
+  it('pins the method numbers, taxonomy release and licence in both languages', () => {
+    for (const s of ['COL 26.5 XR', 'P846', 'CC BY-NC 4.0',
+      '800 km', '250 km', '1.5°', '28 islands', '7 island groups',
+      '800km', '250km', '1.5度', '28の島', '7つの島しょ群']) assert.ok(inc.includes(s), s);
+  });
+  it('keeps the runtime spans in the section', () => {
+    for (const id of ['fd-sources', 'fd-generated', 'fd-missing']) assert.ok(inc.includes(`id="${id}"`), id);
+  });
+  it('makes no edibility claim and promises to name no masked taxon', () => {
+    assert.ok(!/edib|食用|食べられ|可食/.test(inc), 'no edibility wording anywhere');
+    const ja = inc.includes('隠している種名を公表することはありません');
+    const en = inc.includes('Masked taxa are never named here');
+    assert.ok(ja || en, 'the no-naming promise must read in the rendered language');
   });
 });

@@ -119,6 +119,16 @@ html[lang="ja"] .fd-card h2 { font-family: "Noto Sans JP", var(--sans); }
 .fd-method ul { margin: 0 0 10px; padding-left: 1.1em; font: 13.5px/1.7 var(--mono); }
 .fd-method a { color: var(--brand); }
 .fd-method p { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+/* Six subsections (TASK-009): native <details> keeps the section compact — one
+   open at most, the rest collapsed behind their summary headings. */
+.fd-method__sec { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 2px; }
+.fd-method__sec > summary { cursor: pointer; margin: 6px 0 0; }
+.fd-method__sec > summary h3 { display: inline; font: 600 15px/1.5 var(--sans); color: var(--ink); }
+html[lang="ja"] .fd-method__sec > summary h3 { font-family: "Noto Sans JP", var(--sans); }
+/* Prose lists (caveats, markers) read in the body font, unlike the mono #fd-sources list. */
+.fd-method .fd-method__list { font: 14px/1.7 var(--sans); }
+html[lang="ja"] .fd-method .fd-method__list { font-family: "Noto Sans JP", var(--sans); }
+.fd-method .fd-method__list li { margin: 5px 0; }
 
 .fd .fd-kpi, .fd .fd-map svg { transition: opacity .4s ease; }
 .fd:not(.is-ready) .fd-map svg { opacity: 0; }
