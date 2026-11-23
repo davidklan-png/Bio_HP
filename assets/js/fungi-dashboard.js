@@ -1077,6 +1077,11 @@
     $('fd-poss-count').textContent = '';
     $('fd-area-species').innerHTML = ph;
     $('fd-area-possible').innerHTML = ph;
+    // PR #60 review: the previous area's Overview must not linger under the new
+    // heading while the detail loads — or forever, if that request fails
+    ['fd-ov-evidence', 'fd-ov-families', 'fd-ov-top'].forEach(function (oid) {
+      var oe = $(oid); if (oe) oe.innerHTML = '';
+    });
     var oph = $('fd-ov-ph');
     if (oph) { oph.hidden = false; oph.textContent = sel.failed ? t('areaError') : t('loadingArea'); }
   }
@@ -1156,7 +1161,7 @@
     // publish (index-level has_habitat) or the area itself says none ships.
     var spView = visibleRows(list, state.spLimit, false);
     $('fd-area-count').textContent = spView.hidden ? fmtInt(spView.rows.length) + ' ' + t('of') + ' ' + fmtInt(list.length) : fmtInt(list.length);
-    moreButton('fd-area-more', list.length > state.spLimit, state.spLimit >= list.length, function () {
+    moreButton('fd-area-more', list.length > state.spLimit || state.spLimit > AREA_ROWS, state.spLimit >= list.length, function () {
       state.spLimit = state.spLimit >= list.length ? AREA_ROWS : state.spLimit + 100; renderArea();
     });
     var showWhere = a.kind !== 'group' && (a.has_habitat !== false && !(state.index && state.index.has_habitat === false));
@@ -1177,7 +1182,7 @@
     // Could be found: name over `family · distance · nearest record`, then likelihood + months.
     var pView = visibleRows(poss, state.possLimit, false);
     $('fd-poss-count').textContent = pView.hidden ? fmtInt(pView.rows.length) + ' ' + t('of') + ' ' + fmtInt(poss.length) : fmtInt(poss.length);
-    moreButton('fd-poss-more', poss.length > state.possLimit, state.possLimit >= poss.length, function () {
+    moreButton('fd-poss-more', poss.length > state.possLimit || state.possLimit > AREA_ROWS, state.possLimit >= poss.length, function () {
       state.possLimit = state.possLimit >= poss.length ? AREA_ROWS : state.possLimit + 100; renderArea();
     });
     var phead = [t('sp'), t('likelihood'), t('months')];
@@ -1637,7 +1642,12 @@
   // Back/Forward (and a hand-edited #area-<id>): re-select or clear without pushing
   // another entry. Unrelated in-page anchors (#fd-leads, later #species-<key>) are left
   // alone — jumping to the leads card must not deselect an open area.
+  var lastRoute = null;
   function routeFromLocation() {
+    // PR #60 review: Back/Forward between same-document entries fires popstate AND
+    // hashchange; route once — the second event sees the same location
+    if (root.location.href === lastRoute) return;
+    lastRoute = root.location.href;
     var h = root.location.hash;
     if (h && h !== '#' && !parseAreaHash(h)) return;
     var id = parseAreaHash(h);
