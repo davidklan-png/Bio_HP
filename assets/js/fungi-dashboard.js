@@ -1615,6 +1615,7 @@
     }
     function run() {
       clearPopup();
+      note('');   // PR #61 review: a stale "No matches." must not survive into new results
       var q = input.value.trim();
       if (!q) { // empty state: the dropdown's former contents as suggestions
         if (state.index && !input.disabled) { open(); announceCount(renderGroups(suggestGroups(state.index.areas))); }
@@ -1642,7 +1643,9 @@
       open();
       announceCount(options.length);
     }
-    search.refresh = function () { avail(); if (!results.hidden || (input.value && doc.activeElement === input)) run(); };
+    // PR #61 review: a focused empty input re-runs too, so suggestions appear as soon
+    // as the async area index lands instead of waiting for a keystroke
+    search.refresh = function () { avail(); if (!results.hidden || doc.activeElement === input) run(); };
     input.addEventListener('focus', function () { if (input.disabled || !results.hidden) return; run(); });
     input.addEventListener('input', run);
     input.addEventListener('blur', function () { clearPopup(); }); // Tab leaves: the popup goes with the focus
