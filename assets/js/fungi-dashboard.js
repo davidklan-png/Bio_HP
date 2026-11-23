@@ -399,6 +399,47 @@
     var m = /^#?area-([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(String(hash || ''));
     return m ? m[1] : null;
   }
+  // Inspector Overview (TASK-007), computed in the browser from an area's species rows.
+  // areaEvidenceMix sums each row's per-code evidence counts: [[code, records]] desc.
+  function areaEvidenceMix(species) {
+    var sum = {};
+    (species || []).forEach(function (s) {
+      var e = (s && s.e) || {};
+      Object.keys(e).forEach(function (k) { sum[k] = (sum[k] || 0) + (e[k] || 0); });
+    });
+    return Object.keys(sum).map(function (k) { return [k, sum[k]]; })
+      .sort(function (a, b) { return b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0); });
+  }
+  // topFamilies: [[family, species, records]] — one row per species already, so species
+  // counts rows and records sums r. Sorted by species, then records (dashboard.json's
+  // national families use the same [name, species, records] field order).
+  function topFamilies(species, n) {
+    var fam = {};
+    (species || []).forEach(function (s) {
+      if (!s || !s.f) return;
+      var row = fam[s.f] || (fam[s.f] = [s.f, 0, 0]);
+      row[1] += 1;
+      row[2] += s.r || 0;
+    });
+    return Object.keys(fam).map(function (k) { return fam[k]; })
+      .sort(function (a, b) { return b[1] - a[1] || b[2] - a[2] || (a[0] < b[0] ? -1 : 1); })
+      .slice(0, n == null ? 6 : n);
+  }
+  // Inspector tabs: Overview | Recorded | Could be found. The choice persists across
+  // area changes; arrows wrap. Unknown names fall back to the first tab.
+  var TABS = ['overview', 'recorded', 'possible'];
+  function nextTab(current, step) {
+    var i = TABS.indexOf(current);
+    if (i < 0) i = 0;
+    return TABS[(i + (step % TABS.length) + TABS.length) % TABS.length];
+  }
+  // History (TASK-007): user selections push, the initial deep link replaces, and a
+  // popstate/hashchange reroute writes nothing (the entry already exists).
+  function historyAction(source) {
+    if (source === 'init') return 'replace';
+    if (source === 'popstate') return null;
+    return 'push';
+  }
   // Tap flow: a first tap on a square previews it; a second tap on the same square opens its area.
   // prev/tap are null (nothing under the pointer) or { cell: meshKey|null, areaId: area id|null }.
   function tapTransition(prev, tap) {
@@ -464,6 +505,7 @@
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
     foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
     tapTransition: tapTransition, tapGuard: tapGuard,
+    areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, nextTab: nextTab, historyAction: historyAction,
     STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
@@ -525,6 +567,12 @@
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
     showAll: ['Show all', 'すべて表示'],
     showFewer: ['Show fewer', '表示を減らす'],
+    showMore: ['Show more', 'さらに表示'],
+    seeAll: ['See all', '一覧を見る'],
+    topRecorded: ['Top recorded species', '記録数の多い種'],
+    topPossible: ['Most likely to be found here', '見つかる可能性が高い種'],
+    japanLeads: ['<b>{n}</b> species are recorded in neighbouring East Asia but not in Japan. <a href="#fd-leads">See the leads</a>.',
+      '近隣の東アジアで記録がありながら日本では未記録の種は<b>{n}</b>種です。<a href="#fd-leads">調査の手がかりを見る</a>。'],
     of: ['of', '/'],
     km: ['km', 'km'],
     islands: ['Islands', '島'],
@@ -543,8 +591,11 @@
 
   // sel = { row: validated index row, detail: area file|null, failed: bool }. joins is
   // false only after a snapshot mismatch survived its one cache-bypassed refetch.
+  // tab/spLimit/possLimit: the inspector tab persists across area changes (never in the
+  // URL); the row windows step +100 from AREA_ROWS on each Show more.
+  var AREA_ROWS = 50;
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // kind slicer removed; 'all' only
-    cache: {}, cacheSnap: undefined, allSp: false, allPoss: false, joins: true, detailJoin: true,
+    cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     locCell: null, snaps: { dashboard: null, index: null },
     bootBypassed: false, dDone: false, iDone: false, pickerDone: false, routed: false };
   var areaRequests = latestOnly();
@@ -636,10 +687,14 @@
       [fmtInt(tot.species), lang === 'ja' ? '記録された種' : 'species recorded'],
       [pct(tot.to_species, tot.records), lang === 'ja' ? '種まで同定済み' : 'identified to species'],
       [pct(tot.georeferenced, tot.records), lang === 'ja' ? '座標付き' : 'have map coordinates'],
-      [fmtInt(d.lead_totals.with_mo), lang === 'ja' ? '近隣国のみで記録（要調査）' : 'leads: recorded next door, not in Japan']
+      [fmtInt(d.lead_totals.with_mo), lang === 'ja' ? '近隣国のみで記録（要調査）' : 'leads: never recorded in Japan']
     ];
-    $('fd-kpis').innerHTML = k.map(function (x) {
-      return '<div class="fd-kpi"><div class="fd-kpi__value">' + esc(x[0]) + '</div><div class="fd-kpi__label">' + esc(x[1]) + '</div></div>';
+    $('fd-kpis').innerHTML = k.map(function (x, i) {
+      // The leads tile links to the national leads card (same look, TASK-007).
+      var last = i === k.length - 1;
+      var tag = last ? 'a class="fd-kpi" href="#fd-leads"' : 'div class="fd-kpi"';
+      var close = last ? 'a' : 'div';
+      return '<' + tag + '><div class="fd-kpi__value">' + esc(x[0]) + '</div><div class="fd-kpi__label">' + esc(x[1]) + '</div></' + close + '>';
     }).join('');
   }
 
@@ -824,7 +879,7 @@
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
   }
   function filterChanged() {
-    state.allSp = state.allPoss = false;
+    state.spLimit = state.possLimit = AREA_ROWS;
     syncFilters();
     applyResearch(); // the research recolour follows the same month/kind selection
     renderArea();
@@ -841,7 +896,9 @@
       '<optgroup label="' + esc(lang === 'ja' ? '島しょ群' : 'Island groups') + '">' + groups.map(opt).join('') + '</optgroup>' +
       '<optgroup label="' + esc(lang === 'ja' ? '島' : 'Islands') + '">' + isles.map(opt).join('') + '</optgroup>';
     sel.addEventListener('change', function () { if (sel.value) selectArea(sel.value); else clearArea(); });
-    $('fd-area-back').addEventListener('click', clearArea);
+    // Wrap, don't pass clearArea directly: the click Event would land in keepHash and
+    // read as truthy, silently skipping the bare-path push (TASK-007 history fix).
+    $('fd-area-back').addEventListener('click', function () { clearArea(); });
     // The one kind/month widget: it lives beside the area tables, and while the research
     // view is on it docks in the map card. Remember where it belongs so it can move back.
     filtersEl = $('fd-filters');
@@ -855,24 +912,29 @@
     $('fd-picker').hidden = false;
   }
 
-  // Selecting from the picker, a tap or a deep link: the validated index row fits the camera
-  // immediately; detail only fills the tables and never moves the camera afterwards.
-  function selectArea(id) {
+  // Selecting from the picker, a tap, a suggestion or a deep link: the validated index row
+  // fits the camera immediately; detail only fills the tables and never moves the camera
+  // afterwards. source feeds historyAction: user selections push, the initial deep link
+  // replaces, a popstate reroute writes nothing.
+  function selectArea(id, source) {
     if (!state.index) return;
     var row = findArea(id);
     if (!row) return clearArea(true); // unknown id (bad deep link): Japan view, no history rewrite
     var token = areaRequests.start(id);
     state.sel = { row: row, detail: null, failed: false };
-    state.allSp = state.allPoss = false;
+    state.spLimit = state.possLimit = AREA_ROWS;
     state.box = zoomBox(row.bbox);
     $('fd-area-pick').value = row.id;
     $('fd-area').hidden = false;
+    var jp = $('fd-japan');
+    if (jp) jp.hidden = true;
     setCrumb(row);
     showRetry(false);
     clearPreview();
     drawViews();
     renderSelection();
-    try { root.history.replaceState(null, '', '#area-' + row.id); } catch (e) { /* ignore */ }
+    var act = historyAction(source);
+    if (act) { try { root.history[act + 'State'](null, '', '#area-' + row.id); } catch (e) { /* ignore */ } }
     loadDetail(row, token, false);
   }
 
@@ -959,13 +1021,17 @@
     state.detailJoin = true;
     state.box = JAPAN_BOX;
     $('fd-area').hidden = true;
+    var jp = $('fd-japan');
+    if (jp) jp.hidden = false;
     clearCrumb();
     $('fd-area-pick').value = '';
     showRetry(false);
     areaMsg(null);
     clearPreview();
     announce(t('returnedAll'));
-    if (!keepHash) { try { root.history.replaceState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
+    // A user clear (crumb, picker, Escape) pushes the bare path so Back returns to the
+    // area; a popstate reroute keeps the entry it already landed on.
+    if (!keepHash) { try { root.history.pushState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
     drawViews();
   }
 
@@ -976,13 +1042,15 @@
     }).join('') + '</span><span class="fd-sr">' + m.map(function (v, i) { return v ? monthName(i + 1, lang) : ''; }).filter(Boolean).join(', ') + '</span>';
   }
 
-  function moreButton(id, needed, expanded, total, toggle) {
+  // Long tables inside the inspector: first AREA_ROWS rows, then Show more steps +100;
+  // once everything is visible the button flips to Show fewer (back to AREA_ROWS).
+  function moreButton(id, needed, expanded, toggle) {
     var b = $(id);
     b.hidden = !needed;
     if (!needed) return;
     // textContent becomes the accessible name; drop the static aria-label from the include
     b.removeAttribute('aria-label');
-    b.textContent = expanded ? t('showFewer') : t('showAll') + ' (' + fmtInt(total) + ')';
+    b.textContent = expanded ? t('showFewer') : t('showMore');
     b.setAttribute('aria-expanded', String(expanded));
     b.onclick = toggle;
   }
@@ -1009,6 +1077,65 @@
     $('fd-poss-count').textContent = '';
     $('fd-area-species').innerHTML = ph;
     $('fd-area-possible').innerHTML = ph;
+    // PR #60 review: the previous area's Overview must not linger under the new
+    // heading while the detail loads — or forever, if that request fails
+    ['fd-ov-evidence', 'fd-ov-families', 'fd-ov-top'].forEach(function (oid) {
+      var oe = $(oid); if (oe) oe.innerHTML = '';
+    });
+    var oph = $('fd-ov-ph');
+    if (oph) { oph.hidden = false; oph.textContent = sel.failed ? t('areaError') : t('loadingArea'); }
+  }
+
+  // Inspector tabs (roving tabindex; state.tab survives area changes, never enters the URL).
+  function setTab(name, focus) {
+    state.tab = name;
+    for (var i = 0; i < TABS.length; i++) {
+      var n = TABS[i], b = $('fd-tab-' + n), p = $('fd-panel-' + n);
+      if (!b || !p) continue;
+      var on = n === name;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+      p.hidden = !on;
+      if (on && focus) b.focus();
+    }
+  }
+
+  function gbifNameLink(row) {
+    // key-based like the table rows (PR #59); keyless rows fall through to search
+    return '<a href="' + gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n) + '" target="_blank" rel="noopener"><i>' + esc(row.n) + '</i></a>';
+  }
+  function italicise(sel) {
+    doc.querySelectorAll(sel + ' .fd-bar__label').forEach(function (el) { el.style.fontStyle = 'italic'; });
+  }
+
+  // Overview tab: evidence mix + top families from the area's species rows (Phase 2 will
+  // move these to published per-area aggregates; the caveat stays until then), plus the
+  // top 5 recorded and top 5 possible species with a See-all that switches tab.
+  function renderOverview(list, poss) {
+    var oph = $('fd-ov-ph');
+    if (oph) oph.hidden = true;
+    $('fd-ov-evidence').innerHTML = barRows(areaEvidenceMix(list), 0,
+      function (k) { return T['ev_' + k] ? t('ev_' + k) : k; });
+    $('fd-ov-families').innerHTML = barRows(topFamilies(list, 6).map(function (f) { return [f[0], f[1]]; }), 0,
+      function (x) { return x; });
+    italicise('#fd-ov-families');
+    var top = list.slice().sort(function (a, b) { return b.r - a.r; }).slice(0, 5);
+    var tp = poss.slice().sort(function (a, b) { return b.s - a.s; }).slice(0, 5);
+    var seeAll = function (tab) {
+      return '<button type="button" class="fd-seeall" data-goto="' + tab + '">' + esc(t('seeAll')) + '</button>';
+    };
+    var li = function (row, sub) {
+      return '<li><span class="fd-cell">' + gbifNameLink(row) + '<span class="fd-cell__sub">' + sub + '</span></span></li>';
+    };
+    $('fd-ov-top').innerHTML =
+      '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topRecorded')) + '</h3>' + seeAll('recorded') + '</div>' +
+      '<ul class="fd-ovlist">' + top.map(function (s) {
+        return li(s, esc(s.f) + ' · ' + fmtInt(s.r) + ' ' + esc(t('rec')));
+      }).join('') + '</ul>' +
+      '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topPossible')) + '</h3>' + seeAll('possible') + '</div>' +
+      '<ul class="fd-ovlist">' + tp.map(function (p) {
+        return li(p, esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + esc(t('km')) + ' · ' + esc(lang === 'ja' ? p.wj : p.w));
+      }).join('') + '</ul>';
   }
 
   function renderArea() {
@@ -1026,37 +1153,74 @@
 
     var names = a.member_names || {};
     var list = filterSpecies(a.species, state.kind, state.month);
-    var spView = visibleRows(list, 300, state.allSp);
+    var poss = filterSpecies(a.possible || [], state.kind, state.month);
+    renderOverview(list, poss);
+
+    // Recorded: two-line rows — name over a muted `family · evidence` (· member islands
+    // for groups). The Where column waits for a governed habitat field: hidden while the
+    // publish (index-level has_habitat) or the area itself says none ships.
+    var spView = visibleRows(list, state.spLimit, false);
     $('fd-area-count').textContent = spView.hidden ? fmtInt(spView.rows.length) + ' ' + t('of') + ' ' + fmtInt(list.length) : fmtInt(list.length);
-    moreButton('fd-area-more', list.length > 300, state.allSp, list.length, function () { state.allSp = !state.allSp; renderArea(); });
-    // The Where column waits for a governed habitat field: hidden while the publish
-    // (index-level has_habitat) or the area itself says none ships; groups keep
-    // listing member islands.
-    var showWhere = a.kind === 'group' || (a.has_habitat !== false && !(state.index && state.index.has_habitat === false));
-    var head = [t('sp'), t('family'), t('rec'), t('months')];
-    if (showWhere) head.push(a.kind === 'group' ? t('islands') : t('where'));
-    head.push(t('evidence'));
-    $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 2 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    moreButton('fd-area-more', list.length > state.spLimit || state.spLimit > AREA_ROWS, state.spLimit >= list.length, function () {
+      state.spLimit = state.spLimit >= list.length ? AREA_ROWS : state.spLimit + 100; renderArea();
+    });
+    var showWhere = a.kind !== 'group' && (a.has_habitat !== false && !(state.index && state.index.has_habitat === false));
+    var head = [t('sp'), t('rec'), t('months')];
+    if (showWhere) head.push(t('where'));
+    $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 1 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       spView.rows.map(function (s) {
-        var where = a.kind === 'group'
-          ? (s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')
-          : whereText(s, lang);
+        var sub = [esc(s.f)];
         var ev = Object.keys(s.e || {}).map(function (k) { return T['ev_' + k] ? t('ev_' + k) : k; }).join(', ');
-        return '<tr><td><a href="' + gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a></td><td>' +
-          esc(s.f) + '</td><td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td>' + (showWhere ? '<td class="fd-where">' + esc(where) + '</td>' : '') + '<td>' + esc(ev) + '</td></tr>';
+        if (ev) sub.push(esc(ev));
+        if (a.kind === 'group')
+          sub.push(esc((s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')));
+        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a><span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
+          '<td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td>' +
+          (showWhere ? '<td class="fd-where">' + esc(whereText(s, lang)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
 
-    var poss = filterSpecies(a.possible || [], state.kind, state.month);
-    var pView = visibleRows(poss, 40, state.allPoss);
+    // Could be found: name over `family · distance · nearest record`, then likelihood + months.
+    var pView = visibleRows(poss, state.possLimit, false);
     $('fd-poss-count').textContent = pView.hidden ? fmtInt(pView.rows.length) + ' ' + t('of') + ' ' + fmtInt(poss.length) : fmtInt(poss.length);
-    moreButton('fd-poss-more', poss.length > 40, state.allPoss, poss.length, function () { state.allPoss = !state.allPoss; renderArea(); });
-    var phead = [t('sp'), t('family'), t('likelihood'), t('nearest'), t('months')];
+    moreButton('fd-poss-more', poss.length > state.possLimit || state.possLimit > AREA_ROWS, state.possLimit >= poss.length, function () {
+      state.possLimit = state.possLimit >= poss.length ? AREA_ROWS : state.possLimit + 100; renderArea();
+    });
+    var phead = [t('sp'), t('likelihood'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       pView.rows.map(function (p) {
-        return '<tr><td><a href="' + gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n) + '" target="_blank" rel="noopener"><i>' + esc(p.n) + '</i></a></td><td>' +
-          esc(p.f) + '</td><td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td><td class="fd-where">' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
-          esc(lang === 'ja' ? p.wj : p.w) + '</td><td>' + monthStrip(p.m, state.month) + '</td></tr>';
+        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n) + '" target="_blank" rel="noopener"><i>' + esc(p.n) + '</i></a><span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
+          esc(lang === 'ja' ? p.wj : p.w) + '</span></td>' +
+          '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
+          '<td>' + monthStrip(p.m, state.month) + '</td></tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noPossible')) + '</td></tr></tbody>';
+  }
+
+  // All Japan overview: island-group suggestions (fastest route into Okinawa & co),
+  // top unidentified genera, the phylum split, top families and a leads teaser.
+  // Renders whatever is loaded: groups need the index, the rest the dashboard file.
+  function renderJapan() {
+    var d = state.d, ix = state.index;
+    var g = $('fd-japan-groups');
+    if (g && ix) {
+      var groups = ix.areas.filter(function (a) { return a.kind === 'group'; })
+        .sort(function (a, b) { return a.bbox[0] - b.bbox[0]; }); // same order as setupPicker()
+      g.innerHTML = groups.map(function (a) {
+        return '<button type="button">' + esc(lang === 'ja' ? a.name_ja : a.name_en) + '</button>';
+      }).join('');
+      Array.prototype.forEach.call(g.querySelectorAll('button'), function (b, i) {
+        b.addEventListener('click', function () { selectArea(groups[i].id, 'suggestion'); });
+      });
+    }
+    if (!d) return;
+    $('fd-japan-unresolved').innerHTML = barRows(d.unresolved_genera.slice(0, 8).map(function (x) { return [x[0], x[2]]; }), 0,
+      function (x) { return x; });
+    italicise('#fd-japan-unresolved');
+    $('fd-japan-phyla').innerHTML = barRows(d.phyla, d.totals.records, function (k) { return label(k, lang); });
+    $('fd-japan-families').innerHTML = barRows(d.families.slice(0, 8).map(function (f) { return [f[0], f[1]]; }), 0,
+      function (x) { return x; });
+    italicise('#fd-japan-families');
+    var lead = $('fd-japan-leads');
+    if (lead) lead.innerHTML = t('japanLeads').replace('{n}', fmtInt(leadsTotal(d.lead_totals)));
   }
 
   // lead_totals.candidates (renamed from neighbour_only, TASK-017); the fallback covers
@@ -1073,7 +1237,8 @@
       return '<tr><td><a href="' + url + '" target="_blank" rel="noopener"><i>' + esc(l[0]) + '</i></a></td><td>' + esc(l[1] || '') +
         '</td><td class="num">' + fmtInt(l[2]) + '</td><td class="num">' + fmtInt(l[3]) + '</td><td>' + esc(triage(l[4], lang)) + '</td></tr>';
     }).join('');
-    $('fd-leads').innerHTML = '<thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody>';
+    // #fd-leads moved to the card (the KPI tile anchors to it); the table carries -table.
+    $('fd-leads-table').innerHTML = '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 2 || i === 3 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody>';
     $('fd-lead-total').textContent = fmtInt(leadsTotal(d.lead_totals));
     $('fd-lead-mo').textContent = fmtInt(d.lead_totals.with_mo);
     $('fd-lead-unres').textContent = fmtInt(d.lead_totals.with_unresolved_jp_genus);
@@ -1090,6 +1255,7 @@
   function render(d) {
     state.d = d;
     renderKpis(d);
+    renderJapan();
     setupMap(d);
     $('fd-evidence').innerHTML = barRows(d.evidence.slice(0, 5), d.totals.records, function (k) { return label(k, lang); });
     $('fd-depth').innerHTML = barRows(d.id_depth, d.totals.records, function (k) { return label(k, lang); });
@@ -1431,11 +1597,12 @@
       state.snaps.index = res.snapshot;
       if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
       if (!state.pickerDone) { state.pickerDone = true; setupPicker(); }
+      renderJapan(); // the island-group suggestions need the validated index
       drawViews();
       if (!state.routed) { // early route: the camera fits from the validated index alone
         state.routed = true;
         var id = parseAreaHash(root.location.hash);
-        if (id) selectArea(id);
+        if (id) selectArea(id, 'init'); // deep link: replace, so Back leaves the page
       }
       if (search.refresh) search.refresh(); // genus search needs the validated index
     } else {
@@ -1472,6 +1639,22 @@
     fetchJson(base + 'areas/index.json', opts).then(readIndex).then(applyIndex).catch(function () { applyIndex({ ok: false }); });
   }
 
+  // Back/Forward (and a hand-edited #area-<id>): re-select or clear without pushing
+  // another entry. Unrelated in-page anchors (#fd-leads, later #species-<key>) are left
+  // alone — jumping to the leads card must not deselect an open area.
+  var lastRoute = null;
+  function routeFromLocation() {
+    // PR #60 review: Back/Forward between same-document entries fires popstate AND
+    // hashchange; route once — the second event sees the same location
+    if (root.location.href === lastRoute) return;
+    lastRoute = root.location.href;
+    var h = root.location.hash;
+    if (h && h !== '#' && !parseAreaHash(h)) return;
+    var id = parseAreaHash(h);
+    if (id) selectArea(id, 'popstate');
+    else clearArea(true);
+  }
+
   function start() {
     var el = doc.querySelector('.fd');
     if (!el) return;
@@ -1482,6 +1665,28 @@
       if (street.failed) { enterStreet(); return; } // blocked tiles: retry re-enters the default street map
       if (state.sel && state.sel.failed) loadDetail(state.sel.row, areaRequests.start(state.sel.row.id), true);
     });
+    // Inspector tabs: roving tabindex, arrow keys wrap, click selects; Overview is the
+    // default and the choice persists across area changes (state only, never the URL).
+    var tl = $('fd-tabs');
+    if (tl) {
+      tl.addEventListener('keydown', function (e) {
+        var step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        setTab(nextTab(state.tab, step), true);
+      });
+      Array.prototype.forEach.call(tl.querySelectorAll('[role="tab"]'), function (b) {
+        b.addEventListener('click', function () { setTab(b.getAttribute('data-tab'), false); });
+      });
+      setTab(state.tab, false);
+    }
+    var ovt = $('fd-ov-top');
+    if (ovt) ovt.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('[data-goto]') : null;
+      if (b) setTab(b.getAttribute('data-goto'), false);
+    });
+    root.addEventListener('popstate', routeFromLocation);
+    root.addEventListener('hashchange', routeFromLocation);
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (e.target && e.target.tagName === 'SELECT') return; // closing the picker's own dropdown
