@@ -35,6 +35,17 @@
 
   function fmtInt(n) { return Number(n || 0).toLocaleString('en-US'); }
   function pct(a, b) { if (!b) return '–'; return Math.round((100 * a) / b) + '%'; }
+  // Method footer (spec item 10): snapshot date and missing-coordinate share both come
+  // from the loaded dashboard.json, never from copy; an absent field renders as a dash.
+  function methodSnapshot(d) {
+    var g = d && d.generated;
+    return typeof g === 'string' && g ? g : '–';
+  }
+  function missingCoordsPct(d) {
+    var t = d && d.totals;
+    if (!t || typeof t.records !== 'number' || !t.records || typeof t.georeferenced !== 'number') return '–';
+    return Math.round(100 - (100 * t.georeferenced) / t.records) + '%';
+  }
   function humanize(key) {
     var s = String(key).toLowerCase().replace(/_/g, ' ');
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -556,6 +567,7 @@
 
   var api = {
     JAPAN_BOX: JAPAN_BOX, fmtInt: fmtInt, pct: pct, label: label, triage: triage, esc: esc, gbifTaxonUrl: gbifTaxonUrl,
+    methodSnapshot: methodSnapshot, missingCoordsPct: missingCoordsPct,
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, leadsTotal: leadsTotal, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
@@ -1305,7 +1317,9 @@
       return '<li><a href="https://doi.org/' + esc(s.doi) + '" target="_blank" rel="noopener">doi.org/' + esc(s.doi) + '</a> · ' +
         fmtInt(s.records) + ' ' + t('records') + ' · ' + t('downloaded') + ' ' + esc(String(s.created || '').slice(0, 10)) + '</li>';
     }).join('');
-    $('fd-generated').textContent = d.generated;
+    $('fd-generated').textContent = methodSnapshot(d);
+    var miss = $('fd-missing');
+    if (miss) miss.textContent = missingCoordsPct(d);
   }
 
   function render(d) {
