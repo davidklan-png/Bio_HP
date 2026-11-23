@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-23-1">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-23-2">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -21,30 +21,23 @@
     "Across all of Japan", so nothing there reads as area-specific. {%- endcomment -%}
   <div class="fd-workspace">
     <div class="fd-toolbar">
+      {%- comment -%} One combobox (TASK-008): index areas, reference-geography places and
+        reviewed genera. Focus with an empty query shows the former dropdown's contents
+        as suggestions; APG combobox pattern (aria-activedescendant over the listbox). {%- endcomment -%}
       <div class="fd-search" id="fd-search" hidden>
-        <div class="fd-search__field">
-          <div class="fd-seg" role="group" aria-label="{% if ja %}検索の種類{% else %}Search mode{% endif %}">
-            <button type="button" id="fd-search-place" aria-pressed="true">{% if ja %}地名{% else %}Place{% endif %}</button>
-            <button type="button" id="fd-search-genus" aria-pressed="false" hidden>{% if ja %}名前{% else %}Name{% endif %}</button>
-          </div>
-          <label class="fd-sr" for="fd-search-input" id="fd-search-label"></label>
-          <input type="search" id="fd-search-input" autocomplete="off" spellcheck="false" aria-controls="fd-search-results" aria-expanded="false">
-        </div>
-        <ul class="fd-search__results" id="fd-search-results" aria-label="{% if ja %}検索結果{% else %}Search results{% endif %}" hidden></ul>
+        <label class="fd-sr" for="fd-search-input">{% if ja %}島・地名・属名で検索{% else %}Search islands, places or genus names{% endif %}</label>
+        <input type="search" id="fd-search-input" role="combobox" aria-controls="fd-search-results" aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{% if ja %}島・地名・属名で検索{% else %}Search islands, places or genus names{% endif %}">
+        <ul class="fd-search__results" id="fd-search-results" role="listbox" aria-label="{% if ja %}検索結果{% else %}Search results{% endif %}" hidden></ul>
         <p class="fd-note fd-search__note" id="fd-search-note" hidden></p>
       </div>
-      {%- comment -%} Navigation: breadcrumb (up one level) + area picker + the selected
-        area's headline as page-level context, not text buried in a dropdown. {%- endcomment -%}
+      {%- comment -%} Navigation: breadcrumb (up one level) + the selected area's headline
+        as page-level context, not text buried in a dropdown. {%- endcomment -%}
       <div class="fd-mapnav">
         <nav class="fd-crumb" aria-label="{% if ja %}地域の移動{% else %}Area navigation{% endif %}">
           <button type="button" class="fd-crumb__up" id="fd-area-back" hidden>{% if ja %}日本全体{% else %}Japan{% endif %}</button>
           <span class="fd-crumb__sep" id="fd-crumb-sep" hidden aria-hidden="true">›</span>
           <span class="fd-crumb__here" id="fd-crumb-area" hidden></span>
         </nav>
-        <div class="fd-picker" id="fd-picker" hidden>
-          <label class="fd-sr" for="fd-area-pick">{% if ja %}地域{% else %}Area{% endif %}</label>
-          <select id="fd-area-pick"></select>
-        </div>
       </div>
       <p class="fd-context" id="fd-context" hidden></p>
       <div class="fd-mapbar">
