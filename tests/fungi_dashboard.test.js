@@ -578,11 +578,11 @@ describe('street map is the default view (no toggle)', () => {
   });
 });
 describe('research entry exists only when a payload answers', () => {
-  it('boot probes mesh-research.json and gates the button, genus segment and error notes', () => {
+  it('boot probes mesh-research.json and gates the button and error notes', () => {
     const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
     assert.ok(/loadResearch\(false\); \/\/ availability probe/.test(src), 'probe at boot');
     assert.ok(src.includes('function researchAvailable()'));
-    assert.ok(src.includes("$('fd-search-genus').hidden = !ok") || src.includes("gb.hidden = !ok"), 'genus segment gated');
+    assert.ok(src.includes('rb.hidden = !ok'), 'research button gated');
   });
   it('street squares carry a same-hue edge over busy tiles', () => {
     const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
@@ -669,10 +669,10 @@ describe('readResearch accepts the names element', () => {
 // TASK-005: masking notice on name search; Where column hidden until habitat ships.
 describe('masking notice and hidden Where column (TASK-005)', () => {
   const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
-  it('name search carries a persistent bilingual caption, repeated on empty results', () => {
+  it('name search carries a persistent bilingual caption, repeated on empty results (TASK-008 port)', () => {
     assert.ok(/masking: \['/.test(src), 'bilingual T.masking entry exists');
-    assert.ok(src.includes(") : t('masking')"), 'an enabled name-search input shows the caption persistently');
-    assert.ok(src.includes("note(t('noResults') + ' ' + t('masking'))"), 'empty name results repeat the caption');
+    assert.ok(/researchReady\(\) \? t\('masking'\) : ''/.test(src), 'a research-ready search shows the caption persistently');
+    assert.ok(src.includes("note(t('noResults') + (researchReady() ? ' ' + t('masking') : ''))"), 'empty name results repeat the caption');
   });
   it('hides the Where column while has_habitat is false; groups show islands as a row subline (TASK-007)', () => {
     assert.ok(src.includes("var showWhere = a.kind !== 'group' && (a.has_habitat !== false && !(state.index && state.index.has_habitat === false))"),
@@ -743,7 +743,7 @@ describe('TASK-007: history actions', () => {
   it('maps sources to push, replace or no write', () => {
     assert.strictEqual(fd.historyAction('init'), 'replace'); // deep-link load keeps one entry
     assert.strictEqual(fd.historyAction('popstate'), null);  // Back/Forward never re-pushes
-    for (const s of ['picker', 'tap', 'suggestion', 'search', 'preview', undefined])
+    for (const s of ['search', 'tap', 'suggestion', 'preview', 'toolbar', undefined])
       assert.strictEqual(fd.historyAction(s), 'push', 'source ' + s);
   });
   it('selectArea routes every history write through historyAction, clearArea pushes', () => {
@@ -821,5 +821,141 @@ describe('key-based GBIF links (TASK-007)', () => {
     assert.ok(src.includes('gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n)'), 'could-be-found table');
     assert.ok(src.includes('gbifTaxonUrl(l[5], l[6], l[0])'), 'leads table');
     assert.ok(src.includes('gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n)'), 'overview top-5 lists');
+  });
+});
+
+// TASK-008: one combobox replaces the area dropdown, the Place/Name toggle and the input.
+describe('TASK-008: unified search markup', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  it('ships one labelled combobox input wired to a listbox; no select, no toggle remains', () => {
+    for (const gone of ['<select', 'fd-area-pick', 'fd-search-place', 'fd-search-genus'])
+      assert.ok(!inc.includes(gone), 'include must not contain ' + gone);
+    for (const gone of ['fd-area-pick', 'fd-search-place', 'fd-search-genus'])
+      assert.ok(!src.includes(gone), 'script must not reference ' + gone);
+    const input = /<input[^>]*id="fd-search-input"[^>]*>/.exec(inc);
+    assert.ok(input, 'input present');
+    for (const attr of ['role="combobox"', 'aria-controls="fd-search-results"', 'aria-expanded="false"', 'aria-autocomplete="list"'])
+      assert.ok(input[0].includes(attr), 'input carries ' + attr);
+    assert.ok(/id="fd-search-results"[^>]*role="listbox"/.test(inc), 'results are a listbox');
+    assert.ok(inc.includes('Search islands, places or genus names') && inc.includes('島・地名・属名で検索'), 'placeholder EN/JA');
+  });
+  it('deletes the picker and toggle CSS and bumps the stamp', () => {
+    assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
+    assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
+    assert.ok(inc.includes('?v=2026-11-23-2'), 'CSS stamp bumped');
+  });
+  it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
+    assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
+    assert.ok(src.includes("li.setAttribute('role', 'group')"), 'sections are groups');
+    assert.ok(src.includes("input.setAttribute('aria-activedescendant', options[i].el.id)"), 'aria-activedescendant follows the active option');
+    assert.ok(src.includes("o.el.setAttribute('aria-selected', String(j === i))"), 'only the active option is selected');
+    assert.ok(src.includes('scrollIntoView({ block: \'nearest\' })'), 'the active option scrolls into view');
+    assert.ok(/clearTimeout\(countTimer\)/.test(src), 'the debounced count announcement cancels');
+  });
+  it('routes every selection through the existing paths with the push history rule', () => {
+    assert.ok(src.includes("selectArea(row.id, 'search')"), 'area options select');
+    assert.ok(src.includes("selectArea(p.area_id, 'search')"), 'places with an area select it');
+    assert.ok(src.includes('centreOn(p)'), 'places without an area centre the camera');
+    assert.ok(src.includes("selectArea(item.areaId, 'search')"), 'genus options select their area');
+  });
+  it('street success only clears a status it owns, so the index-failure line survives', () => {
+    assert.ok(/if \(street\.ownsMsg\) \{ street\.ownsMsg = false; areaMsg\(null\); \}/.test(src),
+      'the boot-time street auto-enter must not race away the index status');
+  });
+});
+
+describe('TASK-008: searchAll', () => {
+  const areas = [
+    { id: 'g-ok', kind: 'group', name_en: 'Okinawa Prefecture', name_ja: '沖縄県（全島）', bbox: [24.03, 27.1, 122.9, 131.4], species: 3900 },
+    { id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', name_ja: '沖縄本島', bbox: [26.07, 26.88, 127.63, 128.33], species: 1100 },
+    { id: 'amami-oshima', kind: 'island', name_en: 'Amami Oshima', name_ja: '奄美大島', bbox: [28.03, 28.56, 129.08, 129.76], species: 109 },
+    { id: 'hokkaido', kind: 'island', name_en: 'Hokkaido', name_ja: '北海道', bbox: [41.4, 45.5, 139.3, 145.8], species: 5000 },
+    { id: 't5339', kind: 'tile', name_en: 'Chūbu · around 36.2°N 138.5°E', name_ja: '中部・北緯36.2度 東経138.5度付近', bbox: [36.0, 36.6, 138.3, 139.0], species: 30 }
+  ];
+  const places = [
+    { en: 'Naha', ja: '那覇', aliases: [], at: [127.68, 26.21] },
+    { en: 'Amami', ja: '奄美', aliases: [], at: [129.5, 28.38] },
+    { en: 'Yakushima', ja: '屋久島', aliases: [], at: [130.5, 30.3], area_id: 'yakushima' }
+  ];
+  const genera = [
+    ['Russula', ['okinawa-honto', 'hokkaido'], ['Russula', 'ベニタケ属', 'brittlegill']],
+    ['Amanita', ['amami-oshima'], ['Amanita', 'テングタケ属']]
+  ];
+  it('groups areas, places and genera in that order', () => {
+    const g = fd.searchAll('am', { areas, places, genera });
+    assert.deepStrictEqual(g.map((x) => x.group), ['areas', 'places', 'genera']);
+    assert.deepStrictEqual(g[0].items.map((x) => x.area.id), ['amami-oshima']);
+    assert.deepStrictEqual(g[1].items.map((x) => x.place.en), ['Amami']);
+    assert.deepStrictEqual(g[2].items.map((x) => x.areaId), ['amami-oshima']);
+  });
+  it('caps each group at 8 by default and reports the rest as more', () => {
+    const isles = Array.from({ length: 10 }, (_, i) => ({ id: 'i' + i, kind: 'island', name_en: 'Isla ' + i, name_ja: '島' + i, bbox: [30 + i, 31, 130, 131], species: i }));
+    const g = fd.searchAll('isla', { areas: isles });
+    assert.strictEqual(g.length, 1);
+    assert.strictEqual(g[0].items.length, 8);
+    assert.strictEqual(g[0].more, 2);
+    const tight = fd.searchAll('isla', { areas: isles }, 3);
+    assert.strictEqual(tight[0].items.length, 3);
+    assert.strictEqual(tight[0].more, 7);
+  });
+  it('folds case, diacritics and Japanese names for areas', () => {
+    assert.ok(fd.searchAll('OKIN', { areas })[0].items.length === 2, 'case-insensitive');
+    const ja = fd.searchAll('沖縄', { areas })[0].items.map((x) => x.area.id);
+    assert.ok(ja.includes('okinawa-honto') && ja.includes('g-ok'), 'JA names match');
+    assert.ok(fd.searchAll('chubu', { areas })[0].items[0].area.id === 't5339', 'diacritics fold');
+    const ranked = fd.searchAll('okinawa', { areas })[0].items.map((x) => x.area.id);
+    assert.deepStrictEqual(ranked, ['g-ok', 'okinawa-honto'], 'same rank keeps picker order: groups before islands');
+  });
+  it('keeps place search behaviour: ranks and the JA name', () => {
+    assert.deepStrictEqual(fd.searchAll('naha', { places })[0].items[0].place.en, 'Naha');
+    const ja = fd.searchAll('那覇', { places })[0].items[0];
+    assert.strictEqual(ja.place.en, 'Naha');
+    assert.strictEqual(ja.rank, 0); // exact match outranks prefixes
+    assert.deepStrictEqual(fd.searchAll('yak', { places })[0].items[0].place.area_id, 'yakushima');
+  });
+  it('flattens genus results into one option per genus × area', () => {
+    const g = fd.searchAll('russ', { areas, genera })[0];
+    assert.strictEqual(g.group, 'genera');
+    assert.deepStrictEqual(g.items.map((x) => x.areaId), ['okinawa-honto', 'hokkaido']);
+    assert.strictEqual(g.items[0].genus, 'Russula');
+    assert.strictEqual(g.items[0].label, 'Russula · ベニタケ属');
+  });
+  it('returns no group for absent sources or no matches', () => {
+    assert.deepStrictEqual(fd.searchAll('zzz', { areas, places, genera }), []);
+    assert.deepStrictEqual(fd.searchAll('okin', { places }), []); // no index: areas cannot match
+    assert.deepStrictEqual(fd.searchAll('russ', { areas, genera: null }), []); // research not loaded
+    assert.deepStrictEqual(fd.searchAll('russ', { genera }), []); // no index: no valid leaf areas
+  });
+});
+
+describe('TASK-008: empty-state suggestions and lazy genus option', () => {
+  const areas = [
+    { id: 'hk', kind: 'island', name_en: 'Hokkaido', bbox: [41.4, 45.5, 139.3, 145.8], species: 5000 },
+    { id: 'g-yaeyama', kind: 'group', name_en: 'Yaeyama', bbox: [24.03, 24.4, 122.9, 124.5], species: 800 },
+    { id: 'g-amami', kind: 'group', name_en: 'Amami', bbox: [26.99, 28.6, 128.9, 130.2], species: 600 },
+    { id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', bbox: [26.07, 26.88, 127.63, 128.33], species: 1100 },
+    { id: 't5339', kind: 'tile', name_en: 'A tile', bbox: [36.0, 36.6, 138.3, 139.0], species: 30 }
+  ];
+  it('shows island groups then islands, each south-to-north, tiles excluded', () => {
+    const g = fd.suggestGroups(areas);
+    assert.deepStrictEqual(g.map((x) => x.group), ['groups', 'islands']);
+    assert.deepStrictEqual(g[0].items.map((x) => x.area.id), ['g-yaeyama', 'g-amami']);
+    assert.deepStrictEqual(g[1].items.map((x) => x.area.id), ['okinawa-honto', 'hk']);
+    assert.ok(g.every((x) => x.more === 0), 'the whole former dropdown contents show, no cap');
+  });
+  it('tolerates a missing index', () => {
+    assert.deepStrictEqual(fd.suggestGroups(null), []);
+  });
+  it('offers the genus lazy-load only for 3+ plain Latin-letter queries', () => {
+    assert.strictEqual(fd.isLatinQuery('Russula'), true);
+    assert.strictEqual(fd.isLatinQuery('  amanita '), true);   // folded and trimmed
+    assert.strictEqual(fd.isLatinQuery('Chūbu'), true);        // diacritics fold to plain letters
+    assert.strictEqual(fd.isLatinQuery('ru'), false);
+    assert.strictEqual(fd.isLatinQuery('ab1'), false);
+    assert.strictEqual(fd.isLatinQuery('na ha'), false);
+    assert.strictEqual(fd.isLatinQuery('マツタケ'), false);
+    assert.strictEqual(fd.isLatinQuery(''), false);
   });
 });
