@@ -793,3 +793,33 @@ describe('[hidden] stays hidden (TASK-006)', () => {
     assert.ok(tag && /\bhidden\b/.test(tag[0]), 'the area section must not render before JS fills it');
   });
 });
+
+// TASK-007: key-based GBIF links — COL key, legacy key, then an encoded name search.
+describe('key-based GBIF links (TASK-007)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  it('prefers taxon/<colKey>, then species/<legacyKey>, then an encoded name search', () => {
+    assert.strictEqual(fd.gbifTaxonUrl(5264934, 7571796, 'Amanita muscaria'), 'https://www.gbif.org/taxon/5264934');
+    assert.strictEqual(fd.gbifTaxonUrl(null, 7571796, 'Amanita muscaria'), 'https://www.gbif.org/species/7571796');
+    assert.strictEqual(fd.gbifTaxonUrl(undefined, undefined, 'Boletus edulis var. satanas'),
+      'https://www.gbif.org/taxon/search?q=Boletus%20edulis%20var.%20satanas');
+  });
+  it('lets empty and missing keys fall through on truthiness', () => {
+    assert.strictEqual(fd.gbifTaxonUrl('', 7571796, 'X'), 'https://www.gbif.org/species/7571796');
+    assert.strictEqual(fd.gbifTaxonUrl('', '', 'X'), 'https://www.gbif.org/taxon/search?q=X');
+    assert.strictEqual(fd.gbifTaxonUrl(undefined, undefined, 'X'), 'https://www.gbif.org/taxon/search?q=X');
+    assert.strictEqual(fd.gbifTaxonUrl(null, null, 'X'), 'https://www.gbif.org/taxon/search?q=X');
+  });
+  it('keeps the search pattern in one constant and leaves no species/search link behind', () => {
+    assert.ok(!src.includes('species/search'), 'the legacy /species/search?q= pattern must be gone');
+    assert.strictEqual((src.match(/taxon\/search/g) || []).length, 1, 'exactly one taxon/search constant');
+  });
+  it('routes every species-link render site through the helper', () => {
+    // Phase 1a added the Overview top-5 lists (gbifNameLink), so: definition +
+    // three table sites + the overview link builder
+    assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 5, 'one definition plus four call sites');
+    assert.ok(src.includes('gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n)'), 'area species table');
+    assert.ok(src.includes('gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n)'), 'could-be-found table');
+    assert.ok(src.includes('gbifTaxonUrl(l[5], l[6], l[0])'), 'leads table');
+    assert.ok(src.includes('gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n)'), 'overview top-5 lists');
+  });
+});
