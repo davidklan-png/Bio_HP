@@ -520,12 +520,23 @@
   // (case- and diacritic-insensitive, JA included); rank exact > prefix > substring,
   // picker order (groups, islands, tiles — each south-to-north) within a rank.
   function isLatinQuery(q) { return /^[a-z]{3,}$/.test(foldQuery(q)); }
+  // An island with zero records (Hateruma, Iki in the 2026-11 snapshot) is a dead end in
+  // search; rows without the field (older indexes, fixtures) keep surfacing. Deep links
+  // still resolve through findArea, which this does not touch.
+  function hasRecords(a) { return !(a && a.records === 0); }
+  // Name search covers the reviewed research genera only; a Latin query that finds none
+  // says so (sorted, unique) instead of implying the genus was masked.
+  function genusScope(genera) {
+    var seen = {};
+    (genera || []).forEach(function (g) { if (g && typeof g[0] === 'string') seen[g[0]] = true; });
+    return Object.keys(seen).sort();
+  }
   function areaMatches(areas, q) {
     var needle = foldQuery(q);
     if (!needle || !areas) return [];
     var kindOrder = { group: 0, island: 1, tile: 2 };
     return areas
-      .filter(function (a) { return a.name_en || a.name_ja; }) // a nameless tile never surfaces
+      .filter(function (a) { return (a.name_en || a.name_ja) && hasRecords(a); }) // nameless or empty areas never surface
       .map(function (a) {
         var rank = 3;
         [a.name_en, a.name_ja].forEach(function (nm) {
@@ -549,8 +560,8 @@
     var byLat = function (a, b) { return a.bbox[0] - b.bbox[0]; };
     var wrap = function (rows) { return rows.map(function (a) { return { area: a }; }); };
     var out = [];
-    var groups = (areas || []).filter(function (a) { return a.kind === 'group'; }).sort(byLat);
-    var islands = (areas || []).filter(function (a) { return a.kind === 'island'; }).sort(byLat);
+    var groups = (areas || []).filter(function (a) { return a.kind === 'group' && hasRecords(a); }).sort(byLat);
+    var islands = (areas || []).filter(function (a) { return a.kind === 'island' && hasRecords(a); }).sort(byLat);
     if (groups.length) out.push({ group: 'groups', items: wrap(groups), more: 0 });
     if (islands.length) out.push({ group: 'islands', items: wrap(islands), more: 0 });
     return out;
@@ -649,6 +660,21 @@
       .sort(function (a, b) { return b[1] - a[1] || b[2] - a[2] || (a[0] < b[0] ? -1 : 1); })
       .slice(0, n == null ? 6 : n);
   }
+  // Overview "top recorded": ranked by specimen + sighting records so a DNA soil survey
+  // (Okinawa Island: Global soil organisms) does not fill the top 5 with soil microfungi.
+  // DNA-only rows drop here; the Recorded tab still lists every species, tagged.
+  function topRecorded(species, n) {
+    return (species || []).map(function (s) {
+      var e = (s && s.e) || {};
+      return { row: s, count: (e.s || 0) + (e.o || 0) };
+    }).filter(function (x) { return x.row && x.count > 0; })
+      .sort(function (a, b) { return b.count - a.count || (a.row.n < b.row.n ? -1 : a.row.n > b.row.n ? 1 : 0); })
+      .slice(0, n == null ? 5 : n);
+  }
+  // Family incertae sedis ships as an empty name; label it rather than draw a blank bar.
+  function familyLabel(f, lng) {
+    return f ? f : (lng === 'ja' ? '科不明' : 'Family unknown');
+  }
   // Inspector tabs: Overview | Recorded | Could be found. The choice persists across
   // area changes; arrows wrap. Unknown names fall back to the first tab.
   var TABS = ['overview', 'recorded', 'possible'];
@@ -731,7 +757,8 @@
     foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
     isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
     tapTransition: tapTransition, tapGuard: tapGuard,
-    areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, nextTab: nextTab, historyAction: historyAction,
+    areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, topRecorded: topRecorded, familyLabel: familyLabel,
+    hasRecords: hasRecords, genusScope: genusScope, nextTab: nextTab, historyAction: historyAction,
     monthStrip: monthStrip, st: st,
     readSpeciesIndex: readSpeciesIndex, readSpeciesGenus: readSpeciesGenus, speciesSlugFor: speciesSlugFor,
     findSpeciesEntry: findSpeciesEntry, speciesMarkers: speciesMarkers, markersHtml: markersHtml,
@@ -766,7 +793,7 @@
     returnedAll: ['Back to all of Japan.', '日本全体の表示に戻りました。'],
     squares: ['squares', '区画'],
     byName: ['matched by place name', '地名で照合'],
-    unresolved: ['not identified to species', '種まで未同定'],
+    unresolved: ['records not identified to species', '件は種まで未同定'],
     sampling: ['≈{share}% of records in this area come from one survey ({title}).', 'この地域の記録の約{share}%は1つの調査（{title}）によるものです。'],
     streetLoading: ['Loading the street map…', '詳細地図を読み込み中…'],
     streetReady: ['Street map shown. Tap a square to preview it; tap again to open its area.', '詳細地図を表示しました。区画をタップで概要、もう一度タップで地域を開きます。'],
@@ -794,7 +821,8 @@
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
     geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
     genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
-    masking: ['Some species are deliberately excluded from search and maps to protect sensitive sites and prevent over-collection.', '敏感な産地の保護と乱獲防止のため、一部の種は検索や地図から意図的に除外しています。'],
+    masking: ['To prevent over-collection, Red List and commercially collected species are left out of search and maps at species level; their genera stay searchable.', '乱獲防止のため、レッドリスト掲載種と商用採集の対象種は、種レベルの記録を検索や地図から除いています（属は検索できます）。'],
+    genusScopeNote: ['Genus search currently covers {n} genera: {list}.', '属名検索の対象は現在{n}属です：{list}。'],
     searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
@@ -805,7 +833,7 @@
     showFewer: ['Show fewer', '表示を減らす'],
     showMore: ['Show more', 'さらに表示'],
     seeAll: ['See all', '一覧を見る'],
-    topRecorded: ['Top recorded species', '記録数の多い種'],
+    topRecorded: ['Top recorded species (specimens and sightings)', '記録数の多い種（標本・観察）'],
     topPossible: ['Most likely to be found here', '見つかる可能性が高い種'],
     japanLeads: ['<b>{n}</b> species are recorded in neighbouring East Asia but not in Japan. <a href="#fd-leads">See the leads</a>.',
       '近隣の東アジアで記録がありながら日本では未記録の種は<b>{n}</b>種です。<a href="#fd-leads">調査の手がかりを見る</a>。'],
@@ -1347,7 +1375,8 @@
     var ctx = $('fd-context');
     if (ctx) {
       ctx.hidden = false;
-      ctx.innerHTML = esc(areaName(row)) + ' <small>· ' + fmtInt(row.species) + ' ' + t('species') +
+      // the breadcrumb already names the area; this line carries only its counts
+      ctx.innerHTML = '<small>' + fmtInt(row.species) + ' ' + t('species') +
         ' · ' + fmtInt(row.records) + ' ' + t('records') + '</small>';
     }
   }
@@ -1462,6 +1491,7 @@
     var box = $('fd-mapspecies');
     if (!box) return;
     var loaded = loadedAreaSpecies();
+    box.hidden = !loaded.length; // a "(0)" under an empty map reads as "no species"
     var rows = mapSpeciesRank(loaded, state.month, state.q || '');
     var nEl = $('fd-mapsp-n');
     if (nEl) nEl.textContent = fmtInt(rows.length);
@@ -1534,7 +1564,8 @@
     return '<a href="' + gbifTaxonUrl(row.c || undefined, row.lk || undefined, row.n) + '" target="_blank" rel="noopener"><i>' + esc(row.n) + '</i></a>';
   }
   function italicise(sel) {
-    doc.querySelectorAll(sel + ' .fd-bar__label').forEach(function (el) { el.style.fontStyle = 'italic'; });
+    var unknown = familyLabel('', lang); // a Japanese label never goes italic
+    doc.querySelectorAll(sel + ' .fd-bar__label').forEach(function (el) { if (el.textContent !== unknown) el.style.fontStyle = 'italic'; });
   }
 
   // Overview tab: evidence mix + top families from the area's species rows (Phase 2 will
@@ -1548,7 +1579,7 @@
     $('fd-ov-families').innerHTML = barRows(topFamilies(list, 6).map(function (f) { return [f[0], f[1]]; }), 0,
       function (x) { return x; });
     italicise('#fd-ov-families');
-    var top = list.slice().sort(function (a, b) { return b.r - a.r; }).slice(0, 5);
+    var top = topRecorded(list, 5);
     var tp = poss.slice().sort(function (a, b) { return b.s - a.s; }).slice(0, 5);
     var seeAll = function (tab) {
       return '<button type="button" class="fd-seeall" data-goto="' + tab + '">' + esc(t('seeAll')) + '</button>';
@@ -1558,12 +1589,12 @@
     };
     $('fd-ov-top').innerHTML =
       '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topRecorded')) + '</h3>' + seeAll('recorded') + '</div>' +
-      '<ul class="fd-ovlist">' + top.map(function (s) {
-        return li(s, esc(s.f) + ' · ' + fmtInt(s.r) + ' ' + esc(t('rec')));
+      '<ul class="fd-ovlist">' + top.map(function (x) {
+        return li(x.row, esc(familyLabel(x.row.f, lang)) + ' · ' + fmtInt(x.count) + ' ' + esc(t('records')));
       }).join('') + '</ul>' +
       '<div class="fd-ovhead"><h3 class="fd-area__h">' + esc(t('topPossible')) + '</h3>' + seeAll('possible') + '</div>' +
       '<ul class="fd-ovlist">' + tp.map(function (p) {
-        return li(p, esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + esc(t('km')) + ' · ' + esc(lang === 'ja' ? p.wj : p.w));
+        return li(p, esc(familyLabel(p.f, lang)) + ' · ' + fmtInt(p.d) + ' ' + esc(t('km')) + ' · ' + esc(lang === 'ja' ? p.wj : p.w));
       }).join('') + '</ul>';
   }
 
@@ -1599,7 +1630,7 @@
     if (showWhere) head.push(t('where'));
     $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 1 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       spView.rows.map(function (s) {
-        var sub = [esc(s.f)];
+        var sub = [esc(familyLabel(s.f, lang))];
         var ev = Object.keys(s.e || {}).map(function (k) { return SPECIES_T['ev_' + k] ? st('ev_' + k, lang) : k; }).join(', ');
         if (ev) sub.push(esc(ev));
         if (a.kind === 'group')
@@ -1618,7 +1649,7 @@
     var phead = [t('sp'), t('likelihood'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       pView.rows.map(function (p) {
-        return '<tr><td class="fd-cell">' + speciesNameCell(p.c, p.lk, p.n, species.dead, lang) + '<span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
+        return '<tr><td class="fd-cell">' + speciesNameCell(p.c, p.lk, p.n, species.dead, lang) + '<span class="fd-cell__sub">' + esc(familyLabel(p.f, lang)) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
           esc(lang === 'ja' ? p.wj : p.w) + '</span></td>' +
           '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
           '<td>' + monthStrip(p.m, state.month, lang) + '</td></tr>';
@@ -1648,7 +1679,7 @@
       function (x) { return x; });
     italicise('#fd-japan-unresolved');
     $('fd-japan-phyla').innerHTML = barRows(d.phyla, d.totals.records, function (k) { return label(k, lang); });
-    $('fd-japan-families').innerHTML = barRows(d.families.slice(0, 8).map(function (f) { return [f[0], f[1]]; }), 0,
+    $('fd-japan-families').innerHTML = barRows(d.families.slice(0, 8).map(function (f) { return [familyLabel(f[0], lang), f[1]]; }), 0,
       function (x) { return x; });
     italicise('#fd-japan-families');
     var lead = $('fd-japan-leads');
@@ -2020,7 +2051,15 @@
         }
         results.appendChild(li);
       }
-      if (!results.children.length) { note(t('noResults') + (researchReady() ? ' ' + t('masking') : '')); return; }
+      if (!results.children.length) {
+        var scope = researchReady() ? genusScope(research.res.data.genera) : [];
+        if (scope.length && isLatinQuery(q)) {
+          note(t('noResults') + ' ' + t('genusScopeNote').replace('{n}', fmtInt(scope.length)).replace('{list}', scope.join(', ')));
+        } else {
+          note(t('noResults') + (researchReady() ? ' ' + t('masking') : ''));
+        }
+        return;
+      }
       open();
       announceCount(options.length);
     }
