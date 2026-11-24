@@ -470,6 +470,46 @@
     slice[2].forEach(function (c) { cells[c[0]] = [c[1], c[2]]; });
     return { withheld: false, cells: cells };
   }
+  /* ---- one map rule (TASK-013, filters-and-search-plan F1). The month and kind always
+     drive the map: only the default pair shows all-time records. */
+  function mapMode(month, kind) {
+    return month === 0 && kind === 'all' ? 'all-time' : 'estimate';
+  }
+  // Squares with all-time records but no cell in the active slice: drawn hatched, never
+  // empty. A withheld slice (cells: null) hatches every base square; no view, nothing.
+  function unpublishedCells(baseMesh, view) {
+    if (!view) return [];
+    var cells = view.cells || null;
+    return (baseMesh || []).map(function (m) { return meshKey(m[0], m[1]); })
+      .filter(function (k) { return k && !(cells && cells[k]); });
+  }
+  /* ---- the "表示中" line (TASK-013). Strings live here, like LABELS, so the helper stays
+     pure; extra carries chips from other filters (TASK-014: 種／属). */
+  var FILTER_T = {
+    showing: ['Showing', '表示中'],
+    allMonths: ['All months', '全期間'],
+    allFungi: ['All fungi', 'すべての菌類'],
+    records: ['Records', '記録数'],
+    estimate: ['Estimated records', '推定記録数']
+  };
+  var KIND_T = {
+    all: ['All', 'すべて'], m: ['Mushrooms & visible fungi', 'きのこ類'],
+    l: ['Lichens', '地衣類'], o: ['Microfungi & DNA', '微小菌・DNA']
+  };
+  function ft(k, lang) { return lang === 'ja' ? FILTER_T[k][1] : FILTER_T[k][0]; }
+  function kindLabel(kind, lang) { var p = KIND_T[kind] || KIND_T.all; return lang === 'ja' ? p[1] : p[0]; }
+  // Chips for the line: month · kind · (extra chips) · the measure the map shows. A default
+  // chip carries no ✕; mapMode decides which measure applies.
+  function activeFilters(st, lang, extra) {
+    var month = (st && st.month) || 0;
+    var kind = st && KIND_T[st.kind] ? st.kind : 'all';
+    return [
+      { id: 'month', label: month ? monthName(month, lang) : ft('allMonths', lang), removable: !!month },
+      { id: 'kind', label: kind === 'all' ? ft('allFungi', lang) : kindLabel(kind, lang), removable: kind !== 'all' }
+    ].concat(extra || []).concat([
+      { id: 'measure', label: ft(mapMode(month, kind) === 'all-time' ? 'records' : 'estimate', lang), removable: false }
+    ]);
+  }
   // Case/diacritic-insensitive fold for place search (Latin and kana/kanji pass through).
   function foldQuery(s) {
     return String(s == null ? '' : s).normalize('NFKD')
@@ -593,16 +633,18 @@
   // genus files are too many to fetch), so the list accrues from the area files the page
   // has already loaded — the selected area plus the detail cache. `areas` is a list of
   // species arrays, one per loaded area; rows merge by name, count how many of those
-  // areas record the species and sum records. Month semantics match filterSpecies
-  // (a species counts in an area only if it fruits there that month; 0 = all months),
-  // and `query` folds like the search box so the combobox filters this list too.
-  function mapSpeciesRank(areas, month, query) {
+  // areas record the species and sum records. Month and kind semantics match filterSpecies
+  // (a species counts in an area only if it fruits there that month; 0 = all months, and
+  // 'all' = every kind), and `query` folds like the search box so the combobox filters
+  // this list too.
+  function mapSpeciesRank(areas, month, query, kind) {
     var needle = foldQuery(query);
     var byName = {};
     (areas || []).forEach(function (species) {
       var seen = {};
       (species || []).forEach(function (s) {
         if (!s || !s.n || seen[s.n]) return;
+        if (kind && kind !== 'all' && s.k !== kind) return;
         if (month && !(s.m && s.m[month - 1] > 0)) return;
         seen[s.n] = true;
         var row = byName[s.n] || (byName[s.n] = { n: s.n, c: s.c || undefined, lk: s.lk || undefined, areas: 0, r: 0 });
@@ -754,6 +796,8 @@
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
     readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
+    mapMode: mapMode, unpublishedCells: unpublishedCells,
+    activeFilters: activeFilters, kindLabel: kindLabel, ft: ft, FILTER_T: FILTER_T, KIND_T: KIND_T,
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
     foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
     isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
@@ -802,13 +846,15 @@
     streetExit: ['Back to the simple map.', '簡易地図に戻りました。'],
     researchLoading: ['Loading research data…', 'リサーチデータを読み込み中…'],
     researchUnavailable: ['Research data is unavailable; the map keeps showing all-time records.', 'リサーチデータは利用できません。地図は引き続き全期間の記録を表示しています。'],
-    researchSlice: ['This month and kind combination was withheld: no square has a public estimate.', 'この月と種類の組み合わせは非公開です。公開推定値のある区画はありません。'],
-    researchNoEstimate: ['no public estimate', '公開推定値なし'],
+    researchSlice: ['This month and kind combination was withheld: no square has a public estimate.', 'この月・種類の組み合わせは非公開です。公開推定値のある区画はありません。'],
+    noEstimate: ['No public estimate for this filter (has records overall)', 'この条件の公開推定値なし（全期間では記録あり）'],
     researchEst: ['estimated records', '推定記録数'],
     researchShare: ['genus-only share', '属のみの割合'],
     researchWithheld: ['withheld', '非公開'],
-    researchOn: ['Research view on: squares are coloured by estimated records for the selected month and kind.', 'リサーチ表示オン：区画を選択した月・種類の推定記録数で色分けしました。'],
-    researchOff: ['Research view off: squares show all-time records again.', 'リサーチ表示オフ：区画は全期間の記録数表示に戻りました。'],
+    resetAll: ['Reset all', 'すべて解除'],
+    remove: ['Remove filter: {label}', '{label}を解除'],
+    allTimeScope: ['All of Japan, all time', '日本全体・全期間'],
+    matching: ['Matching species: {n}', '条件に合う種：{n}'],
     searchCount: ['results', '件の結果'],
     searchUnavailable: ['Search is unavailable: neither the area list nor the place names could be loaded.', '地域一覧も地名データも読み込めないため、検索は利用できません。'],
     sgAreas: ['Areas', '地域'],
@@ -861,7 +907,7 @@
   // URL); the row windows step +100 from AREA_ROWS on each Show more.
   var AREA_ROWS = 50;
   var MAPSP_ROWS = 50; // species-on-map disclosure: first window, then +50 per Show more
-  var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // kind slicer removed; 'all' only
+  var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // month + kind: all / m / l / o, both drive the map (TASK-013)
     cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     q: '', mapspLimit: MAPSP_ROWS,
     locCell: null, snaps: { dashboard: null, index: null },
@@ -870,12 +916,12 @@
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
   var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
   var street = { on: false, loading: false }; // street-mode session state
-  // Research filters (Phase 3B): mesh-research.json is fetched only on the first enable;
-  // a payload that fails validation or joins no loaded snapshot leaves everything else on.
-  var research = { on: false, fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
+  // mesh-research.json (Phase 3B, TASK-013): probed at boot for genus search and fetched on the
+  // first non-default filter; a payload that fails validation or joins no loaded snapshot
+  // leaves the map on all-time records and says so.
+  var research = { fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
   var geo = { status: 'idle', places: null, ref: null }; // reference geography: coast + labels + place search
   var search = { refresh: null }; // refresh re-applies availability + re-runs the query
-  var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
 
   /* ---- species details (TASK-010, spec item 8). The bundles load lazily behind the
      first toggle (index.json once, then the one genus file) and cache in memory for
@@ -1124,7 +1170,9 @@
       [pct(tot.georeferenced, tot.records), lang === 'ja' ? '座標付き' : 'have map coordinates'],
       [fmtInt(d.lead_totals.with_mo), lang === 'ja' ? '近隣国のみで記録（要調査）' : 'leads: never recorded in Japan']
     ];
-    $('fd-kpis').innerHTML = k.map(function (x, i) {
+    // Never filtered, and labelled so (TASK-013): every tile is a national, all-time figure,
+    // whatever the month and kind chips do to the map and the area tables.
+    $('fd-kpis').innerHTML = '<p class="fd-kpis__scope">' + esc(t('allTimeScope')) + '</p>' + k.map(function (x, i) {
       // The leads tile links to the national leads card (same look, TASK-007).
       var last = i === k.length - 1;
       var tag = last ? 'a class="fd-kpi" href="#fd-leads"' : 'div class="fd-kpi"';
@@ -1136,6 +1184,10 @@
   /* ---------------------------------------------------------------- map */
   var map = { draw: null };
   var mapGeom = null; // shared so listeners wired once keep working across re-renders (Codex P2 on #46)
+  // Unpublished squares (TASK-013): hatched outlines in the muted token, never a fill colour.
+  // The pattern is re-created by every draw because svg.innerHTML replaces the whole tree.
+  var HATCH = '<defs><pattern id="fd-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+    '<line class="fd-map__hatch" x1="0" y1="0" x2="0" y2="4"/></pattern></defs>';
   function setupMap(d) {
     var fig = $('fd-map'), svg = fig.querySelector('svg'), tip = fig.querySelector('.fd-map__tip');
     meshCells = {};
@@ -1150,7 +1202,9 @@
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var zoomed = box !== JAPAN_BOX;
       var paths = ['', '', '', '', ''], nx = '', sel = '', selKeys = [];
-      var rv = state.rview; // research view: cells colour by slice band, absent → no estimate
+      var rv = state.rview; // estimate view: cells colour by slice band, the rest hatch
+      var unpub = {}; // base squares with no cell in the active slice (withheld: all of them)
+      if (rv) unpublishedCells(d.mesh, rv).forEach(function (k) { unpub[k] = true; });
       // Cell→area joins are skipped while snapshots disagree; each layer still draws alone.
       var selCells = state.joins && state.detailJoin && state.index && state.sel ? state.index.cells : null;
       var selIds = state.sel ? ((state.sel.detail && state.sel.detail.members) || [state.sel.row.id]) : [];
@@ -1163,8 +1217,7 @@
         var r = 'M' + (a.x + ox).toFixed(1) + ' ' + (a.y + oy).toFixed(1) + 'h' + w.toFixed(1) + 'v' + h.toFixed(1) + 'h' + (-w).toFixed(1) + 'z';
         var k = meshKey(m[0], m[1]);
         if (rv) {
-          var row = rv.cells ? rv.cells[k] : null; // withheld slice: every square is "no estimate"
-          if (row) paths[row[0]] += r; else nx += r;
+          if (!rv.cells || unpub[k]) nx += r; else paths[rv.cells[k][0]] += r;
         } else paths[bucket(m[2])] += r;
         if (selCells && selIds.indexOf(selCells[k]) >= 0) selKeys.push(k);
       });
@@ -1232,7 +1285,7 @@
         loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
-      svg.innerHTML = (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
+      svg.innerHTML = HATCH + (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
         paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
         (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
         (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') +
@@ -1309,17 +1362,46 @@
   var src = '';
   function areaUrl(id) { return base + 'areas/' + encodeURIComponent(id) + '.json'; }
 
-  // The kind/month segments always reflect one shared state, wherever the widget is docked.
+  // The month and kind chips always reflect one shared state.
   function syncFilters() {
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
+    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
   }
+  // Any month/kind change: the map, the area tables, the Overview, the species-on-map list
+  // and the 表示中 line all follow, and the live region says the new line once.
   function filterChanged() {
     state.spLimit = state.possLimit = AREA_ROWS;
     state.mapspLimit = MAPSP_ROWS;
     syncFilters();
-    applyResearch(); // the research recolour follows the same month/kind selection
+    // Lazy: mesh-research.json is fetched the first time a filter needs it (a failed boot
+    // probe retries here). Only a user change may start a fetch, so a failure cannot loop.
+    if (mapMode(state.month, state.kind) === 'estimate' && !research.fetched && !research.loading) loadResearch(false);
+    applyResearch(true); // quiet: the single announcement for this change is assembled below
     renderArea();
-    renderMapSpecies(); // the disclosure's N follows the month chips like the map's tables
+    renderMapSpecies(); // the disclosure's N follows the chips like the map's tables
+    var line = renderActiveFilters();
+    announce(research.lastNote && !research.loading ? line + ' — ' + research.lastNote : line);
+  }
+  // The 表示中 line: the label, then one chip per active filter plus the measure the map
+  // shows — all in one wrapping row, so the label packs with the chips on narrow screens.
+  // Removable chips are buttons (a ✕ inside a 44 px target); TASK-014 passes its 種／属 chips
+  // in as extras and clears them from clearFilter. Returns the line as text for the live region.
+  function renderActiveFilters() {
+    var el = $('fd-active-chips');
+    if (!el) return '';
+    var chips = activeFilters(state, lang);
+    var any = chips.some(function (c) { return c.removable; });
+    el.innerHTML = '<span class="fd-active__label">' + esc(ft('showing', lang)) + '</span>' + chips.map(function (c) {
+      if (!c.removable) return '<span class="fd-chip">' + esc(c.label) + '</span>';
+      return '<button type="button" class="fd-chip" data-fd-clear="' + esc(c.id) + '" aria-label="' +
+        esc(t('remove').replace('{label}', c.label)) + '">' + esc(c.label) + '<span class="fd-chip__x" aria-hidden="true">✕</span></button>';
+    }).join('') + (any ? '<button type="button" class="fd-btn" data-fd-clear="*">' + esc(t('resetAll')) + '</button>' : '');
+    return chips.map(function (c) { return c.label; }).join(' · ');
+  }
+  function clearFilter(id) {
+    if (id === '*' || id === 'month') state.month = 0;
+    if (id === '*' || id === 'kind') state.kind = 'all';
+    filterChanged();
   }
 
   // Toolbar wiring (TASK-008): the area picker is gone — its contents are the search
@@ -1329,16 +1411,22 @@
     // Wrap, don't pass clearArea directly: the click Event would land in keepHash and
     // read as truthy, silently skipping the bare-path push (TASK-007 history fix).
     $('fd-area-back').addEventListener('click', function () { clearArea(); });
-    // The one kind/month widget: it lives beside the area tables, and while the research
-    // view is on it docks in the map card. Remember where it belongs so it can move back.
-    filtersEl = $('fd-filters');
-    if (filtersEl) { filtersHome = filtersEl.parentNode; filtersNext = filtersEl.nextSibling; }
+    // One row of chips: months are generated, kinds are static bilingual markup in the include.
     $('fd-month').innerHTML = '<button type="button" data-fd-month="0">' + (lang === 'ja' ? '全月' : 'All') + '</button>' +
       MONTHS_EN.map(function (_, i) { return '<button type="button" data-fd-month="' + (i + 1) + '">' + esc(monthName(i + 1, lang)) + '</button>'; }).join('');
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) {
       b.addEventListener('click', function () { state.month = +b.getAttribute('data-fd-month'); filterChanged(); });
     });
+    doc.querySelectorAll('[data-fd-kind]').forEach(function (b) {
+      b.addEventListener('click', function () { state.kind = b.getAttribute('data-fd-kind'); filterChanged(); });
+    });
+    var chips = $('fd-active-chips'); // the line's own ✕ and Reset all buttons
+    if (chips) chips.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('[data-fd-clear]') : null;
+      if (b) clearFilter(b.getAttribute('data-fd-clear'));
+    });
     syncFilters();
+    renderActiveFilters(); // always visible: the default line is there before any change
   }
 
   // Selecting from the search box, a tap, a suggestion or a deep link: the validated index
@@ -1493,7 +1581,7 @@
     if (!box) return;
     var loaded = loadedAreaSpecies();
     box.hidden = !loaded.length; // a "(0)" under an empty map reads as "no species"
-    var rows = mapSpeciesRank(loaded, state.month, state.q || '');
+    var rows = mapSpeciesRank(loaded, state.month, state.q || '', state.kind);
     var nEl = $('fd-mapsp-n');
     if (nEl) nEl.textContent = fmtInt(rows.length);
     var note = $('fd-mapsp-note');
@@ -1515,12 +1603,9 @@
     });
   }
 
-  // Header from the index row (or the detail once it lands); tables only with valid detail.
-  function renderSelection() {
-    var sel = state.sel;
-    if (!sel) return;
-    var src = sel.detail || sel.row;
-    $('fd-area-title').textContent = lang === 'ja' ? src.name_ja : src.name_en;
+  // The header's totals are never filtered (TASK-013). Built fresh on every render: a filter
+  // change re-renders the header, and appending would repeat the matching count.
+  function areaMeta(sel) {
     var tot = sel.detail ? sel.detail.totals : { records: sel.row.records, species: sel.row.species };
     var meta = [fmtInt(tot.records) + ' ' + t('records'), fmtInt(tot.species) + ' ' + t('species')];
     if (sel.detail) {
@@ -1528,7 +1613,16 @@
       if (tot.by_name) meta.push(fmtInt(tot.by_name) + ' ' + t('byName'));
       if (tot.unresolved) meta.push(fmtInt(tot.unresolved) + ' ' + t('unresolved'));
     }
-    $('fd-area-meta').textContent = meta.join(' · ');
+    return meta;
+  }
+
+  // Header from the index row (or the detail once it lands); tables only with valid detail.
+  function renderSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    var src = sel.detail || sel.row;
+    $('fd-area-title').textContent = lang === 'ja' ? src.name_ja : src.name_en;
+    $('fd-area-meta').textContent = areaMeta(sel).join(' · ');
     if (sel.detail) return renderArea();
     var ph = '<tbody><tr><td class="fd-empty">' + esc(sel.failed ? t('areaError') : t('loadingArea')) + '</td></tr></tbody>';
     $('fd-area-months').innerHTML = '';
@@ -1607,8 +1701,10 @@
     $('fd-area-note').hidden = !note;
     if (note) $('fd-area-note').textContent = t('sampling').replace('{share}', note.share).replace('{title}', note.title);
     syncFilters();
+    // The area months bar is not split by kind in the data: under a kind chip it is still
+    // every fungus's year, so it says so (TASK-013).
     var mmax = Math.max.apply(null, a.months);
-    $('fd-area-months').innerHTML = a.months.map(function (v, i) {
+    $('fd-area-months').innerHTML = (state.kind !== 'all' ? '<span class="fd-months__scope">' + esc(ft('allFungi', lang)) + '</span>' : '') + a.months.map(function (v, i) {
       return '<div class="fd-mbar' + (state.month === i + 1 ? ' is-on' : '') + '" title="' + fmtInt(v) + ' ' + esc(t('records')) + '"><span style="height:' +
         monthBarHeight(v, mmax) + '%"></span><small>' + esc(monthName(i + 1, lang)) + '</small></div>';
     }).join('');
@@ -1617,6 +1713,10 @@
     var list = filterSpecies(a.species, state.kind, state.month);
     var poss = filterSpecies(a.possible || [], state.kind, state.month);
     renderOverview(list, poss);
+    // Under a filter the header totals stay unfiltered (TASK-013) and also say how many
+    // species match, from the same filtered rows the Recorded tab lists.
+    if (mapMode(state.month, state.kind) === 'estimate')
+      $('fd-area-meta').textContent = areaMeta(state.sel).concat(t('matching').replace('{n}', fmtInt(list.length))).join(' · ');
 
     // Recorded: two-line rows — name over a muted `family · evidence` (· member islands
     // for groups). The Where column waits for a governed habitat field: hidden while the
@@ -1735,8 +1835,6 @@
     var lb = $('fd-locate');
     if (lb) lb.disabled = false; // locating needs only the rendered map
     if (!street.auto) { street.auto = true; enterStreet(); } // street is the default map
-    var rb = $('fd-research');
-    if (rb) rb.disabled = false; // research fetches its own payload on first enable
     doc.querySelector('.fd').classList.add('is-ready');
   }
 
@@ -1816,53 +1914,43 @@
   }
   /* ---- end street */
 
-  /* ---- research filters + place/genus search (Phase 3B). mesh-research.json and
-     japan-outline.json are lazy: neither is requested until Research filters is first
-     pressed or place search is first used. Invalid or absent data degrades to a status;
-     the overview, picker, search that does not need the payload and tables all stay up. */
+  /* ---- estimates + place/genus search (Phase 3B, one map rule TASK-013). mesh-research.json
+     is probed at boot for genus search and loaded on the first non-default filter;
+     japan-outline.json is requested at boot (coast + labels). Invalid or absent research
+     data degrades to a status on the 表示中 line; the overview, search that does not need
+     the payload and tables all stay up. */
   function researchCellLine(key) {
     var rv = state.rview;
     if (!rv || !key) return null;
     var row = rv.cells ? rv.cells[key] : null;
-    if (!row) return t('researchNoEstimate');
+    if (!row) return t('noEstimate'); // a hatched square: the same words as its legend entry
     var s = t('researchEst') + ': ' + countBandLabel(row[0]);
     s += ' · ' + t('researchShare') + ': ' + (row[1] == null ? t('researchWithheld') : shareBandLabel(row[1]));
     return s; // the share band is published as-is, never computed here
   }
-  function applyResearch() {
+  // The estimate view exists only off the default filter, and only with a payload that joins
+  // the loaded snapshots. Until it lands (or if it never does) the map keeps its all-time
+  // colours and legend, and the line above the map says why. Never loads: a fetch may start
+  // from a user change only (filterChanged), so a failed one cannot re-trigger itself.
+  function applyResearch(quiet) {
     var res = research.res;
-    var usable = research.on && res && res.ok &&
-      researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot);
-    state.rview = usable ? researchView(res.data, state.month, state.kind) : null;
-    var note = '', noteEl = $('fd-research-note');
-    if (research.on && !usable) note = research.loading ? t('researchLoading') : t('researchUnavailable');
+    var usable = !!(res && res.ok && researchJoins(state.snaps.dashboard, state.snaps.index, res.snapshot));
+    var estimate = mapMode(state.month, state.kind) === 'estimate';
+    state.rview = estimate && usable ? researchView(res.data, state.month, state.kind) : null;
+    var note = '';
+    if (estimate && !usable) note = research.loading ? t('researchLoading') : t('researchUnavailable');
     else if (state.rview && state.rview.withheld) note = t('researchSlice');
+    var noteEl = $('fd-research-note');
     if (noteEl) { noteEl.hidden = !note; noteEl.textContent = note; }
     if (note !== research.lastNote) { // announce settled changes only, never each redraw
       research.lastNote = note;
-      if (note && !research.loading) announce(note);
+      if (note && !quiet && !research.loading) announce(note);
     }
-    var lgA = $('fd-legend-all'), lgR = $('fd-legend-research');
-    if (lgA) lgA.hidden = !!state.rview;
-    if (lgR) lgR.hidden = !state.rview;
-    var bar = $('fd-research-bar');
-    if (bar) {
-      // The bar stays up while research is on so its loading/unavailable note is visible;
-      // only the filters dock with a usable view (Codex P2 on #46).
-      bar.hidden = !research.on;
-      var dock = $('fd-filter-dock');
-      if (state.rview && dock && filtersEl) dock.appendChild(filtersEl);
-      else if (filtersEl && filtersHome) filtersHome.insertBefore(filtersEl, filtersNext);
-    }
+    var lgA = $('fd-legend-all'), lgE = $('fd-legend-estimate');
+    if (lgA) lgA.hidden = !!state.rview; // the legend describes what is drawn
+    if (lgE) lgE.hidden = !state.rview;
     if (search.refresh) search.refresh(); // genus-mode availability may have changed
     drawViews();
-  }
-  function researchAvailable() {
-    var ok = !!(research.res && research.res.ok);
-    if (!ok) { var nn = $('fd-research-note'); if (nn) { nn.hidden = true; nn.textContent = ''; } }
-    var rb = $('fd-research');
-    if (rb) rb.hidden = !ok;
-    return ok;
   }
   function loadResearch(bypass) {
     research.fetched = true;
@@ -1880,27 +1968,14 @@
           return loadResearch(true);
         }
         research.loading = false;
-        researchAvailable();
         applyResearch();
       })
       .catch(function () {
         research.res = { ok: false };
-        research.fetched = false; // a failed fetch retries on the next enable
+        research.fetched = false; // a failed fetch retries on the next filter change
         research.loading = false;
-        researchAvailable();
         applyResearch();
       });
-  }
-  function wireResearch() {
-    var btn = $('fd-research');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      research.on = !research.on;
-      btn.setAttribute('aria-pressed', String(research.on));
-      if (research.on && !research.fetched) loadResearch(false); // lazy: first enable fetches once
-      applyResearch();
-      announce(research.on ? t('researchOn') : t('researchOff'));
-    });
   }
 
   function ensureGeo() {
@@ -2236,14 +2311,13 @@
       });
     });
     wireLocate();
-    wireResearch();
     setupToolbar();
     wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);
-    ensureGeo();
-    loadResearch(false); // availability probe: the Research entry exists only if a payload answers // coast + place labels are part of the default view (31 KB gzip, §8 budget)
+    ensureGeo(); // coast + place labels are part of the default view (31 KB gzip, §8 budget)
+    loadResearch(false); // availability probe: genus search and the first filter share this payload
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);

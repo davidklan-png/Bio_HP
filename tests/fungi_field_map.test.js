@@ -161,6 +161,33 @@ describe('fungi-dashboard: street asset injection', () => {
   });
 });
 
+// TASK-013: squares with all-time records but no published estimate for the active filter are
+// hatched on the street layer too, and the estimate view never borrows the all-time ramp.
+describe('TASK-013: street layer hatching and estimate ramp (source level)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8'); // `fm` above is the module
+  it('hatches unpublished squares through the shared pure rule', () => {
+    assert.ok(src.includes('shared.unpublishedCells('), 'the same rule as the simple map decides what is hatched');
+    assert.ok(src.includes('createPattern('), 'a canvas pattern stands in for the SVG pattern');
+    assert.ok(/stroke: true, color: pal\.nx, weight: 1[^}]*fill: true, fillColor: hatch/.test(src), 'outline plus hatch, never a flat fill');
+  });
+  it('paints the estimate ramp from the legend swatches, since color-mix stays unresolved in a custom property', () => {
+    assert.ok(src.includes('#fd-legend-estimate i[class*="fd-map__e"]'), 'ramp read back off resolved swatches');
+    assert.ok(/var ramp = rv \? pal\.e : pal\.b;/.test(src), 'estimate view uses its own ramp');
+    assert.ok(!/fillColor: pal\.b\[i\]/.test(src), 'no fill hard-wires the all-time buckets');
+  });
+  it('cssColor turns the color(srgb r g b) form of a mixed token into rgb() a canvas must take', () => {
+    // the exact strings Chrome reports for the dark ramp (getComputedStyle on the swatches)
+    assert.strictEqual(fm.cssColor('color(srgb 0.601569 0.453333 0.218824)'), 'rgb(153, 116, 56)');
+    assert.strictEqual(fm.cssColor('color(srgb 0.87098 0.636863 0.269412)'), 'rgb(222, 162, 69)');
+    assert.strictEqual(fm.cssColor('color(srgb 0.764706 0.460392 0.228235 / 1)'), 'rgb(195, 117, 58)');
+    for (const plain of ['rgb(245, 178, 73)', '#8895a4', 'rgba(1, 2, 3, 0.5)']) assert.strictEqual(fm.cssColor(plain), plain, plain + ' passes through');
+    assert.strictEqual(fm.cssColor(''), '');
+    assert.strictEqual(fm.cssColor(null), null);
+    for (const other of ['color(srgb 0.1 0.2)', 'color(display-p3 0.1 0.2 0.3)', 'color(srgb 1 2 3) x'])
+      assert.strictEqual(fm.cssColor(other), other, 'not the expected shape: untouched, ' + other);
+  });
+});
+
 // Codex review fixes on #46.
 describe('fungi-field-map: national view may display below native tile zoom', () => {
   it('display floor sits below native tile zoom, so the fitted national view is not raised', () => {

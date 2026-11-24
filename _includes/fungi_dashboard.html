@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-23-4">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-24-1">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -18,7 +18,7 @@
   {%- comment -%} Workspace (TASK-007): one toolbar above both columns — sticky map left,
     inspector right. The inspector shows the All Japan overview until an area is
     selected, then the area's header + tabs. National stats live below, under
-    "Across all of Japan", so nothing there reads as area-specific. {%- endcomment -%}
+    "All of Japan, all time", so nothing there reads as area-specific. {%- endcomment -%}
   <div class="fd-workspace">
     <div class="fd-toolbar">
       {%- comment -%} One combobox (TASK-008): index areas, reference-geography places and
@@ -42,23 +42,35 @@
       <p class="fd-context" id="fd-context" hidden></p>
       <div class="fd-mapbar">
         <button type="button" class="fd-btn" id="fd-locate" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 .5v3M8 12.5v3M.5 8h3M12.5 8h3"/></svg><span>{% if ja %}現在地を表示{% else %}Locate me{% endif %}</span></button>
-        <button type="button" class="fd-btn" id="fd-research" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 1.5v5L2.5 13a1 1 0 0 0 .9 1.5h9.2a1 1 0 0 0 .9-1.5l-4-6.5v-5"/><path d="M5 1.5h6"/></svg><span>{% if ja %}調査フィルタ{% else %}Research filters{% endif %}</span></button>
         <p class="fd-status" id="fd-area-msg" hidden></p>
         <button type="button" class="fd-btn" id="fd-area-retry" hidden>{% if ja %}再試行{% else %}Retry{% endif %}</button>
       </div>
+      {%- comment -%} One map rule (TASK-013): the month and kind chips always drive the map.
+        All months + All fungi shows all-time records; anything else shows the published
+        estimate for that month × kind. No chip is ever disabled: a combination whose slice
+        is withheld stays selectable and the map says so. {%- endcomment -%}
       <div class="fd-filters" id="fd-filters">
         <div class="fd-seg fd-seg--months" id="fd-month" role="group" aria-label="{% if ja %}月{% else %}Month{% endif %}"></div>
-      </div>
-      {%- comment -%} Research mode: the area tables' kind/month controls dock here (one
-        synchronized widget, moved — never duplicated) with their own status line. {%- endcomment -%}
-      <div class="fd-research-bar" id="fd-research-bar" hidden>
-        <div id="fd-filter-dock"></div>
-        <p class="fd-note" id="fd-research-note" hidden></p>
+        <div class="fd-seg" id="fd-kind" role="group" aria-label="{% if ja %}菌類の種類{% else %}Kind of fungus{% endif %}">
+          <button type="button" data-fd-kind="all" aria-pressed="true">{% if ja %}すべて{% else %}All{% endif %}</button>
+          <button type="button" data-fd-kind="m" aria-pressed="false">{% if ja %}きのこ類{% else %}Mushrooms &amp; visible fungi{% endif %}</button>
+          <button type="button" data-fd-kind="l" aria-pressed="false">{% if ja %}地衣類{% else %}Lichens{% endif %}</button>
+          <button type="button" data-fd-kind="o" aria-pressed="false">{% if ja %}微小菌・DNA{% else %}Microfungi &amp; DNA{% endif %}</button>
+        </div>
       </div>
     </div>
     <div class="fd-mapcol">
       <figure class="fd-card fd-card--map">
         <h2>{% if ja %}記録の分布（約10km四方ごと）{% else %}Where fungi have been recorded (about 10 km squares){% endif %}</h2>
+        {%- comment -%} "表示中" (TASK-013): what the map below is showing, always visible and
+          inside the sticky card, so it never scrolls away from the map. Filled by JS from
+          activeFilters(): the label, then month · kind · measure, a ✕ on every removable chip,
+          one Reset all — one wrapping row, so the label packs with the chips on narrow
+          screens. The same line carries the estimate status (loading / unavailable / withheld). {%- endcomment -%}
+        <div class="fd-active" id="fd-active">
+          <div class="fd-active__chips" id="fd-active-chips"></div>
+          <p class="fd-note fd-active__note" id="fd-research-note" hidden></p>
+        </div>
         <div class="fd-map" id="fd-map"><svg role="img" aria-label="{% if ja %}日本の菌類記録の分布図{% else %}Map of fungus records across Japan{% endif %}"></svg><div class="fd-map__tip" hidden></div><div class="fd-map__street" id="fd-map-street" role="region" aria-label="{% if ja %}詳細地図（地理院タイル）{% else %}Street map (GSI tiles){% endif %}" hidden></div>
           {%- comment -%} Legend lives on the map (bottom-left, both renderers) so the encoding
             is readable without scrolling past it; it stays plain text for assistive tech. {%- endcomment -%}
@@ -70,14 +82,17 @@
             <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>1k–9k</span>
             <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>10k+</span>
           </div>
-          <div class="fd-legend fd-legend--onmap" id="fd-legend-research" hidden>
-            <span class="fd-legend__title">{% if ja %}選択した月・種類の推定記録数{% else %}Estimated records/square (month &amp; kind){% endif %}</span>
-            <span class="fd-legend__item"><i class="fd-map__b0" aria-hidden="true"></i>10–24</span>
-            <span class="fd-legend__item"><i class="fd-map__b1" aria-hidden="true"></i>25–49</span>
-            <span class="fd-legend__item"><i class="fd-map__b2" aria-hidden="true"></i>50–99</span>
-            <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>100–249</span>
-            <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>250+</span>
-            <span class="fd-legend__item"><i class="fd-map__nx" aria-hidden="true"></i>{% if ja %}公開推定値なし{% else %}no estimate{% endif %}</span>
+          {%- comment -%} The estimate legend has its own ramp (--fd-e0..4, amber mixed from
+            tokens): the all-time ramp's colours must not mean one thing here and another
+            there. Hatched = records overall, but no public estimate for this filter. {%- endcomment -%}
+          <div class="fd-legend fd-legend--onmap" id="fd-legend-estimate" hidden>
+            <span class="fd-legend__title fd-legend__title--long">{% if ja %}推定記録数（10件以上・3回以上の調査がある区画のみ）{% else %}Estimated records (squares with ≥10 records from ≥3 events only){% endif %}</span>
+            <span class="fd-legend__item"><i class="fd-map__e0" aria-hidden="true"></i>10–24</span>
+            <span class="fd-legend__item"><i class="fd-map__e1" aria-hidden="true"></i>25–49</span>
+            <span class="fd-legend__item"><i class="fd-map__e2" aria-hidden="true"></i>50–99</span>
+            <span class="fd-legend__item"><i class="fd-map__e3" aria-hidden="true"></i>100–249</span>
+            <span class="fd-legend__item"><i class="fd-map__e4" aria-hidden="true"></i>250+</span>
+            <span class="fd-legend__item fd-legend__item--wrap"><i class="fd-map__nx" aria-hidden="true"></i>{% if ja %}この条件の公開推定値なし（全期間では記録あり）{% else %}No public estimate for this filter (has records overall){% endif %}</span>
           </div>
         </div>
         <div class="fd-preview" id="fd-preview" hidden>
@@ -161,7 +176,7 @@
   <div class="fd-species-card" id="fd-species-card" hidden></div>
 
   <section class="fd-national">
-    <h2 class="fd-national__title">{% if ja %}日本全体のデータ{% else %}Across all of Japan{% endif %}</h2>
+    <h2 class="fd-national__title">{% if ja %}日本全体・全期間{% else %}All of Japan, all time{% endif %}</h2>
     <div class="fd-national__grid">
       <section class="fd-card fd-leads" id="fd-leads">
         <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: recorded next door, never in Japan{% endif %}</h2>
