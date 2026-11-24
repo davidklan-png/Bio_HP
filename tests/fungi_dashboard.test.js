@@ -703,11 +703,11 @@ describe('TASK-007: inspector aggregates', () => {
   });
   it('topFamilies counts species and records per family, ties broken by records', () => {
     assert.deepStrictEqual(fd.topFamilies(species, 3),
-      [['Amanitaceae', 2, 18], ['Russulaceae', 2, 17]]);
+      [['Amanitaceae', 2, 18], ['Russulaceae', 2, 17], ['', 1, 3]]); // E: family unknown bucket (PR #70 review)
     assert.deepStrictEqual(fd.topFamilies(species, 1), [['Amanitaceae', 2, 18]]);
   });
-  it('topFamilies skips rows without a family and defaults to six rows', () => {
-    assert.deepStrictEqual(fd.topFamilies([{ f: 'F', r: 1 }, { r: 1 }], 6), [['F', 1, 1]]);
+  it('topFamilies buckets rows without a family under "" (rendered as 科不明) and defaults to six rows', () => {
+    assert.deepStrictEqual(fd.topFamilies([{ f: 'F', r: 2 }, { r: 1 }], 6), [['F', 1, 2], ['', 1, 1]]);
     const many = Array.from({ length: 9 }, (_, i) => ({ f: 'F' + i, r: 1 }));
     assert.strictEqual(fd.topFamilies(many).length, 6);
     assert.deepStrictEqual(fd.topFamilies(null), []);
@@ -1050,7 +1050,7 @@ describe('TASK-009: data and method section (six subsections, both languages)', 
   });
   it('makes no edibility claim and promises to name no masked taxon', () => {
     assert.ok(!/edib|食用|食べられ|可食/.test(inc), 'no edibility wording anywhere');
-    const ja = inc.includes('隠している種名を公表することはありません');
+    const ja = inc.includes('このページでは、除外している種名を挙げていません');
     const en = inc.includes('Masked taxa are never named here');
     assert.ok(ja || en, 'the no-naming promise must read in the rendered language');
   });
@@ -1371,5 +1371,101 @@ describe('TASK-011: disclosure, caption and gating (source level)', () => {
   it('styles the disclosure for touch and small screens', () => {
     assert.ok(/\.fd-mapspecies > summary \{[^}]*min-height: 44px/.test(css), '44 px summary target');
     assert.ok(/\.fd-mapsp__list \{[^}]*overflow-y: auto/.test(css), 'the list scrolls, never the page');
+  });
+});
+
+// Pre-contact review (2026-11-24): citation accuracy, wording a researcher would read
+// literally, and small UI seams found on the live /ja/kinokomon/ page.
+describe('pre-contact review: citations and method wording', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  it('cites Hosoya et al. 2016 by its exact title, in both languages', () => {
+    assert.ok(!inc.includes('作成に向いて'), 'typo 向いて is gone');
+    assert.strictEqual((inc.match(/日本産固有菌類目録の作成に向けて/g) || []).length, 2, 'JA and EN both carry the real title');
+  });
+  it('cites Katumoto with his real initial (勝本謙 = Ken Katumoto)', () => {
+    assert.ok(!inc.includes('Katumoto Y.'));
+    assert.strictEqual((inc.match(/Katumoto K\. 2010/g) || []).length, 2);
+  });
+  it('describes deduplication as one specimen published twice, not one species', () => {
+    assert.ok(!inc.includes('別のデータセットに同じ種がある場合'));
+    assert.ok(!inc.includes('same species reported by different datasets'));
+    assert.ok(inc.includes('機関コードと標本番号'));
+    assert.ok(inc.includes('institution code and catalogue number'));
+  });
+  it('states the masking rule as policy: all fungi studied, listed species masked at species level only', () => {
+    assert.ok(!inc.includes('確認された産地が限られる'), 'no invented few-sites qualifier');
+    assert.ok(!inc.includes('where the few known sites are findable'));
+    assert.ok(inc.includes('研究の対象はすべての菌類です'));
+    assert.ok(inc.includes('The research covers every kind of fungus'));
+    assert.ok(inc.includes('属止まりの記録') && inc.includes('genus-level records'), 'genus records stay visible');
+  });
+  it('localises the screen-reader map summary', () => {
+    assert.ok(inc.includes('<span class="fd-sr">{% if ja %}<span id="fd-map-cells"></span> 区画・除外'), 'JA branch first');
+    assert.ok(inc.includes('{% else %}<span id="fd-map-cells"></span> squares · masked'), 'English only in the EN branch');
+  });
+});
+
+describe('pre-contact review: pure helpers', () => {
+  it('topRecorded ranks by specimen + observation records and drops DNA-only rows', () => {
+    const list = [
+      { n: 'Lobulomyces angularis', f: 'Lobulomycetaceae', r: 33, e: { d: 33 } },
+      { n: 'Suillus granulatus', f: 'Suillaceae', r: 31, e: { o: 3, s: 28 } },
+      { n: 'Lactarius hatsudake', f: 'Russulaceae', r: 16, e: { s: 16 } },
+      { n: 'Geastrum saccatum', f: 'Geastraceae', r: 7, e: { d: 5, o: 2 } }
+    ];
+    const top = fd.topRecorded(list, 5);
+    assert.deepStrictEqual(top.map((x) => x.row.n), ['Suillus granulatus', 'Lactarius hatsudake', 'Geastrum saccatum']);
+    assert.deepStrictEqual(top.map((x) => x.count), [31, 16, 2]);
+    assert.strictEqual(fd.topRecorded(list, 1).length, 1);
+    assert.deepStrictEqual(fd.topRecorded(null, 5), []);
+  });
+  it('familyLabel names the empty family instead of leaving a blank bar', () => {
+    assert.strictEqual(fd.familyLabel('', 'ja'), '科不明');
+    assert.strictEqual(fd.familyLabel(null, 'en'), 'Family unknown');
+    assert.strictEqual(fd.familyLabel('Polyporaceae', 'ja'), 'Polyporaceae');
+  });
+  it('search and suggestions skip areas with no records; areas without the field stay', () => {
+    const areas = [
+      { id: 'hateruma', kind: 'island', name_en: 'Hateruma', name_ja: '波照間島', bbox: [24.0, 24.1, 123.7, 123.8], records: 0, species: 0 },
+      { id: 'ishigaki', kind: 'island', name_en: 'Ishigaki', name_ja: '石垣島', bbox: [24.3, 24.6, 124.0, 124.4], records: 900, species: 300 },
+      { id: 't3723', kind: 'tile', name_en: 'Hateruma tile', bbox: [24.9, 25.0, 123.4, 123.6], records: 62, species: 0 },
+      { id: 'legacy', kind: 'island', name_en: 'Hatoma', bbox: [24.4, 24.5, 123.8, 123.9] }
+    ];
+    const ids = fd.suggestGroups(areas)[0].items.map((x) => x.area.id);
+    assert.deepStrictEqual(ids, ['ishigaki', 'legacy']);
+    const found = fd.searchAll('hat', { areas })[0].items.map((x) => x.area.id);
+    assert.ok(!found.includes('hateruma'), 'empty island hidden from search');
+    assert.ok(found.includes('t3723'), 'genus-only tiles (records, 0 species) still searchable');
+  });
+  it('genusScope lists the searchable genera, sorted and unique', () => {
+    const genera = [['Russula', ['t1']], ['Amanita', ['t2']], ['Ganoderma', ['t3']], ['Amanita', ['t4']]];
+    assert.deepStrictEqual(fd.genusScope(genera), ['Amanita', 'Ganoderma', 'Russula']);
+    assert.deepStrictEqual(fd.genusScope(null), []);
+  });
+});
+
+describe('pre-contact review: rendering seams (source level)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  it('counts unresolved records in 件, not 種', () => {
+    assert.ok(src.includes("unresolved: ['records not identified to species', '件は種まで未同定']"));
+  });
+  it('overview counts use the records unit, not the column header', () => {
+    const ov = /function renderOverview\(list, poss\) \{([\s\S]*?)\n  \}/.exec(src)[1];
+    assert.ok(!ov.includes("t('rec')"), 'no "33 記録数"');
+    assert.ok(ov.includes('topRecorded('), 'top 5 comes from the DNA-excluding helper');
+  });
+  it('hides the species-on-map disclosure until an area has loaded, from the first paint', () => {
+    const rm = /function renderMapSpecies\(\) \{([\s\S]*?)\n  \}/.exec(src)[1];
+    assert.ok(rm.includes('box.hidden = !loaded.length'));
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+    assert.ok(inc.includes('<details class="fd-mapspecies" id="fd-mapspecies" hidden>'), 'cold page: hidden in markup (PR #70 review)');
+  });
+  it('the context line does not repeat the breadcrumb name', () => {
+    const sc = /function setCrumb\(row\) \{([\s\S]*?)\n  \}/.exec(src)[1];
+    assert.ok(!/ctx\.innerHTML = esc\(areaName\(row\)\)/.test(sc));
+  });
+  it('a Latin query with no genus hit explains the genus scope instead of implying masking', () => {
+    assert.ok(src.includes("genusScope(research.res.data.genera)"));
+    assert.ok(src.includes('genusScopeNote'));
   });
 });
