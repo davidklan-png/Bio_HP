@@ -830,7 +830,7 @@ describe('key-based GBIF links (TASK-007)', () => {
     // degrade path reuses it); TASK-011 added the species-on-map disclosure. Sites:
     // name cell, detail links, leads, overview, map disclosure.
     assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 6, 'one definition plus five call sites');
-    assert.ok(src.includes('gbifTaxonUrl(undefined, undefined, s.n)'), 'species-on-map disclosure');
+    assert.ok(src.includes('gbifTaxonUrl(s.c, s.lk, s.n)'), 'species-on-map disclosure');
     assert.ok(src.includes('gbifTaxonUrl(colKey || undefined, legacyKey || undefined, name)'), 'species name cell');
     assert.ok(src.includes('speciesNameCell(s.c, s.lk, s.n'), 'area species table renders the name cell');
     assert.ok(src.includes('speciesNameCell(p.c, p.lk, p.n'), 'could-be-found table renders the name cell');
@@ -1294,7 +1294,7 @@ describe('TASK-011: mapSpeciesRank (loaded-area accumulator)', () => {
   it('merges species by name, counting areas and summing records', () => {
     const rows = fd.mapSpeciesRank(areas, 0, '');
     assert.strictEqual(rows.length, 3);
-    assert.deepStrictEqual(rows.find((r) => r.n === 'Amanita muscaria'), { n: 'Amanita muscaria', areas: 2, r: 47 });
+    assert.deepStrictEqual(rows.find((r) => r.n === 'Amanita muscaria'), { n: 'Amanita muscaria', c: undefined, lk: undefined, areas: 2, r: 47 });
   });
   it('respects the month filter per area, the same rule as the inspector tables', () => {
     assert.deepStrictEqual(fd.mapSpeciesRank(areas, 1, '').map((r) => r.n), ['Russula cyanoxantha']);
@@ -1302,6 +1302,17 @@ describe('TASK-011: mapSpeciesRank (loaded-area accumulator)', () => {
     assert.strictEqual(nov.find((r) => r.n === 'Amanita muscaria').areas, 2); // both islands fruit it in Nov
     assert.ok(!nov.some((r) => r.n === 'Tricholoma matsutake')); // Oct only
   });
+    it('carries a taxon key only while every contributor agrees (item 5 key links)', () => {
+      const keyed = [
+        [{ n: 'A', c: 'K1', r: 3, m: [1] }, { n: 'B', lk: 'L1', r: 2, m: [1] }],
+        [{ n: 'A', c: 'K1', r: 1, m: [1] }, { n: 'B', lk: 'L2', r: 1, m: [1] }]   // B: disagreeing legacy keys
+      ];
+      const by = Object.fromEntries(fd.mapSpeciesRank(keyed, 0, '').map((r) => [r.n, r]));
+      assert.strictEqual(by.A.c, 'K1');          // same COL key on both areas: kept
+      assert.strictEqual(by.B.lk, undefined);    // homonym keys disagree: link by name
+      assert.ok(readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8')
+        .includes('gbifTaxonUrl(s.c, s.lk, s.n)'), 'the disclosure uses the keys');
+    });
   it('ranks by areas desc, then records desc, then name', () => {
     const rows = fd.mapSpeciesRank([
       [{ n: 'Wide one', r: 1 }, { n: 'Beta tie', r: 9 }, { n: 'Alpha tie', r: 9 }],
@@ -1314,7 +1325,7 @@ describe('TASK-011: mapSpeciesRank (loaded-area accumulator)', () => {
     assert.strictEqual(fd.mapSpeciesRank(areas, 0, 'zzz').length, 0);
     assert.deepStrictEqual(fd.mapSpeciesRank(null, 0, ''), []);
     assert.deepStrictEqual(fd.mapSpeciesRank([null, [], undefined], 0, ''), []);
-    assert.deepStrictEqual(fd.mapSpeciesRank([[{ r: 1 }, { n: 'Ok' }]], 0, ''), [{ n: 'Ok', areas: 1, r: 0 }]);
+    assert.deepStrictEqual(fd.mapSpeciesRank([[{ r: 1 }, { n: 'Ok' }]], 0, ''), [{ n: 'Ok', c: undefined, lk: undefined, areas: 1, r: 0 }]);
   });
 });
 
