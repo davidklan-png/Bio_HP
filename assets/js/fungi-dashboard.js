@@ -651,8 +651,9 @@
   function topFamilies(species, n) {
     var fam = {};
     (species || []).forEach(function (s) {
-      if (!s || !s.f) return;
-      var row = fam[s.f] || (fam[s.f] = [s.f, 0, 0]);
+      if (!s) return;
+      var f = s.f || ''; // family unknown: its own bucket, labelled by familyLabel at render
+      var row = fam[f] || (fam[f] = [f, 0, 0]);
       row[1] += 1;
       row[2] += s.r || 0;
     });
@@ -1576,7 +1577,7 @@
     if (oph) oph.hidden = true;
     $('fd-ov-evidence').innerHTML = barRows(areaEvidenceMix(list), 0,
       function (k) { return SPECIES_T['ev_' + k] ? st('ev_' + k, lang) : k; });
-    $('fd-ov-families').innerHTML = barRows(topFamilies(list, 6).map(function (f) { return [f[0], f[1]]; }), 0,
+    $('fd-ov-families').innerHTML = barRows(topFamilies(list, 6).map(function (f) { return [familyLabel(f[0], lang), f[1]]; }), 0,
       function (x) { return x; });
     italicise('#fd-ov-families');
     var top = topRecorded(list, 5);

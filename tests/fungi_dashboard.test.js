@@ -703,11 +703,11 @@ describe('TASK-007: inspector aggregates', () => {
   });
   it('topFamilies counts species and records per family, ties broken by records', () => {
     assert.deepStrictEqual(fd.topFamilies(species, 3),
-      [['Amanitaceae', 2, 18], ['Russulaceae', 2, 17]]);
+      [['Amanitaceae', 2, 18], ['Russulaceae', 2, 17], ['', 1, 3]]); // E: family unknown bucket (PR #70 review)
     assert.deepStrictEqual(fd.topFamilies(species, 1), [['Amanitaceae', 2, 18]]);
   });
-  it('topFamilies skips rows without a family and defaults to six rows', () => {
-    assert.deepStrictEqual(fd.topFamilies([{ f: 'F', r: 1 }, { r: 1 }], 6), [['F', 1, 1]]);
+  it('topFamilies buckets rows without a family under "" (rendered as 科不明) and defaults to six rows', () => {
+    assert.deepStrictEqual(fd.topFamilies([{ f: 'F', r: 2 }, { r: 1 }], 6), [['F', 1, 2], ['', 1, 1]]);
     const many = Array.from({ length: 9 }, (_, i) => ({ f: 'F' + i, r: 1 }));
     assert.strictEqual(fd.topFamilies(many).length, 6);
     assert.deepStrictEqual(fd.topFamilies(null), []);
@@ -1454,9 +1454,11 @@ describe('pre-contact review: rendering seams (source level)', () => {
     assert.ok(!ov.includes("t('rec')"), 'no "33 記録数"');
     assert.ok(ov.includes('topRecorded('), 'top 5 comes from the DNA-excluding helper');
   });
-  it('hides the species-on-map disclosure until an area has loaded', () => {
+  it('hides the species-on-map disclosure until an area has loaded, from the first paint', () => {
     const rm = /function renderMapSpecies\(\) \{([\s\S]*?)\n  \}/.exec(src)[1];
     assert.ok(rm.includes('box.hidden = !loaded.length'));
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+    assert.ok(inc.includes('<details class="fd-mapspecies" id="fd-mapspecies" hidden>'), 'cold page: hidden in markup (PR #70 review)');
   });
   it('the context line does not repeat the breadcrumb name', () => {
     const sc = /function setCrumb\(row\) \{([\s\S]*?)\n  \}/.exec(src)[1];
