@@ -1260,7 +1260,8 @@ describe('TASK-010: interaction and network wiring (source-level)', () => {
     assert.ok(src.includes("e.target.closest('.fd-name-toggle')"), 'the delegate resolves the toggle');
   });
   it('loaded genus files backfill markers onto every matching row', () => {
-    assert.ok(/function backfillMarkers\(slug, entries\)[\s\S]*?insertAdjacentHTML\('beforeend'/.test(src));
+    assert.ok(/function backfillMarkers\(slug, entries, displaySlug\)[\s\S]*?insertAdjacentHTML\('beforeend'/.test(src));
+    assert.ok(src.includes('backfillMarkers(slug, r.entries, display)'), 'rows match on their display token');
   });
   it('makes no browser calls to Wikidata, Commons or Wikipedia APIs', () => {
     for (const banned of ['api.wikidata', 'commons.wikimedia.org/w/api.php', 'wikipedia.org/w/api.php', 'query.wikidata', 'specimen?'])

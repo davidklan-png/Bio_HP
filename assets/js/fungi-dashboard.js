@@ -841,20 +841,25 @@
   }
   function speciesEntry(colKey, legacyKey, name) {
     if (species.dead && Date.now() - species.deadAt < SPECIES_TTL) return Promise.resolve(null);
-    var slug = speciesSlugFor(name);
-    if (!slug) return Promise.resolve(null);
-    slug = (species.index && species.index.aliases && species.index.aliases[slug]) || slug;
+    var display = speciesSlugFor(name);           // the token rows and markers are keyed by
+    if (!display) return Promise.resolve(null);
+    var resolve = function () {                   // PR #66 review: the alias map loads WITH
+      return (species.index && species.index.aliases              // the index, so resolution has
+        && species.index.aliases[display]) || display;            // to happen after it, not before
+    };
+    var slug = resolve();
     var cached = species.genera[slug];
     if (cached && Date.now() - cached.at < SPECIES_TTL)
       return Promise.resolve(findSpeciesEntry(cached.entries, colKey, legacyKey, name));
     return speciesFiles().then(function (files) {
+      slug = resolve();                           // index is warm now; re-resolve
       if (!files || !files[slug]) return null;
       return fetchJson(base + 'species/' + encodeURIComponent(slug) + '.json', { cache: 'no-cache' })
         .then(readSpeciesGenus)
         .then(function (r) {
           if (!r.ok) return null;
           species.genera[slug] = { at: Date.now(), entries: r.entries };
-          backfillMarkers(slug, r.entries);
+          backfillMarkers(slug, r.entries, display);   // PR #66 review: match rows by their token
           return findSpeciesEntry(r.entries, colKey, legacyKey, name);
         })
         .catch(function () { return null; });
@@ -862,9 +867,12 @@
   }
   // Once a genus file is in, every rendered row of that genus gains its markers —
   // a toxic row must not wait for its own toggle to be pressed first.
-  function backfillMarkers(slug, entries) {
+  function backfillMarkers(slug, entries, displaySlug) {
+    // PR #66 review: aliased rows carry the display token, the file the accepted
+    // slug — compare on whichever the rows actually use
+    var want = displaySlug || slug;
     doc.querySelectorAll('.fd-name-toggle[data-sp-name]').forEach(function (b) {
-      if (b.querySelector('.fd-mark') || speciesSlugFor(b.getAttribute('data-sp-name')) !== slug) return;
+      if (b.querySelector('.fd-mark') || speciesSlugFor(b.getAttribute('data-sp-name')) !== want) return;
       var e = findSpeciesEntry(entries, b.getAttribute('data-sp-col'), b.getAttribute('data-sp-legacy'), b.getAttribute('data-sp-name'));
       if (!e) return;
       var mk = markersHtml(speciesMarkers(e), lang);
