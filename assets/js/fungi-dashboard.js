@@ -1285,8 +1285,9 @@
         loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
+      var band = rv ? 'fd-map__e' : 'fd-map__b'; // estimate bands take the estimate ramp, never the all-time colours
       svg.innerHTML = HATCH + (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
-        paths.map(function (p, i) { return '<path class="fd-map__b' + i + '" d="' + p + '"/>'; }).join('') +
+        paths.map(function (p, i) { return '<path class="' + band + i + '" d="' + p + '"/>'; }).join('') +
         (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
         (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') +
         loc + labels;

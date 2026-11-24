@@ -1613,6 +1613,11 @@ describe('TASK-013: honest filters (source level)', () => {
     assert.ok(/repeating-linear-gradient\(45deg[^;]*var\(--muted\)/.test(css), 'the legend swatch hatches the same way');
     assert.ok(src.includes('unpublishedCells(d.mesh, rv)'), 'the simple map decides through the pure rule');
   });
+  it('the simple map paints estimate bands with the estimate ramp and all-time records with the buckets (PR #72 review)', () => {
+    assert.ok(/var band = rv \? 'fd-map__e' : 'fd-map__b';/.test(src), 'the class prefix follows the map mode');
+    assert.ok(/'<path class="' \+ band \+ i \+ '" d="'/.test(src), 'every banded path takes that prefix');
+    assert.ok(!/fd-map__b' \+ i \+ '/.test(src), 'no banded path is pinned to the all-time buckets');
+  });
   it('removable chips are 44 px targets; the map column budget pays for the 表示中 line', () => {
     assert.ok(/\.fd-chip \{[^}]*min-height: 44px/.test(css), 'every chip, button or text, is 44 px tall');
     assert.ok(/button\.fd-chip \{[^}]*min-width: 44px/.test(css), 'a removable chip is never narrower than 44 px');
