@@ -102,7 +102,10 @@
   function st(k, lang) { var p = SPECIES_T[k]; return lang === 'ja' ? p[1] : p[0]; }
   function readSpeciesIndex(d) {
     if (!isObj(d) || d.schema_version !== 1 || !isObj(d.files)) return { ok: false };
-    return { ok: true, files: d.files };
+    // aliases (PR #65 review): COL renames keep the old genus token in the display
+    // name while the file lives under the accepted genus — token -> real slug
+    var al = isObj(d.aliases) ? d.aliases : {};
+    return { ok: true, files: d.files, aliases: al };
   }
   function readSpeciesGenus(d) {
     if (!isObj(d) || d.schema_version !== 1 || !Array.isArray(d.species) ||
@@ -840,6 +843,7 @@
     if (species.dead && Date.now() - species.deadAt < SPECIES_TTL) return Promise.resolve(null);
     var slug = speciesSlugFor(name);
     if (!slug) return Promise.resolve(null);
+    slug = (species.index && species.index.aliases && species.index.aliases[slug]) || slug;
     var cached = species.genera[slug];
     if (cached && Date.now() - cached.at < SPECIES_TTL)
       return Promise.resolve(findSpeciesEntry(cached.entries, colKey, legacyKey, name));

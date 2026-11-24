@@ -759,6 +759,18 @@ describe('TASK-007: history actions', () => {
 // TASK-006: author display rules were beating the UA [hidden] style — #fd-area
 // rendered on load with empty tables and the label-less more-buttons showed as
 // empty 44x44 boxes. No browser in tests, so these are source-level assertions.
+describe('species index aliases (PR #65 review)', () => {
+  it('readSpeciesIndex exposes the alias map when present, empty otherwise', () => {
+    assert.deepStrictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {}, aliases: { bombyliospora: 'megalospora' } }).aliases,
+      { bombyliospora: 'megalospora' });
+    assert.deepStrictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {} }).aliases, {});
+  });
+  it('speciesSlugFor takes the first name token, lowercased', () => {
+    assert.strictEqual(fd.speciesSlugFor('Bombyliospora japonica'), 'bombyliospora');
+    assert.strictEqual(fd.speciesSlugFor(''), null);
+  });
+});
+
 describe('[hidden] stays hidden (TASK-006)', () => {
   const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
   const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
