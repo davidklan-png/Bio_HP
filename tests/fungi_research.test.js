@@ -124,6 +124,72 @@ describe('research: slice lookup and view states', () => {
   });
 });
 
+// TASK-013 (filters-and-search-plan F1/F2): one map rule, no silent gaps, the "表示中" line.
+describe('honest filters (TASK-013): one map rule', () => {
+  it('mapMode is all-time only for the default month and kind, estimate otherwise', () => {
+    assert.strictEqual(fd.mapMode(0, 'all'), 'all-time');
+    for (const [m, k] of [[9, 'all'], [0, 'm'], [9, 'l'], [12, 'o']]) assert.strictEqual(fd.mapMode(m, k), 'estimate', m + '/' + k);
+  });
+  const base = [
+    [35.9583, 138.8125, 11319, 284],   // 431:1110
+    [26.2125, 127.6809, 40, 12],       // 314:1021
+    [43.0618, 141.3545, 7, 3]          // 516:1130
+  ];
+  const keys = base.map((m) => fd.meshKey(m[0], m[1]));
+  it('unpublishedCells: base squares with all-time records but no cell in the slice', () => {
+    const view = fd.researchView(research(), 0, 'all'); // one cell: 314:1021
+    assert.deepStrictEqual(fd.unpublishedCells(base, view), [keys[0], keys[2]]);
+  });
+  it('unpublishedCells: every base key when the slice is withheld', () => {
+    const view = fd.researchView(research(), 2, 'o');
+    assert.strictEqual(view.withheld, true);
+    assert.deepStrictEqual(fd.unpublishedCells(base, view), keys);
+  });
+  it('unpublishedCells: nothing without a view (all-time mode) and tolerant of empty input', () => {
+    assert.deepStrictEqual(fd.unpublishedCells(base, null), []);
+    assert.deepStrictEqual(fd.unpublishedCells([], { withheld: false, cells: {} }), []);
+    assert.deepStrictEqual(fd.unpublishedCells(null, { withheld: true, cells: null }), []);
+  });
+  it('unpublishedCells agrees with the published bundles: base minus the (0, all) slice', () => {
+    const dash = require('../assets/data/shroomhunt/dashboard.json');
+    const res = fd.readResearch(require('../assets/data/shroomhunt/mesh-research.json'));
+    assert.strictEqual(res.ok, true);
+    const view = fd.researchView(res.data, 0, 'all');
+    const unpub = fd.unpublishedCells(dash.mesh, view);
+    assert.strictEqual(unpub.length, dash.mesh.length - Object.keys(view.cells).length);
+    assert.ok(unpub.every((k) => !(k in view.cells)), 'no square with an estimate is hatched');
+  });
+});
+
+describe('honest filters (TASK-013): the "表示中" line', () => {
+  it('reads the default view in both languages, with nothing removable', () => {
+    for (const [lang, labels] of [['en', ['All months', 'All fungi', 'Records']], ['ja', ['全期間', 'すべての菌類', '記録数']]]) {
+      const chips = fd.activeFilters({ month: 0, kind: 'all' }, lang);
+      assert.deepStrictEqual(chips.map((c) => c.label), labels, lang);
+      assert.deepStrictEqual(chips.map((c) => c.id), ['month', 'kind', 'measure']);
+      assert.ok(chips.every((c) => c.removable === false), lang + ': default chips carry no ✕');
+    }
+  });
+  it('marks a filtered month and kind removable and switches the measure to estimated records', () => {
+    for (const [lang, labels] of [['en', ['Sep', 'Mushrooms & visible fungi', 'Estimated records']], ['ja', ['9月', 'きのこ類', '推定記録数']]]) {
+      const chips = fd.activeFilters({ month: 9, kind: 'm' }, lang);
+      assert.deepStrictEqual(chips.map((c) => c.label), labels, lang);
+      assert.deepStrictEqual(chips.map((c) => c.removable), [true, true, false]);
+    }
+    assert.deepStrictEqual(fd.activeFilters({ month: 9, kind: 'all' }, 'en').map((c) => c.removable), [true, false, false]);
+    assert.deepStrictEqual(fd.activeFilters({ month: 0, kind: 'l' }, 'en').map((c) => c.label), ['All months', 'Lichens', 'Estimated records']);
+  });
+  it('takes extra chips from a later task (種／属), before the measure', () => {
+    const chips = fd.activeFilters({ month: 9, kind: 'm' }, 'ja', [{ id: 'genus', label: '属：Amanita', removable: true }]);
+    assert.deepStrictEqual(chips.map((c) => [c.id, c.label]), [['month', '9月'], ['kind', 'きのこ類'], ['genus', '属：Amanita'], ['measure', '推定記録数']]);
+  });
+  it('names the kinds in both languages', () => {
+    assert.deepStrictEqual(['all', 'm', 'l', 'o'].map((k) => fd.kindLabel(k, 'ja')), ['すべて', 'きのこ類', '地衣類', '微小菌・DNA']);
+    assert.deepStrictEqual(['all', 'm', 'l', 'o'].map((k) => fd.kindLabel(k, 'en')), ['All', 'Mushrooms & visible fungi', 'Lichens', 'Microfungi & DNA']);
+    assert.strictEqual(fd.kindLabel('x', 'en'), 'All'); // unknown kind reads as the default
+  });
+});
+
 describe('place search: folding and aliases', () => {
   const places = [
     { en: 'Naha', ja: '那覇', aliases: ['Naha-shi'], at: [127.68, 26.21], area_id: 'okinawa-honto' },

@@ -577,16 +577,20 @@ describe('street map is the default view (no toggle)', () => {
     assert.ok(!inc.includes('id="fd-street"'));
   });
 });
-describe('research entry exists only when a payload answers', () => {
-  it('boot probes mesh-research.json and gates the button and error notes', () => {
+// TASK-013: the Research filters button is gone (the month always drives the map). The boot
+// probe stays: genus search and the masking caption read the same payload.
+describe('research payload is probed at boot; no research button remains (TASK-013)', () => {
+  it('boot probes mesh-research.json and no longer gates a button', () => {
     const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
     assert.ok(/loadResearch\(false\); \/\/ availability probe/.test(src), 'probe at boot');
-    assert.ok(src.includes('function researchAvailable()'));
-    assert.ok(src.includes('rb.hidden = !ok'), 'research button gated');
+    assert.ok(!inc.includes('id="fd-research"'), 'the Research filters button is gone');
+    assert.ok(!src.includes('function researchAvailable()'), 'nothing left to gate');
+    assert.ok(!src.includes('function wireResearch()'), 'no toggle wiring');
   });
   it('street squares carry a same-hue edge over busy tiles', () => {
     const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
-    assert.ok(/stroke: true, color: pal\.b\[i\], weight: 0\.75/.test(fm), 'cell edges defined on tiles');
+    assert.ok(/stroke: true, color: ramp\[i\], weight: 0\.75/.test(fm), 'cell edges defined on tiles');
   });
 });
 
@@ -618,10 +622,11 @@ describe('product round: app identity and layout', () => {
     assert.ok(css.includes('@media (min-width: 1024px)'), 'two columns from 1024 px');
     assert.ok(css.includes('minmax(0, 1.4fr) minmax(360px, 1fr)'), 'the task column widths');
   });
-  it('kind slicer removed; month remains', () => {
-    assert.ok(!inc.includes('data-fd-kind'));
+  it('kind chips are back beside the month chips (TASK-013, F2); no slicer markup returns', () => {
     assert.ok(inc.includes('id="fd-month"'));
-    assert.ok(!src.includes("[data-fd-kind]"));
+    for (const k of ['all', 'm', 'l', 'o']) assert.ok(inc.includes(`data-fd-kind="${k}"`), 'kind chip ' + k);
+    assert.ok(!inc.includes('fd-kind-slicer') && !inc.includes('<select'), 'chips, not a slicer');
+    assert.ok(src.includes("[data-fd-kind]"), 'the script wires the chips');
   });
   it('figcaption copy removed but live counters kept for assistive tech', () => {
     assert.ok(!inc.includes('fd-figcaption'));
@@ -650,6 +655,14 @@ describe('street fills rebuild when the research slice changes', () => {
   it('redraw compares the slice key, not just the palette', () => {
     const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
     assert.ok(fm.includes('rvKey !== lastRvKey'), 'slice change triggers buildFills');
+  });
+  it('the public redraw forwards its force flag (TASK-013: found in the browser)', () => {
+    // The dashboard forces a redraw per filter change; the wrapper used to drop the flag, so
+    // estimate → estimate changes kept the previous slice on the canvas: with one map rule
+    // that is "the month does not drive the street map".
+    const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+    assert.ok(/api\.redraw = function \(force\) \{ if \(active\) active\.redraw\(!!force\); \};/.test(fm), 'force reaches the session redraw');
+    assert.ok(!/active\.redraw\(false\); \};/.test(fm), 'no call site may pin the flag to false');
   });
 });
 
@@ -859,7 +872,7 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-23-4'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-24-1'), 'CSS stamp bumped');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -1467,5 +1480,190 @@ describe('pre-contact review: rendering seams (source level)', () => {
   it('a Latin query with no genus hit explains the genus scope instead of implying masking', () => {
     assert.ok(src.includes("genusScope(research.res.data.genera)"));
     assert.ok(src.includes('genusScopeNote'));
+  });
+});
+
+// TASK-013 (filters-and-search-plan F1/F2): one map rule, no silent gaps, a distinct estimate
+// ramp, the "表示中" line, kind chips, and never-filtered blocks labelled so. Pure helpers are
+// covered in tests/fungi_research.test.js; this block pins markup, CSS and wiring.
+describe('TASK-013: honest filters (source level)', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const block = (sel) => css.slice(css.indexOf(sel)).slice(0, css.slice(css.indexOf(sel)).indexOf('}'));
+
+  it('removes the Research filters button, its bar and the docking code', () => {
+    for (const gone of ['id="fd-research"', 'id="fd-research-bar"', 'id="fd-filter-dock"', 'fd-research-bar', 'Research filters', '調査フィルタ'])
+      assert.ok(!inc.includes(gone), 'include must not contain ' + gone);
+    for (const gone of ['fd-research-bar', 'fd-filter-dock', 'filtersHome', 'filtersNext', 'researchOn', 'researchOff', 'fd-research\''])
+      assert.ok(!src.includes(gone), 'script must not reference ' + gone);
+    assert.ok(!css.includes('.fd-research-bar'), 'the bar CSS is gone');
+  });
+  it('ships the kind chips in both languages, all four enabled whatever the month publishes', () => {
+    const group = /<div class="fd-seg" id="fd-kind"[^>]*>([\s\S]*?)<\/div>/.exec(inc);
+    assert.ok(group, 'kind group');
+    for (const [ja, en] of [['すべて', 'All'], ['きのこ類', 'Mushrooms &amp; visible fungi'], ['地衣類', 'Lichens'], ['微小菌・DNA', 'Microfungi &amp; DNA']])
+      assert.ok(group[1].includes(ja) && group[1].includes(en), ja + ' / ' + en);
+    assert.strictEqual((group[1].match(/<button /g) || []).length, 4);
+    assert.ok(!/disabled/.test(group[1]), 'no chip is disabled in markup: withheld slices stay selectable');
+    assert.ok(inc.indexOf('id="fd-month"') < inc.indexOf('id="fd-kind"'), 'kinds follow months in the same row');
+    assert.ok(/<div class="fd-filters" id="fd-filters">[\s\S]*id="fd-month"[\s\S]*id="fd-kind"[\s\S]*<\/div>\s*<\/div>/.test(inc), 'one row');
+  });
+  it('ships the 表示中 line directly above the map, inside the map card, with the status note', () => {
+    const fig = inc.indexOf('<figure class="fd-card fd-card--map">');
+    const active = inc.indexOf('id="fd-active"');
+    const map = inc.indexOf('class="fd-map" id="fd-map"');
+    assert.ok(fig > 0 && active > fig && map > active, 'figure < 表示中 < map');
+    assert.ok(src.includes("showing: ['Showing', '表示中']"), 'the label in both languages');
+    assert.ok(inc.includes('id="fd-active-chips"'), 'the chip row');
+    const line = inc.slice(active, map);
+    assert.ok(line.includes('id="fd-research-note"'), 'loading / unavailable / withheld note lives on this line');
+  });
+  it('titles the estimate legend with the support gate and keys the hatch entry in both languages', () => {
+    assert.ok(inc.includes('推定記録数（10件以上・3回以上の調査がある区画のみ）'));
+    assert.ok(inc.includes('Estimated records (squares with ≥10 records from ≥3 events only)'));
+    assert.ok(inc.includes('この条件の公開推定値なし（全期間では記録あり）'));
+    assert.ok(inc.includes('No public estimate for this filter (has records overall)'));
+    const at = inc.indexOf('id="fd-legend-estimate"');
+    const est = inc.slice(at, inc.indexOf('</div>', at));
+    assert.strictEqual((est.match(/class="fd-map__e[0-4]"/g) || []).length, 5, 'five ramp swatches of their own');
+    assert.ok(!/fd-map__b[0-4]/.test(est), 'the estimate legend never borrows the all-time buckets');
+    assert.ok(est.includes('class="fd-map__nx"'), 'the hatched entry');
+    assert.ok(inc.includes('fd-legend--onmap'), 'still the on-map legend');
+    assert.ok(!inc.includes('選択した月・種類の推定記録数') && !inc.includes('month &amp; kind)'), 'the old promise of a kind choice is gone');
+  });
+  it('withheld wording, and the tap preview says what the hatch means', () => {
+    assert.ok(src.includes("researchSlice: ['This month and kind combination was withheld: no square has a public estimate.', 'この月・種類の組み合わせは非公開です。公開推定値のある区画はありません。']"));
+    assert.ok(src.includes("noEstimate: ['No public estimate for this filter (has records overall)', 'この条件の公開推定値なし（全期間では記録あり）']"));
+    const line = /function researchCellLine\(key\) \{([\s\S]*?)\n  \}/.exec(src)[1];
+    assert.ok(line.includes("t('noEstimate')"), 'a square without an estimate previews with the legend text');
+  });
+  it('labels what is never filtered: KPI tiles, the national heading, area totals', () => {
+    assert.ok(inc.includes('<h2 class="fd-national__title">{% if ja %}日本全体・全期間{% else %}All of Japan, all time{% endif %}</h2>'));
+    assert.ok(!inc.includes('Across all of Japan') && !inc.includes('日本全体のデータ'));
+    assert.ok(src.includes("allTimeScope: ['All of Japan, all time', '日本全体・全期間']"));
+    assert.ok(/function renderKpis\(d\) \{[\s\S]*?fd-kpis__scope[\s\S]*?\n  \}/.test(src), 'every KPI render carries the caption');
+    assert.ok(src.includes("matching: ['Matching species: {n}', '条件に合う種：{n}']"));
+    assert.ok(/function renderArea\(\) \{[\s\S]*?t\('matching'\)[\s\S]*?\n  \}/.test(src), 'the area header gains the matching count');
+    // found in the browser: the header is re-rendered on every filter change, so the count
+    // must be rebuilt from areaMeta(), never appended (it read "…9 · …2 · …0" after three clicks)
+    assert.ok(/function areaMeta\(sel\) \{[\s\S]*?\n  \}/.test(src), 'the unfiltered totals come from one builder');
+    assert.strictEqual((src.match(/\$\('fd-area-meta'\)\.textContent = areaMeta\(/g) || []).length, 2, 'selection and filter paths both rebuild the header');
+    assert.ok(!/fd-area-meta'\)\.textContent \+=/.test(src), 'nothing appends to the header');
+    assert.ok(src.includes("allFungi: ['All fungi', 'すべての菌類']") && src.includes('fd-months__scope'), 'the area month bar is labelled all-fungi under a kind');
+  });
+  it('one map rule: the estimate view follows mapMode, the payload loads lazily, nothing docks', () => {
+    assert.ok(src.includes("var estimate = mapMode(state.month, state.kind) === 'estimate';"));
+    assert.ok(src.includes("state.rview = estimate && usable ? researchView(res.data, state.month, state.kind) : null"));
+    assert.ok(src.includes("mapMode(state.month, state.kind) === 'estimate' && !research.fetched && !research.loading) loadResearch(false)"), 'first non-default filter loads the payload');
+    assert.ok(/function filterChanged\(\) \{[\s\S]*?applyResearch\(true\);[\s\S]*?renderActiveFilters\(\)[\s\S]*?announce\(/.test(src), 'one announcement per change carries the line');
+    const apply = /function applyResearch\(quiet\) \{([\s\S]*?)\n  \}/.exec(src);
+    assert.ok(apply, 'applyResearch found');
+    assert.ok(!apply[1].includes('loadResearch('), 'a failed fetch never retriggers itself from applyResearch');
+  });
+
+  // ---- the estimate ramp, resolved the way the browser computes color-mix(in srgb, a N%, b)
+  const hex = (h) => h.slice(1).match(/../g).map((x) => parseInt(x, 16));
+  const lum = (rgb) => {
+    const c = rgb.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const contrast = (a, b) => { const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x); return (l1 + 0.05) / (l2 + 0.05); };
+  const toHex = (rgb) => '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
+  const themes = [['dark', block('.fd {')], ['light', block(':root[data-theme="light"] .fd {')]];
+  function ramp(b) {
+    const tok = (name) => { const m = new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{6})').exec(b); assert.ok(m, 'token ' + name); return hex(m[1]); };
+    return [0, 1, 2, 3, 4].map((i) => {
+      const decl = new RegExp('--fd-e' + i + ':\\s*([^;]+);').exec(b);
+      assert.ok(decl, '--fd-e' + i + ' declared');
+      assert.ok(!decl[1].includes('#'), 'no colour literal in ' + decl[0].trim() + ': the ramp mixes existing tokens only');
+      const mix = /color-mix\(in srgb,\s*var\(--([a-z-]+)\)\s*(\d+)%,\s*var\(--([a-z-]+)\)\)/.exec(decl[1]);
+      if (!mix) { const single = /^var\(--([a-z-]+)\)$/.exec(decl[1].trim()); assert.ok(single, decl[0]); return tok(single[1]); }
+      const p = +mix[2] / 100, a = tok(mix[1]), c = tok(mix[3]);
+      return a.map((v, j) => Math.round(p * v + (1 - p) * c[j]));
+    });
+  }
+  it('estimate ramp: five distinct steps holding 3:1 on panel and water in both themes, none an all-time colour', () => {
+    const ramps = [];
+    for (const [name, b] of themes) {
+      const steps = ramp(b);
+      const e = steps.map(toHex);
+      ramps.push(e);
+      assert.strictEqual(new Set(e).size, 5, name + ' steps must be distinct ' + e.join(' '));
+      const panel = new RegExp('--panel:\\s*(#[0-9a-fA-F]{6})').exec(b)[1];
+      const soft = /--brand-soft:\s*rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/.exec(b).slice(1).map(Number);
+      const pc = hex(panel);
+      const water = '#' + soft.slice(0, 3).map((v, i) => Math.round(soft[3] * v + (1 - soft[3]) * pc[i]).toString(16).padStart(2, '0')).join('');
+      steps.forEach((rgb, i) => {
+        assert.ok(contrast(rgb, hex(panel)) >= 3, name + ' e' + i + ' vs panel ' + contrast(rgb, hex(panel)).toFixed(2));
+        assert.ok(contrast(rgb, hex(water)) >= 3, name + ' e' + i + ' vs water ' + contrast(rgb, hex(water)).toFixed(2));
+      });
+      const allTime = [0, 1, 2, 3, 4].map((i) => new RegExp('--fd-b' + i + ':\\s*(#[0-9a-fA-F]{6})').exec(b)[1].toLowerCase());
+      for (const c of e) assert.ok(!allTime.includes(c), name + ': ' + c + ' is not an all-time bucket colour');
+      // amber is the ramp's hue, so the all-time teal ramp and this one never share a colour meaning
+      assert.ok(/--fd-e[24]: var\(--amber\)/.test(b), name + ' keeps the amber token as a step');
+    }
+    assert.notDeepStrictEqual(ramps[0], ramps[1], 'theme-local like the bucket palettes');
+  });
+  it('hatched squares: an SVG pattern from the muted token, a canvas pattern on the street layer', () => {
+    assert.ok(/<pattern id="fd-hatch"/.test(src), 'the simple map defines the pattern');
+    assert.ok(/url\(#fd-hatch\)/.test(css), 'and fills the unpublished squares with it');
+    assert.ok(/\.fd-map__hatch \{[^}]*stroke: var\(--muted\)/.test(css), 'the hatch lines take the muted token');
+    assert.ok(/\.fd-map__nx \{[^}]*fill: url\(#fd-hatch\)[^}]*stroke: var\(--muted\)/.test(css), 'hatched outline, never a fill colour');
+    assert.ok(/repeating-linear-gradient\(45deg[^;]*var\(--muted\)/.test(css), 'the legend swatch hatches the same way');
+    assert.ok(src.includes('unpublishedCells(d.mesh, rv)'), 'the simple map decides through the pure rule');
+  });
+  it('the simple map paints estimate bands with the estimate ramp and all-time records with the buckets (PR #72 review)', () => {
+    assert.ok(/var band = rv \? 'fd-map__e' : 'fd-map__b';/.test(src), 'the class prefix follows the map mode');
+    assert.ok(/'<path class="' \+ band \+ i \+ '" d="'/.test(src), 'every banded path takes that prefix');
+    assert.ok(!/fd-map__b' \+ i \+ '/.test(src), 'no banded path is pinned to the all-time buckets');
+  });
+  it('removable chips are 44 px targets; the map column budget pays for the 表示中 line', () => {
+    assert.ok(/\.fd-chip \{[^}]*min-height: 44px/.test(css), 'every chip, button or text, is 44 px tall');
+    assert.ok(/button\.fd-chip \{[^}]*min-width: 44px/.test(css), 'a removable chip is never narrower than 44 px');
+    assert.ok(/\.fd-active__chips \{[^}]*min-height: 44px/.test(css), 'the row itself is never shorter than one target');
+    assert.ok(/\.fd-mapcol \.fd-map \{[^}]*var\(--fd-active-h\)/.test(css), 'the height calc subtracts the line');
+  });
+  it('narrow widths (seen at 320–390 px): the label packs with the chips, long legend copy wraps instead of clipping', () => {
+    assert.ok(/\.fd-active__chips \{ display: flex; flex-wrap: wrap;/.test(css), 'one wrapping row');
+    assert.ok(/el\.innerHTML = '<span class="fd-active__label">' \+ esc\(ft\('showing', lang\)\) \+ '<\/span>' \+ chips\.map/.test(src), 'the label is the first item of that row');
+    assert.ok(!inc.includes('fd-active-label'), 'no label pinned beside the row');
+    assert.ok(/\.fd-legend__item--wrap \{ white-space: normal; min-width: 0; \}/.test(css), 'the hatch entry may wrap');
+    assert.ok(/\.fd-legend__title--long \{ text-wrap: balance; \}/.test(css), 'the estimate title balances its lines');
+    const est = inc.slice(inc.indexOf('id="fd-legend-estimate"'), inc.indexOf('</div>', inc.indexOf('id="fd-legend-estimate"')));
+    assert.ok(est.includes('fd-legend__title fd-legend__title--long') && est.includes('fd-legend__item fd-legend__item--wrap'), 'the include carries both');
+  });
+  it('the chip row renders a ✕ per removable chip, one Reset all, and nothing removable by default', () => {
+    assert.ok(/function renderActiveFilters\(\) \{[\s\S]*?var chips = activeFilters\(state, lang\);[\s\S]*?\n  \}/.test(src));
+    assert.ok(src.includes("remove: ['Remove filter: {label}', '{label}を解除']"));
+    assert.ok(src.includes("resetAll: ['Reset all', 'すべて解除']"));
+    assert.ok(src.includes('data-fd-clear'), 'removable chips and Reset all route through one data attribute');
+    assert.ok(/function clearFilter\(id\) \{[\s\S]*?state\.month = 0;[\s\S]*?state\.kind = 'all';[\s\S]*?filterChanged\(\);[\s\S]*?\n  \}/.test(src));
+    // found in the browser: the line was blank until the first click, because only
+    // filterChanged() rendered it. "Always visible" includes the default view at boot.
+    assert.ok(/function setupToolbar\(\) \{[\s\S]*?renderActiveFilters\(\);[\s\S]*?\n  \}/.test(src), 'the default line renders at boot');
+    assert.strictEqual((src.match(/[^.\w]renderActiveFilters\(\);/g) || []).length, 2, 'rendered from exactly two places: boot and a change');
+  });
+  it('kind chips drive the species-on-map list through the pure ranker', () => {
+    assert.ok(src.includes("mapSpeciesRank(loaded, state.month, state.q || '', state.kind)"));
+    const areas = [[
+      { n: 'A', k: 'm', r: 3, m: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+      { n: 'B', k: 'l', r: 2, m: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+      { n: 'C', k: 'o', r: 1, m: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] }
+    ]];
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 0, '', 'm').map((r) => r.n), ['A']);
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 0, '', 'all').map((r) => r.n), ['A', 'B', 'C']);
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 1, '', 'l').map((r) => r.n), ['B']);
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 1, '', 'o'), []);
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 0, ''), fd.mapSpeciesRank(areas, 0, '', undefined), 'no kind = every kind');
+  });
+  it('every translatable string the script adds is paired EN/JA', () => {
+    const keys = ['showing', 'allMonths', 'allFungi', 'records', 'estimate', 'resetAll', 'remove', 'allTimeScope', 'matching', 'noEstimate',
+      'researchSlice', 'researchLoading', 'researchUnavailable'];
+    for (const k of keys) {
+      const m = new RegExp("\\n    " + k + ": \\['[^']+', '[^']+'\\],?\\n").exec(src);
+      assert.ok(m, k + ' must be a paired [EN, JA] string');
+      assert.ok(m[0].includes("', '"), k + ' carries both languages');
+    }
   });
 });

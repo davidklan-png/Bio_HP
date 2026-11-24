@@ -10,15 +10,24 @@
   /* Sequential record-count buckets: every step holds 3:1 against the panel and the tinted "water";
      the three low steps deliberately spread in lightness so they read apart at a glance (PR #46 review). */
   --fd-b0: #1f8a80; --fd-b1: #22a79a; --fd-b2: #38c3b5; --fd-b3: #5cdcca; --fd-b4: #86ecdf;
+  /* Estimate ramp (TASK-013): amber mixed with the panel, so no colour means one thing on the
+     all-time map and another on the estimate map. Same direction as the teal ramp above (more
+     records = brighter) and the same 3:1 floor on panel and water. No new colour values. */
+  --fd-e0: color-mix(in srgb, var(--amber) 60%, var(--panel)); --fd-e1: color-mix(in srgb, var(--amber) 70%, var(--panel)); --fd-e2: color-mix(in srgb, var(--amber) 80%, var(--panel)); --fd-e3: color-mix(in srgb, var(--amber) 90%, var(--panel)); --fd-e4: var(--amber);
   --fd-land: #24344a; --fd-coast: #7c8ea3;
   --fd-sel-halo: #0b1220; --fd-sel-core: #5eead4; }
 :root[data-theme="light"] .fd { --ink: #0b1220; --muted: #5a6573; --line: #e3e8ee; --line-strong: #cdd5de; --panel: #ffffff; --elev: #eef2f5;
   --brand: #0d9488; --brand-soft: rgba(13, 148, 136, 0.10); --brand-line: rgba(13, 148, 136, 0.35); --amber: #b45309; --rose: #e11d48;
   --fd-b0: #35948a; --fd-b1: #2a7f75; --fd-b2: #1e6a60; --fd-b3: #125449; --fd-b4: #0a3f37;
+  /* More records = darker, like the teal ramp. Amber alone cannot span five steps on white
+     above 3:1, so the top two mix toward ink. */
+  --fd-e0: color-mix(in srgb, var(--amber) 80%, var(--panel)); --fd-e1: color-mix(in srgb, var(--amber) 90%, var(--panel)); --fd-e2: var(--amber); --fd-e3: color-mix(in srgb, var(--amber) 85%, var(--ink)); --fd-e4: color-mix(in srgb, var(--amber) 70%, var(--ink));
   --fd-land: #dbe5ec; --fd-coast: #76899a;
   --fd-sel-halo: #ffffff; --fd-sel-core: #0b1220;
   background: #f5f7f9; border-radius: 14px; padding-inline: clamp(14px, 2.4vw, 28px); }
 .fd { --fd-gap: clamp(14px, 2vw, 22px);
+  /* The 表示中 line above the map: 44 px chips + 10 px margin, paid for by the map height. */
+  --fd-active-h: 54px;
   /* Sticky-map geometry: the site nav (site.css) is 60 px + 1 px border; one property,
      not a magic number, feeds both the sticky top and the height calc (TASK-007). */
   --fd-nav-h: 61px; --fd-sticky-top: calc(var(--fd-nav-h) + 10px);
@@ -45,19 +54,19 @@ a.fd-kpi:hover, a.fd-kpi:focus-visible { border-color: var(--brand); }
 .fd-toolbar .fd-mapnav, .fd-toolbar .fd-mapbar, .fd-toolbar .fd-filters { margin: 0; }
 .fd-toolbar .fd-mapnav { flex: 0 1 auto; min-width: 0; }
 .fd-toolbar .fd-search { flex: 1 1 260px; margin: 0; }
-.fd-toolbar .fd-research-bar { flex: 1 1 100%; margin: 0; }
 .fd-toolbar .fd-context { margin: 0; flex: 1 1 auto; min-width: 0; font-size: 14px; }
 @media (min-width: 1024px) {
   .fd-workspace { grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr); align-items: start; }
   .fd-mapcol { position: sticky; top: var(--fd-sticky-top); min-width: 0; }
   /* The map column fits the viewport below the nav: 100dvh - sticky top - grid gap,
-     less the card's own chrome (h2 + padding ≈ 80 px). The clamp sits on .fd-map itself
-     so the preview bar grows the card, never the map (a resizing map would re-anchor
-     Leaflet mid-tap and break the two-tap open flow); vh first for dvh-less engines. */
+     less the card's own chrome (h2 + padding ≈ 80 px) and the 表示中 line (--fd-active-h).
+     The clamp sits on .fd-map itself so the preview bar grows the card, never the map (a
+     resizing map would re-anchor Leaflet mid-tap and break the two-tap open flow); vh first
+     for dvh-less engines. */
   .fd-mapcol .fd-map {
     flex: none; /* flex:1 would zero the basis and ignore the clamp height */
-    height: clamp(520px, calc(100vh - var(--fd-sticky-top) - var(--fd-gap) - 80px), 820px);
-    height: clamp(520px, calc(100dvh - var(--fd-sticky-top) - var(--fd-gap) - 80px), 820px); }
+    height: clamp(520px, calc(100vh - var(--fd-sticky-top) - var(--fd-gap) - 80px - var(--fd-active-h)), 820px);
+    height: clamp(520px, calc(100dvh - var(--fd-sticky-top) - var(--fd-gap) - 80px - var(--fd-active-h)), 820px); }
 }
 @media (max-width: 1023px) {
   .fd-mapcol .fd-map { flex: none; min-height: 0; height: clamp(360px, 90vw, 560px); }
@@ -170,15 +179,41 @@ html[lang="ja"] .fd-method .fd-method__list { font-family: "Noto Sans JP", var(-
 .fd-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
 .fd-mapbar .fd-status { flex: 1 1 200px; margin: 0; }
 
-/* Research mode (Phase 3B): the area tables' kind/month widget docks here while the
-   research view is active — one synchronized control set, moved rather than copied. */
-.fd-research-bar { display: grid; gap: 8px; margin: 0 0 12px; }
-.fd-research-bar[hidden] { display: none; }
-.fd-research-note { margin: 0; }
-/* Squares with no public estimate in research view: dashed outline, never a fill, so
-   they read differently from every measured band (colour never carries meaning alone). */
-.fd-map__nx { fill: none; stroke: var(--muted); stroke-width: 1; stroke-opacity: .35; }
-.fd-legend i.fd-map__nx { background: transparent; border: 1px dashed var(--muted); }
+/* "表示中" line (TASK-013): directly above the map, inside the sticky card, so it never
+   scrolls away from what it describes. One wrapping row: the label flows with the chips, so
+   on a narrow screen it packs beside them instead of taking a row of its own. A removable
+   chip is a button — the whole chip is the 44 px target and the ✕ its affordance; default
+   chips are plain text. The status note, when any, is a block under the row. */
+.fd-active { margin: 0 0 10px; }
+.fd-active__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-height: 44px; }
+.fd-active__label { color: var(--muted); font-size: 13px; }
+.fd-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 5px 12px; border-radius: 22px;
+  border: 1px solid var(--line); background: var(--elev); color: var(--ink); font: 500 13.5px var(--sans); overflow-wrap: anywhere; }
+button.fd-chip { min-width: 44px; color: var(--panel); background: var(--brand); border-color: var(--brand); cursor: pointer; }
+button.fd-chip:hover { text-decoration: underline; }
+.fd-chip__x { font-size: 12px; }
+html[lang="ja"] .fd-chip, html[lang="ja"] .fd-active__label { font-family: "Noto Sans JP", var(--sans); }
+.fd-active__note { margin: 0; }
+/* Never filtered, and labelled so (TASK-013): the KPI tiles and the area month bar. */
+.fd-kpis__scope { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 12.5px; }
+.fd-months__scope { grid-column: 1 / -1; font: 11.5px var(--mono); color: var(--muted); }
+/* Estimate ramp: the --fd-e* tokens above, for the SVG cells and the legend swatches. The
+   street map reads the same swatches back (see fungi-field-map.js palette()). */
+.fd-map__e0 { fill: var(--fd-e0); background: var(--fd-e0); }
+.fd-map__e1 { fill: var(--fd-e1); background: var(--fd-e1); }
+.fd-map__e2 { fill: var(--fd-e2); background: var(--fd-e2); }
+.fd-map__e3 { fill: var(--fd-e3); background: var(--fd-e3); }
+.fd-map__e4 { fill: var(--fd-e4); background: var(--fd-e4); }
+/* Squares with all-time records but no public estimate for the active filter: a hatched
+   outline in the muted token, never a fill colour, so they read apart from every measured
+   band and never as "nothing here" (colour never carries meaning alone). */
+.fd-map__hatch { stroke: var(--muted); stroke-width: 1.2; }
+.fd-map__nx { fill: url(#fd-hatch); stroke: var(--muted); stroke-width: 1; stroke-opacity: .6; }
+.fd-legend i.fd-map__nx { background: repeating-linear-gradient(45deg, transparent 0 2.5px, var(--muted) 2.5px 3.5px); border-color: var(--muted); }
+/* Long legend copy: the estimate title balances across its lines, and the hatch entry may
+   wrap — as a no-wrap item at 320 px it ran past the map edge and lost its closing ）. */
+.fd-legend__title--long { text-wrap: balance; }
+.fd-legend__item--wrap { white-space: normal; min-width: 0; }
 
 /* One search box (TASK-008): a combobox over areas, places and genera. The popup is a
    listbox of labelled groups; options are divs driven by aria-activedescendant, so
