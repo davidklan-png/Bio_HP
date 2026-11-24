@@ -594,7 +594,10 @@
         if (!s || !s.n || seen[s.n]) return;
         if (month && !(s.m && s.m[month - 1] > 0)) return;
         seen[s.n] = true;
-        var row = byName[s.n] || (byName[s.n] = { n: s.n, areas: 0, r: 0 });
+        var row = byName[s.n] || (byName[s.n] = { n: s.n, c: s.c || undefined, lk: s.lk || undefined, areas: 0, r: 0 });
+        // keep a key only while every contributor agrees — a homonym under another key links by name
+        if (row.c !== (s.c || undefined)) row.c = undefined;
+        if (row.lk !== (s.lk || undefined)) row.lk = undefined;
         row.areas += 1;
         row.r += s.r || 0;
       });
@@ -1471,7 +1474,7 @@
       else {
         var view = visibleRows(rows, state.mapspLimit, false);
         list.innerHTML = view.rows.map(function (s) {
-          return '<li><span class="fd-cell"><a href="' + gbifTaxonUrl(undefined, undefined, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a>' +
+          return '<li><span class="fd-cell"><a href="' + gbifTaxonUrl(s.c, s.lk, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a>' +
             '<span class="fd-cell__sub">' + fmtInt(s.areas) + ' ' + esc(t('areasN')) + ' · ' + fmtInt(s.r) + ' ' + esc(t('records')) + '</span></span></li>';
         }).join('');
       }
