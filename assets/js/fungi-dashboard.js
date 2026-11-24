@@ -78,6 +78,125 @@
     return GBIF_SEARCH + encodeURIComponent(name);
   }
 
+  /* ---- species bundles (TASK-010, spec item 8). ShroomHunt publishes one file per
+     genus plus species/index.json; both are lazy-loaded behind the name toggles and
+     every fetch failure degrades to the plain linked name. Bilingual strings live here
+     (LABELS pattern) so the assembly helpers stay pure and testable. */
+  var SPECIES_T = {
+    ev_s: ['specimen', '標本'], ev_d: ['DNA', 'DNA'], ev_o: ['sighting', '観察'],
+    areas: ['{n} areas', '{n}地域'],
+    eastYes: ['Recorded in neighbouring East Asia: yes', '近隣の東アジアでの記録：あり'],
+    eastNo: ['Recorded in neighbouring East Asia: no', '近隣の東アジアでの記録：なし'],
+    endemic: ['Endemic as of 2016 (Hosoya et al.)', '2016年時点の固有種（細矢ほか 2016）'],
+    wiki: ['Wikipedia', 'ウィキペディア'],
+    mhlw: ['MHLW risk profile', '厚労省リスクプロファイル'],
+    lit: ['Literature', '文献'],
+    me: ['MushroomExpert (North America)', 'MushroomExpert（北米）'],
+    filePage: ['file', 'ファイル'],
+    notEdible: ['Not for deciding whether a mushroom is edible.', '食用可否の判断に用いないでください。'],
+    noPage: ['No public page for this taxon', 'この分類群の公開ページはありません'],
+    gbifAria: ['Open in GBIF (new tab)', 'GBIFで開く（新しいタブ）'],
+    markToxic: ['Toxic: see the MHLW risk profile', '毒：厚労省のリスクプロファイル参照'],
+    markEndemic: ['Listed as endemic in Hosoya et al. 2016', '2016年の保全状況に基づく固有種（細矢ほか 2016）']
+  };
+  function st(k, lang) { var p = SPECIES_T[k]; return lang === 'ja' ? p[1] : p[0]; }
+  function readSpeciesIndex(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isObj(d.files)) return { ok: false };
+    return { ok: true, files: d.files };
+  }
+  function readSpeciesGenus(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !Array.isArray(d.species) ||
+      !d.species.every(function (s) { return isObj(s); })) return { ok: false };
+    return { ok: true, entries: d.species };
+  }
+  // The genus file for a row: the lowercase first token of its scientific name.
+  function speciesSlugFor(name) {
+    var first = String(name == null ? '' : name).trim().split(/\s+/)[0];
+    return first ? first.toLowerCase() : null;
+  }
+  function findSpeciesEntry(entries, colKey, legacyKey, name) {
+    var list = entries || [];
+    var by = function (f) { return list.filter(f)[0] || null; };
+    var hit;
+    if (colKey) { hit = by(function (e) { return e.key != null && String(e.key) === String(colKey); }); if (hit) return hit; }
+    if (legacyKey) { hit = by(function (e) { return e.legacy_key != null && String(e.legacy_key) === String(legacyKey); }); if (hit) return hit; }
+    if (name) return by(function (e) { return e.name === name; });
+    return null;
+  }
+  // Markers only when true: ⚠ = an MHLW risk profile exists; 固有 = endemic per Hosoya 2016.
+  function speciesMarkers(entry) {
+    var x = (entry && entry.external) || {};
+    return { toxic: !!x.mhlw_url, endemic: x.endemic_hosoya2016 === true };
+  }
+  function markersHtml(m, lang) {
+    var out = '';
+    if (m.toxic) out += '<span class="fd-mark fd-mark--toxic" role="img" aria-label="' + esc(st('markToxic', lang)) + '" title="' + esc(st('markToxic', lang)) + '">⚠</span>';
+    if (m.endemic) out += '<span class="fd-mark fd-mark--endemic" lang="ja" role="img" aria-label="' + esc(st('markEndemic', lang)) + '" title="' + esc(st('markEndemic', lang)) + '">固有</span>';
+    return out;
+  }
+  // Monthly bar heights (shared with the area rows): reuse below for bundle months.
+  function monthStrip(m, hi, lang) {
+    var max = Math.max.apply(null, m) || 1;
+    return '<span class="fd-ms" aria-hidden="true">' + m.map(function (v, i) {
+      return '<i class="' + (v ? 'on' : '') + (hi === i + 1 ? ' hi' : '') + '" style="--v:' + (v ? (0.35 + 0.65 * v / max).toFixed(2) : 0) + '"></i>';
+    }).join('') + '</span><span class="fd-sr">' + m.map(function (v, i) { return v ? monthName(i + 1, lang) : ''; }).filter(Boolean).join(', ') + '</span>';
+  }
+  // The inline details row and the deep-link card share this body (~120 px target):
+  // 96 px Commons thumb with credit, one fact line, one only-if-present link row, the
+  // fixed not-for-edibility line. No edibility anywhere; links only, never copied text.
+  function speciesDetailsHtml(entry, lang, monthHi) {
+    var e = entry || {}, x = e.external || {};
+    var facts = [];
+    var tiers = ['s', 'd', 'o'].map(function (k) {
+      var v = e.records_by_tier && e.records_by_tier[k];
+      return v ? fmtInt(v) + ' ' + st('ev_' + k, lang) : null;
+    }).filter(Boolean).join(' · ');
+    if (tiers) facts.push(esc(tiers));
+    if (Array.isArray(e.fruiting_months) && e.fruiting_months.length === 12) facts.push(monthStrip(e.fruiting_months, monthHi, lang));
+    var nAreas = (e.area_ids || []).length;
+    if (nAreas) facts.push(esc(st('areas', lang).replace('{n}', fmtInt(nAreas))));
+    facts.push(esc(e.east_asia ? st('eastYes', lang) : st('eastNo', lang)));
+    if (x.endemic_hosoya2016 === true) facts.push(esc(st('endemic', lang)));
+    var links = ['<a href="' + gbifTaxonUrl(e.key || undefined, e.legacy_key || undefined, e.name) + '" target="_blank" rel="noopener">GBIF</a>'];
+    var wiki = x.wikipedia_ja || x.wikipedia_en;
+    if (wiki) links.unshift('<a href="' + esc(wiki) + '" target="_blank" rel="noopener">' + esc(st('wiki', lang)) + '</a>');
+    if (x.mhlw_url) links.push('<a href="' + esc(x.mhlw_url) + '" target="_blank" rel="noopener">' + esc(st('mhlw', lang)) + '</a>');
+    var lit = Array.isArray(x.literature) ? x.literature : [];
+    lit.forEach(function (r, i) {
+      if (!r || !r.doi) return;
+      var label = i === 0 ? st('lit', lang) + (lit.length > 1 ? ' (' + lit.length + ')' : '') : (r.year != null ? String(r.year) : 'DOI');
+      links.push('<a href="' + esc(r.doi) + '" target="_blank" rel="noopener"' + (r.title ? ' title="' + esc(r.title) + '"' : '') + '>' + esc(label) + '</a>');
+    });
+    if (x.mushroomexpert_url) links.push('<a href="' + esc(x.mushroomexpert_url) + '" target="_blank" rel="noopener">' + esc(st('me', lang)) + '</a>');
+    var photo = '';
+    if (x.photo && x.photo.thumb_url) {
+      var p = x.photo;
+      photo = '<div class="fd-detail__fig"><img src="' + esc(p.thumb_url) + '" width="96" height="96" loading="lazy" decoding="async" alt="' + esc(e.name || '') + '">' +
+        '<span class="fd-detail__credit">' + esc(p.author || '') +
+        (p.licence ? (p.licence_url ? ' · <a href="' + esc(p.licence_url) + '" target="_blank" rel="noopener">' + esc(p.licence) + '</a>' : ' · ' + esc(p.licence)) : '') +
+        (p.file_page ? ' · <a href="' + esc(p.file_page) + '" target="_blank" rel="noopener">' + esc(st('filePage', lang)) + '</a>' : '') +
+        '</span></div>';
+    }
+    return photo + '<div class="fd-detail__body">' +
+      '<p class="fd-detail__facts">' + facts.join(' · ') + '</p>' +
+      '<p class="fd-detail__links">' + links.join(' <span aria-hidden="true">·</span> ') + '</p>' +
+      '<p class="fd-detail__note">' + esc(st('notEdible', lang)) + '</p></div>';
+  }
+  // The name cell in the Recorded / Could-be-found tables: a toggle button wrapping
+  // the italic name with the GBIF ↗ as a sibling link. plain=true is the degradation
+  // path once the bundles are known to be unavailable: today's linked-name rendering.
+  function speciesNameCell(colKey, legacyKey, name, plain, lang) {
+    var url = gbifTaxonUrl(colKey || undefined, legacyKey || undefined, name);
+    if (plain) return '<a class="fd-plainname" href="' + url + '" target="_blank" rel="noopener"><i>' + esc(name) + '</i></a>';
+    return '<button type="button" class="fd-name-toggle" aria-expanded="false" data-sp-col="' + esc(colKey || '') + '" data-sp-legacy="' + esc(legacyKey || '') + '" data-sp-name="' + esc(name) + '"><i>' + esc(name) + '</i></button>' +
+      '<a class="fd-gbif" href="' + url + '" target="_blank" rel="noopener" aria-label="' + esc(st('gbifAria', lang)) + '">↗</a>';
+  }
+  // Deep links are #species-<key>; COL XR keys are alphanumeric and legacy keys numeric.
+  function parseSpeciesHash(hash) {
+    var m = /^#?species-([A-Za-z0-9]+)$/.exec(String(hash || ''));
+    return m ? m[1] : null;
+  }
+
   // ---- projection: equirectangular with longitudes shrunk by cos(reference latitude)
   function lonScale(box) { return Math.cos((((box || JAPAN_BOX).refLat) * Math.PI) / 180); }
   function mapSize(width, box) {
@@ -581,6 +700,10 @@
     isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll,
     tapTransition: tapTransition, tapGuard: tapGuard,
     areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, nextTab: nextTab, historyAction: historyAction,
+    monthStrip: monthStrip, st: st,
+    readSpeciesIndex: readSpeciesIndex, readSpeciesGenus: readSpeciesGenus, speciesSlugFor: speciesSlugFor,
+    findSpeciesEntry: findSpeciesEntry, speciesMarkers: speciesMarkers, markersHtml: markersHtml,
+    speciesDetailsHtml: speciesDetailsHtml, speciesNameCell: speciesNameCell, parseSpeciesHash: parseSpeciesHash,
     STREET_ASSETS: STREET_ASSETS, injectAssets: injectAssets
   };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
@@ -661,8 +784,9 @@
     family: ['Family', '科'],
     sp: ['Species', '種'],
     rec: ['Records', '記録数'],
-    evidence: ['Evidence', '証拠'],
-    ev_s: ['specimen', '標本'], ev_d: ['DNA', 'DNA'], ev_o: ['sighting', '観察']
+    evidence: ['Evidence', '証拠']
+    // ev_s/ev_d/ev_o moved into SPECIES_T (TASK-010): the pure species assembly
+    // needs the same tier words, so one table serves both call sites.
   };
   function t(k) { return lang === 'ja' ? T[k][1] : T[k][0]; }
   function $(id) { return doc.getElementById(id); }
@@ -686,6 +810,164 @@
   var geo = { status: 'idle', places: null, ref: null }; // reference geography: coast + labels + place search
   var search = { refresh: null }; // refresh re-applies availability + re-runs the query
   var filtersEl = null, filtersHome = null, filtersNext = null; // the one kind/month widget
+
+  /* ---- species details (TASK-010, spec item 8). The bundles load lazily behind the
+     first toggle (index.json once, then the one genus file) and cache in memory for
+     ~60 s. No data → the name degrades back to today's plain linked name; the browser
+     still makes no API calls beyond those two bundle fetches and the Commons <img>. */
+  var SPECIES_TTL = 60000;
+  var species = { dead: false, deadAt: 0, index: null, indexAt: 0, genera: {} };
+  var openDetail = null;      // { btn, row } — one details row open at a time
+  var speciesTriedKey = null; // the last #species-<key> the router attempted
+
+  function speciesFiles() {
+    if (species.index && Date.now() - species.indexAt < SPECIES_TTL) return Promise.resolve(species.index.files);
+    return fetchJson(base + 'species/index.json', { cache: 'no-cache' })
+      .then(readSpeciesIndex)
+      .then(function (r) {
+        if (!r.ok) throw new Error('invalid species index');
+        species.index = r;
+        species.indexAt = Date.now();
+        return r.files;
+      })
+      .catch(function () {
+        species.dead = true; // index gone: every name degrades to a plain link
+        species.deadAt = Date.now();
+        return null;
+      });
+  }
+  function speciesEntry(colKey, legacyKey, name) {
+    if (species.dead && Date.now() - species.deadAt < SPECIES_TTL) return Promise.resolve(null);
+    var slug = speciesSlugFor(name);
+    if (!slug) return Promise.resolve(null);
+    var cached = species.genera[slug];
+    if (cached && Date.now() - cached.at < SPECIES_TTL)
+      return Promise.resolve(findSpeciesEntry(cached.entries, colKey, legacyKey, name));
+    return speciesFiles().then(function (files) {
+      if (!files || !files[slug]) return null;
+      return fetchJson(base + 'species/' + encodeURIComponent(slug) + '.json', { cache: 'no-cache' })
+        .then(readSpeciesGenus)
+        .then(function (r) {
+          if (!r.ok) return null;
+          species.genera[slug] = { at: Date.now(), entries: r.entries };
+          backfillMarkers(slug, r.entries);
+          return findSpeciesEntry(r.entries, colKey, legacyKey, name);
+        })
+        .catch(function () { return null; });
+    });
+  }
+  // Once a genus file is in, every rendered row of that genus gains its markers —
+  // a toxic row must not wait for its own toggle to be pressed first.
+  function backfillMarkers(slug, entries) {
+    doc.querySelectorAll('.fd-name-toggle[data-sp-name]').forEach(function (b) {
+      if (b.querySelector('.fd-mark') || speciesSlugFor(b.getAttribute('data-sp-name')) !== slug) return;
+      var e = findSpeciesEntry(entries, b.getAttribute('data-sp-col'), b.getAttribute('data-sp-legacy'), b.getAttribute('data-sp-name'));
+      if (!e) return;
+      var mk = markersHtml(speciesMarkers(e), lang);
+      if (mk) b.insertAdjacentHTML('beforeend', mk);
+    });
+  }
+  // The degradation path: swap a toggle for today's plain linked name (reusing the
+  // pure builder keeps one source of markup truth).
+  function degradeNameCell(btn) {
+    if (!btn.isConnected) return;
+    var tmp = doc.createElement('span');
+    tmp.innerHTML = speciesNameCell(btn.getAttribute('data-sp-col') || undefined,
+      btn.getAttribute('data-sp-legacy') || undefined, btn.getAttribute('data-sp-name'), true, lang);
+    btn.parentNode.replaceChild(tmp.firstChild, btn);
+  }
+  function closeSpeciesDetail() {
+    if (!openDetail) return;
+    if (openDetail.btn.isConnected) openDetail.btn.setAttribute('aria-expanded', 'false');
+    if (openDetail.row.isConnected) openDetail.row.remove();
+    openDetail = null;
+  }
+  function toggleSpecies(btn) {
+    if (openDetail && openDetail.btn === btn) return closeSpeciesDetail(); // second click closes
+    closeSpeciesDetail(); // one row open at a time
+    hideSpeciesCard();
+    var row = btn.closest('tr');
+    if (!row) return;
+    btn.setAttribute('aria-expanded', 'true');
+    var tr = doc.createElement('tr');
+    tr.className = 'fd-detail';
+    var td = doc.createElement('td');
+    td.colSpan = Math.max(1, row.cells.length); // recorded rows carry 3–4 columns
+    tr.appendChild(td);
+    row.parentNode.insertBefore(tr, row.nextSibling);
+    openDetail = { btn: btn, row: tr };
+    speciesEntry(btn.getAttribute('data-sp-col') || null, btn.getAttribute('data-sp-legacy') || null, btn.getAttribute('data-sp-name'))
+      .then(function (entry) {
+        if (!openDetail || openDetail.btn !== btn) return; // superseded or closed meanwhile
+        if (!entry) {
+          if (species.dead) doc.querySelectorAll('.fd-name-toggle').forEach(degradeNameCell);
+          else degradeNameCell(btn);
+          closeSpeciesDetail();
+          return;
+        }
+        td.innerHTML = speciesDetailsHtml(entry, lang, state.month);
+      });
+  }
+
+  /* ---- #species-<key> deep links: open the row when the taxon is on the page (its
+     table window grows first if needed), else show the same details as a compact card
+     when the taxon is in the loaded data (an open area or the leads), else the no-page
+     line — without saying why. */
+  function speciesBtnFor(key) {
+    return doc.querySelector('.fd-name-toggle[data-sp-col="' + key + '"], .fd-name-toggle[data-sp-legacy="' + key + '"]');
+  }
+  function speciesInLoaded(key) {
+    function scan(rows, limitKey) {
+      for (var j = 0; j < rows.length; j++) {
+        var r = rows[j] || {};
+        if (String(r.c || '') === key || String(r.lk || '') === key) return { name: r.n, limitKey: limitKey, idx: j };
+      }
+      return null;
+    }
+    var det = state.sel && state.sel.detail;
+    var hit = det ? (scan(det.species || [], 'spLimit') || scan(det.possible || [], 'possLimit')) : null;
+    if (hit) return hit;
+    var leads = (state.d && state.d.leads) || [];
+    for (var i = 0; i < leads.length; i++) {
+      var l = leads[i];
+      if (String(l[5] || '') === key || String(l[6] || '') === key) return { name: l[0] };
+    }
+    return null;
+  }
+  function showSpeciesCard(entry, key) {
+    var card = $('fd-species-card');
+    if (!card) return;
+    if (!entry) {
+      card.innerHTML = '<p class="fd-empty">' + esc(st('noPage', lang)) + '</p>';
+      announce(st('noPage', lang));
+    } else {
+      card.innerHTML = '<p class="fd-species-card__name"><i>' + esc(entry.name) + '</i>' +
+        (entry.name_ja ? ' <span lang="ja">' + esc(entry.name_ja) + '</span>' : '') +
+        markersHtml(speciesMarkers(entry), lang) + '</p>' +
+        '<div class="fd-detail__wrap">' + speciesDetailsHtml(entry, lang, 0) + '</div>';
+      announce(entry.name);
+    }
+    card.hidden = false;
+    card.scrollIntoView({ block: 'center' });
+  }
+  function hideSpeciesCard() { var c = $('fd-species-card'); if (c) c.hidden = true; }
+  function trySpeciesHash() {
+    var key = parseSpeciesHash(root.location.hash);
+    if (!key || key === speciesTriedKey) return;
+    speciesTriedKey = key;
+    var btn = speciesBtnFor(key);
+    var loc = speciesInLoaded(key);
+    if (!btn && loc && loc.limitKey) { // present in the loaded area, below the visible window
+      if (state[loc.limitKey] <= loc.idx) { state[loc.limitKey] = loc.idx + AREA_ROWS; renderArea(); }
+      btn = speciesBtnFor(key);
+    }
+    if (btn) { toggleSpecies(btn); btn.scrollIntoView({ block: 'center' }); return; }
+    if (!loc) return showSpeciesCard(null, key);
+    speciesEntry(key, key, loc.name).then(function (entry) {
+      if (parseSpeciesHash(root.location.hash) !== key) return; // the visitor moved on
+      showSpeciesCard(entry, key);
+    });
+  }
 
   // One polite live region (#fd-live) announces settled changes — previews, opens, errors —
   // never pointer movement.
@@ -1103,13 +1385,6 @@
     drawViews();
   }
 
-  function monthStrip(m, hi) {
-    var max = Math.max.apply(null, m) || 1;
-    return '<span class="fd-ms" aria-hidden="true">' + m.map(function (v, i) {
-      return '<i class="' + (v ? 'on' : '') + (hi === i + 1 ? ' hi' : '') + '" style="--v:' + (v ? (0.35 + 0.65 * v / max).toFixed(2) : 0) + '"></i>';
-    }).join('') + '</span><span class="fd-sr">' + m.map(function (v, i) { return v ? monthName(i + 1, lang) : ''; }).filter(Boolean).join(', ') + '</span>';
-  }
-
   // Long tables inside the inspector: first AREA_ROWS rows, then Show more steps +100;
   // once everything is visible the button flips to Show fewer (back to AREA_ROWS).
   function moreButton(id, needed, expanded, toggle) {
@@ -1183,7 +1458,7 @@
     var oph = $('fd-ov-ph');
     if (oph) oph.hidden = true;
     $('fd-ov-evidence').innerHTML = barRows(areaEvidenceMix(list), 0,
-      function (k) { return T['ev_' + k] ? t('ev_' + k) : k; });
+      function (k) { return SPECIES_T['ev_' + k] ? st('ev_' + k, lang) : k; });
     $('fd-ov-families').innerHTML = barRows(topFamilies(list, 6).map(function (f) { return [f[0], f[1]]; }), 0,
       function (x) { return x; });
     italicise('#fd-ov-families');
@@ -1209,6 +1484,7 @@
   function renderArea() {
     var a = state.sel && state.sel.detail;
     if (!a) return;
+    closeSpeciesDetail(); // rebuilt tables: the open row and its toggle state go with them
     var note = samplingNote(a.dominant_source);
     $('fd-area-note').hidden = !note;
     if (note) $('fd-area-note').textContent = t('sampling').replace('{share}', note.share).replace('{title}', note.title);
@@ -1238,12 +1514,12 @@
     $('fd-area-species').innerHTML = list.length ? '<thead><tr>' + head.map(function (h, i) { return '<th' + (i === 1 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       spView.rows.map(function (s) {
         var sub = [esc(s.f)];
-        var ev = Object.keys(s.e || {}).map(function (k) { return T['ev_' + k] ? t('ev_' + k) : k; }).join(', ');
+        var ev = Object.keys(s.e || {}).map(function (k) { return SPECIES_T['ev_' + k] ? st('ev_' + k, lang) : k; }).join(', ');
         if (ev) sub.push(esc(ev));
         if (a.kind === 'group')
           sub.push(esc((s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')));
-        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(s.c || undefined, s.lk || undefined, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a><span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
-          '<td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month) + '</td>' +
+        return '<tr><td class="fd-cell">' + speciesNameCell(s.c, s.lk, s.n, species.dead, lang) + '<span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
+          '<td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month, lang) + '</td>' +
           (showWhere ? '<td class="fd-where">' + esc(whereText(s, lang)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
 
@@ -1256,11 +1532,12 @@
     var phead = [t('sp'), t('likelihood'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       pView.rows.map(function (p) {
-        return '<tr><td class="fd-cell"><a href="' + gbifTaxonUrl(p.c || undefined, p.lk || undefined, p.n) + '" target="_blank" rel="noopener"><i>' + esc(p.n) + '</i></a><span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
+        return '<tr><td class="fd-cell">' + speciesNameCell(p.c, p.lk, p.n, species.dead, lang) + '<span class="fd-cell__sub">' + esc(p.f) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
           esc(lang === 'ja' ? p.wj : p.w) + '</span></td>' +
           '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
-          '<td>' + monthStrip(p.m, state.month) + '</td></tr>';
+          '<td>' + monthStrip(p.m, state.month, lang) + '</td></tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noPossible')) + '</td></tr></tbody>';
+    trySpeciesHash(); // a deep-linked species may just have become reachable
   }
 
   // All Japan overview: island-group suggestions (fastest route into Okinawa & co),
@@ -1702,6 +1979,7 @@
       state.d = res.data;
       state.snaps.dashboard = res.snapshot;
       render(res.data);
+      trySpeciesHash(); // a cold #species-<key> may match a lead, rendered just now
     } else if (!state.d) {
       $('fd-status').hidden = false;
       $('fd-status').textContent = t('loadError');
@@ -1758,8 +2036,8 @@
     fetchJson(base + 'areas/index.json', opts).then(readIndex).then(applyIndex).catch(function () { applyIndex({ ok: false }); });
   }
 
-  // Back/Forward (and a hand-edited #area-<id>): re-select or clear without pushing
-  // another entry. Unrelated in-page anchors (#fd-leads, later #species-<key>) are left
+  // Back/Forward (and a hand-edited #area-<id> or #species-<key>): re-select or clear
+  // without pushing another entry. Unrelated in-page anchors (#fd-leads) are left
   // alone — jumping to the leads card must not deselect an open area.
   var lastRoute = null;
   function routeFromLocation() {
@@ -1768,6 +2046,9 @@
     if (root.location.href === lastRoute) return;
     lastRoute = root.location.href;
     var h = root.location.hash;
+    if (parseSpeciesHash(h)) { trySpeciesHash(); return; }
+    hideSpeciesCard(); // navigating away from a species hash closes its card…
+    speciesTriedKey = null; // …and a later return to the same hash re-attempts it
     if (h && h !== '#' && !parseAreaHash(h)) return;
     var id = parseAreaHash(h);
     if (id) selectArea(id, 'popstate');
@@ -1808,9 +2089,21 @@
     root.addEventListener('hashchange', routeFromLocation);
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (openDetail) { closeSpeciesDetail(); return; }
+      var card = $('fd-species-card');
+      if (card && !card.hidden) { hideSpeciesCard(); return; }
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
       if (state.sel) clearArea();
+    });
+    // Species toggles (TASK-010): the tables rebuild their rows on every filter change,
+    // so clicks delegate from the persistent <table> elements to whichever row shows.
+    ['fd-area-species', 'fd-area-possible'].forEach(function (id) {
+      var tb = $(id);
+      if (tb) tb.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('.fd-name-toggle') : null;
+        if (b) toggleSpecies(b);
+      });
     });
     wireLocate();
     wireResearch();
