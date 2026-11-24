@@ -1047,6 +1047,7 @@ describe('TASK-009: data and method section (six subsections, both languages)', 
       'https://doi.org/10.15468/dl.akuuf8',
       'https://doi.org/10.15468/dl.pzk484',
       'https://www.env.go.jp/nature/kisho/5th-rl-2025-book/05-5thredlist-fungi.pdf',
+      'https://www.env.go.jp/nature/kisho/5th-rl-2025-book/04-5thredlist-lichens.pdf',
       'https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/shokuhin/syokuchu/poison/index.html',
       'https://agriknowledge.affrc.go.jp/RN/2010910274.pdf',
       'https://www.jstage.jst.go.jp/browse/mycosci/-char/en',
@@ -1065,7 +1066,7 @@ describe('TASK-009: data and method section (six subsections, both languages)', 
     assert.ok(!/edib|食用|食べられ|可食/.test(inc), 'no edibility wording anywhere');
     const ja = inc.includes('このページでは、除外している種名を挙げていません');
     const en = inc.includes('Masked taxa are never named here');
-    assert.ok(ja || en, 'the no-naming promise must read in the rendered language');
+    assert.ok(ja && en, 'the no-naming promise must read in each rendered language');
   });
 });
 
@@ -1665,5 +1666,53 @@ describe('TASK-013: honest filters (source level)', () => {
       assert.ok(m, k + ' must be a paired [EN, JA] string');
       assert.ok(m[0].includes("', '"), k + ' carries both languages');
     }
+  });
+});
+
+// TASK-012 (decision M1): the 5th Red List lichens are masked like fungi, so the
+// Protection subsection names both lists and links both PDFs. T.masking (the note
+// under the search box) stays as it is: it says "Red List" without naming groups.
+describe('TASK-012: Protection subsection names fungi and lichens (decision M1)', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const FUNGI = 'https://www.env.go.jp/nature/kisho/5th-rl-2025-book/05-5thredlist-fungi.pdf';
+  const LICHEN = 'https://www.env.go.jp/nature/kisho/5th-rl-2025-book/04-5thredlist-lichens.pdf';
+  // The subsection paragraph, split into its JA and EN branches, each also reduced to
+  // rendered text so a phrase split across two links still reads as one sentence.
+  const para = /<h3>\{% if ja %\}保護{% else %\}Protection{% endif %\}<\/h3><\/summary>\s*<p>([\s\S]*?)<\/p>/.exec(inc)[1];
+  const [jaRaw, enRaw] = para.split('{% else %}');
+  const render = (s) => s.replace(/<[^>]*>/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '');
+  const [ja, en] = [jaRaw, enRaw].map(render);
+  it('names both Red List groups in JA and EN', () => {
+    assert.ok(ja.includes('環境省の第5次レッドリスト（菌類・地衣類、2025年3月）'), 'JA names lichens beside fungi');
+    assert.ok(ja.includes('レッドリスト：環境省第5次レッドリスト（菌類）・（地衣類）'), 'JA closes on both lists');
+    assert.ok(en.includes('5th Red List for fungi (March 2025)'), 'EN names and links the fungi list');
+    assert.ok(en.includes('5th Red List for lichens (March 2025)'), 'EN names and links the lichen list');
+  });
+  it('says which species are masked without calling them the only ones (PR #73 review)', () => {
+    // The masking input also keeps the previous (2020) list during its transition, so the
+    // sentence names the lists whose species are masked and never claims "only" those.
+    assert.ok(ja.includes('商用採集の対象リストに載る種は、'), 'JA states it without 限り');
+    assert.ok(!/限り/.test(ja), 'JA never says these are the only masked species');
+    assert.ok(!/\bonly\b/i.test(en), 'EN never says these are the only masked species');
+  });
+  it('links both PDFs from both languages', () => {
+    for (const [lang, branch] of [['JA', jaRaw], ['EN', enRaw]]) {
+      for (const u of [FUNGI, LICHEN]) assert.ok(branch.includes(`href="${u}"`), `${lang} links ${u}`);
+      // Tag-blind text checks above cannot see a stray or missing </a>.
+      const opens = (branch.match(/<a /g) || []).length;
+      assert.strictEqual(opens, 2, `${lang} carries exactly the two links`);
+      assert.strictEqual((branch.match(/<\/a>/g) || []).length, opens, `${lang} closes every link`);
+    }
+  });
+  it('every link names its list out of context, without repeating itself in the sentence', () => {
+    // The visible text of each link is its list's name, except the JA lichen link, whose
+    // visible text is the parenthetical 「（地衣類）」 and which carries an aria-label. An
+    // aria-label replaces the visible text when a screen reader reads the paragraph, so
+    // it is not added where the visible text already says the name.
+    const names = (s) => Array.from(s.matchAll(/<a [^>]*>.*?<\/a>/g)).map(
+      (m) => (/aria-label="([^"]*)"/.exec(m[0]) || [null, m[0].replace(/<[^>]*>/g, '')])[1]);
+    assert.deepStrictEqual(names(jaRaw), ['環境省第5次レッドリスト（菌類）', '環境省第5次レッドリスト（地衣類）']);
+    assert.deepStrictEqual(names(enRaw), ['5th Red List for fungi (March 2025)', '5th Red List for lichens (March 2025)']);
+    assert.ok(!/aria-label/.test(enRaw), 'EN link text is the name: nothing repeats it');
   });
 });
