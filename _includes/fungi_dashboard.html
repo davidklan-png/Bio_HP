@@ -155,6 +155,11 @@
     </aside>
   </div>
 
+  {%- comment -%} Species deep-link card (TASK-010, spec item 8): #species-<key> opens the
+    same details as a compact card when the taxon is on the page; unknown or masked keys
+    get the no-page line, without saying why. Filled by fungi-dashboard.js. {%- endcomment -%}
+  <div class="fd-species-card" id="fd-species-card" hidden></div>
+
   <section class="fd-national">
     <h2 class="fd-national__title">{% if ja %}日本全体のデータ{% else %}Across all of Japan{% endif %}</h2>
     <div class="fd-national__grid">
