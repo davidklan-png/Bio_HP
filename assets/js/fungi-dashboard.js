@@ -577,6 +577,35 @@
     if (genera.length) groups.push(cut('genera', genera));
     return groups;
   }
+  // ---- "Species on the map" disclosure (TASK-011, spec item 9). No per-species national
+  // bundle ships with the page (the species index carries only hashes/counts, and the
+  // genus files are too many to fetch), so the list accrues from the area files the page
+  // has already loaded — the selected area plus the detail cache. `areas` is a list of
+  // species arrays, one per loaded area; rows merge by name, count how many of those
+  // areas record the species and sum records. Month semantics match filterSpecies
+  // (a species counts in an area only if it fruits there that month; 0 = all months),
+  // and `query` folds like the search box so the combobox filters this list too.
+  function mapSpeciesRank(areas, month, query) {
+    var needle = foldQuery(query);
+    var byName = {};
+    (areas || []).forEach(function (species) {
+      var seen = {};
+      (species || []).forEach(function (s) {
+        if (!s || !s.n || seen[s.n]) return;
+        if (month && !(s.m && s.m[month - 1] > 0)) return;
+        seen[s.n] = true;
+        var row = byName[s.n] || (byName[s.n] = { n: s.n, c: s.c || undefined, lk: s.lk || undefined, areas: 0, r: 0 });
+        // keep a key only while every contributor agrees — a homonym under another key links by name
+        if (row.c !== (s.c || undefined)) row.c = undefined;
+        if (row.lk !== (s.lk || undefined)) row.lk = undefined;
+        row.areas += 1;
+        row.r += s.r || 0;
+      });
+    });
+    return Object.keys(byName).map(function (k) { return byName[k]; })
+      .filter(function (row) { return !needle || foldQuery(row.n).indexOf(needle) >= 0; })
+      .sort(function (a, b) { return b.areas - a.areas || b.r - a.r || (a.n < b.n ? -1 : a.n > b.n ? 1 : 0); });
+  }
   function readMapReference(d) {
     if (!isObj(d) || d.schema_version !== 1 || !isObj(d.source) || !Array.isArray(d.bbox) ||
       d.bbox.length !== 4 || !Array.isArray(d.land) || !Array.isArray(d.places)) return { ok: false };
@@ -700,7 +729,7 @@
     readResearch: readResearch, researchJoins: researchJoins, findSlice: findSlice, researchView: researchView,
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
     foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
-    isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll,
+    isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
     tapTransition: tapTransition, tapGuard: tapGuard,
     areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, nextTab: nextTab, historyAction: historyAction,
     monthStrip: monthStrip, st: st,
@@ -769,6 +798,9 @@
     searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
+    areasN: ['areas', '地域'],
+    mapspEmpty: ['Open a square or island on the map to list its species here.', '地図のマスや島を開くと、ここに種が一覧表示されます。'],
+    mapspNote: ['From the areas opened in this session, ranked by how many of them record each species.', 'このセッションで開いた地域のうち、記録している地域の数が多い順に表示しています。'],
     showAll: ['Show all', 'すべて表示'],
     showFewer: ['Show fewer', '表示を減らす'],
     showMore: ['Show more', 'さらに表示'],
@@ -799,8 +831,10 @@
   // tab/spLimit/possLimit: the inspector tab persists across area changes (never in the
   // URL); the row windows step +100 from AREA_ROWS on each Show more.
   var AREA_ROWS = 50;
+  var MAPSP_ROWS = 50; // species-on-map disclosure: first window, then +50 per Show more
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // kind slicer removed; 'all' only
     cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
+    q: '', mapspLimit: MAPSP_ROWS,
     locCell: null, snaps: { dashboard: null, index: null },
     bootBypassed: false, dDone: false, iDone: false, routed: false };
   var areaRequests = latestOnly();
@@ -1252,9 +1286,11 @@
   }
   function filterChanged() {
     state.spLimit = state.possLimit = AREA_ROWS;
+    state.mapspLimit = MAPSP_ROWS;
     syncFilters();
     applyResearch(); // the research recolour follows the same month/kind selection
     renderArea();
+    renderMapSpecies(); // the disclosure's N follows the month chips like the map's tables
   }
 
   // Toolbar wiring (TASK-008): the area picker is gone — its contents are the search
@@ -1410,6 +1446,44 @@
     b.onclick = toggle;
   }
 
+  // Species-on-map disclosure: every area file the page holds — the detail cache plus
+  // the open selection (which is cached on load, so the set only ever grows). No new
+  // fetches; the species index/genus files stay untouched (TASK-011's data path).
+  function loadedAreaSpecies() {
+    var out = [], seen = {};
+    var add = function (d) {
+      if (d && d.id && Array.isArray(d.species) && !seen[d.id]) { seen[d.id] = true; out.push(d.species); }
+    };
+    Object.keys(state.cache).forEach(function (id) { var r = state.cache[id]; if (r && r.ok) add(r.data); });
+    if (state.sel && state.sel.detail) add(state.sel.detail);
+    return out;
+  }
+  function renderMapSpecies() {
+    var box = $('fd-mapspecies');
+    if (!box) return;
+    var loaded = loadedAreaSpecies();
+    var rows = mapSpeciesRank(loaded, state.month, state.q || '');
+    var nEl = $('fd-mapsp-n');
+    if (nEl) nEl.textContent = fmtInt(rows.length);
+    var note = $('fd-mapsp-note');
+    if (note) { note.hidden = false; note.textContent = loaded.length ? t('mapspNote') : t('mapspEmpty'); }
+    var list = $('fd-mapsp-list');
+    if (list) {
+      if (!loaded.length) list.innerHTML = '';
+      else if (!rows.length) list.innerHTML = '<li class="fd-empty">' + esc(t('noResults')) + '</li>';
+      else {
+        var view = visibleRows(rows, state.mapspLimit, false);
+        list.innerHTML = view.rows.map(function (s) {
+          return '<li><span class="fd-cell"><a href="' + gbifTaxonUrl(s.c, s.lk, s.n) + '" target="_blank" rel="noopener"><i>' + esc(s.n) + '</i></a>' +
+            '<span class="fd-cell__sub">' + fmtInt(s.areas) + ' ' + esc(t('areasN')) + ' · ' + fmtInt(s.r) + ' ' + esc(t('records')) + '</span></span></li>';
+        }).join('');
+      }
+    }
+    moreButton('fd-mapsp-more', rows.length > state.mapspLimit || state.mapspLimit > MAPSP_ROWS, state.mapspLimit >= rows.length, function () {
+      state.mapspLimit = state.mapspLimit >= rows.length ? MAPSP_ROWS : state.mapspLimit + 50; renderMapSpecies();
+    });
+  }
+
   // Header from the index row (or the detail once it lands); tables only with valid detail.
   function renderSelection() {
     var sel = state.sel;
@@ -1549,6 +1623,7 @@
           '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
           '<td>' + monthStrip(p.m, state.month, lang) + '</td></tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noPossible')) + '</td></tr></tbody>';
+    renderMapSpecies(); // a newly loaded area joins the disclosure's accumulator
     trySpeciesHash(); // a deep-linked species may just have become reachable
   }
 
@@ -1856,7 +1931,8 @@
       drawViews();
       announce(t('searchCentred') + ' ' + (lang === 'ja' ? p.ja : p.en));
     }
-    function finish(label) { input.value = label; clearPopup(); avail(); }
+    // A picked option navigates; it is not a filter, so the disclosure resets.
+    function finish(label) { input.value = label; clearPopup(); avail(); state.q = ''; renderMapSpecies(); }
     function groupEl(title) {
       var li = doc.createElement('li');
       li.setAttribute('role', 'group');
@@ -1920,6 +1996,8 @@
       clearPopup();
       note('');   // PR #61 review: a stale "No matches." must not survive into new results
       var q = input.value.trim();
+      state.q = q; // the species-on-map list shares this filter (spec item 9)
+      renderMapSpecies();
       if (!q) { // empty state: the dropdown's former contents as suggestions
         if (state.index && !input.disabled) { open(); announceCount(renderGroups(suggestGroups(state.index.areas))); }
         return;
@@ -1972,7 +2050,7 @@
         // would otherwise drop the selected area from inside the search box.
         e.preventDefault();
         if (!results.hidden) clearPopup();
-        else if (input.value) input.value = '';
+        else if (input.value) { input.value = ''; state.q = ''; renderMapSpecies(); }
       }
     });
     function pickOption(i) { options[i].pick(); }

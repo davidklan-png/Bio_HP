@@ -827,8 +827,10 @@ describe('key-based GBIF links (TASK-007)', () => {
   });
   it('routes every species-link render site through the helper', () => {
     // TASK-010 moved the two area tables onto speciesNameCell (button + ↗ sibling; the
-    // degrade path reuses it), so the sites are: name cell, detail links, leads, overview.
-    assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 5, 'one definition plus four call sites');
+    // degrade path reuses it); TASK-011 added the species-on-map disclosure. Sites:
+    // name cell, detail links, leads, overview, map disclosure.
+    assert.strictEqual((src.match(/gbifTaxonUrl\(/g) || []).length, 6, 'one definition plus five call sites');
+    assert.ok(src.includes('gbifTaxonUrl(s.c, s.lk, s.n)'), 'species-on-map disclosure');
     assert.ok(src.includes('gbifTaxonUrl(colKey || undefined, legacyKey || undefined, name)'), 'species name cell');
     assert.ok(src.includes('speciesNameCell(s.c, s.lk, s.n'), 'area species table renders the name cell');
     assert.ok(src.includes('speciesNameCell(p.c, p.lk, p.n'), 'could-be-found table renders the name cell');
@@ -1271,5 +1273,103 @@ describe('TASK-010: interaction and network wiring (source-level)', () => {
   });
   it('the include ships the deep-link card container', () => {
     assert.ok(inc.includes('id="fd-species-card"'));
+  });
+});
+
+// TASK-011 (spec item 9): the "Species on the map" disclosure under the map — a ranked
+// list built from the area files the page has already loaded (the species index has
+// no per-species names and genus files are too many to fetch), the map caption
+// sentence, and possible-species content gated to the area view.
+describe('TASK-011: mapSpeciesRank (loaded-area accumulator)', () => {
+  const areas = [
+    [ // one island's species rows
+      { n: 'Amanita muscaria', r: 40, m: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 25] },
+      { n: 'Russula cyanoxantha', r: 10, m: [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+    ],
+    [ // a second island's
+      { n: 'Amanita muscaria', r: 7, m: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0] },
+      { n: 'Tricholoma matsutake', r: 2, m: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0] }
+    ]
+  ];
+  it('merges species by name, counting areas and summing records', () => {
+    const rows = fd.mapSpeciesRank(areas, 0, '');
+    assert.strictEqual(rows.length, 3);
+    assert.deepStrictEqual(rows.find((r) => r.n === 'Amanita muscaria'), { n: 'Amanita muscaria', c: undefined, lk: undefined, areas: 2, r: 47 });
+  });
+  it('respects the month filter per area, the same rule as the inspector tables', () => {
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 1, '').map((r) => r.n), ['Russula cyanoxantha']);
+    const nov = fd.mapSpeciesRank(areas, 11, '');
+    assert.strictEqual(nov.find((r) => r.n === 'Amanita muscaria').areas, 2); // both islands fruit it in Nov
+    assert.ok(!nov.some((r) => r.n === 'Tricholoma matsutake')); // Oct only
+  });
+    it('carries a taxon key only while every contributor agrees (item 5 key links)', () => {
+      const keyed = [
+        [{ n: 'A', c: 'K1', r: 3, m: [1] }, { n: 'B', lk: 'L1', r: 2, m: [1] }],
+        [{ n: 'A', c: 'K1', r: 1, m: [1] }, { n: 'B', lk: 'L2', r: 1, m: [1] }]   // B: disagreeing legacy keys
+      ];
+      const by = Object.fromEntries(fd.mapSpeciesRank(keyed, 0, '').map((r) => [r.n, r]));
+      assert.strictEqual(by.A.c, 'K1');          // same COL key on both areas: kept
+      assert.strictEqual(by.B.lk, undefined);    // homonym keys disagree: link by name
+      assert.ok(readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8')
+        .includes('gbifTaxonUrl(s.c, s.lk, s.n)'), 'the disclosure uses the keys');
+    });
+  it('ranks by areas desc, then records desc, then name', () => {
+    const rows = fd.mapSpeciesRank([
+      [{ n: 'Wide one', r: 1 }, { n: 'Beta tie', r: 9 }, { n: 'Alpha tie', r: 9 }],
+      [{ n: 'Wide one', r: 2 }, { n: 'Narrow', r: 99 }]
+    ], 0, '');
+    assert.deepStrictEqual(rows.map((r) => r.n), ['Wide one', 'Narrow', 'Alpha tie', 'Beta tie']);
+  });
+  it('filters by a folded substring query and tolerates empty input', () => {
+    assert.deepStrictEqual(fd.mapSpeciesRank(areas, 0, 'AMAN').map((r) => r.n), ['Amanita muscaria']);
+    assert.strictEqual(fd.mapSpeciesRank(areas, 0, 'zzz').length, 0);
+    assert.deepStrictEqual(fd.mapSpeciesRank(null, 0, ''), []);
+    assert.deepStrictEqual(fd.mapSpeciesRank([null, [], undefined], 0, ''), []);
+    assert.deepStrictEqual(fd.mapSpeciesRank([[{ r: 1 }, { n: 'Ok' }]], 0, ''), [{ n: 'Ok', c: undefined, lk: undefined, areas: 1, r: 0 }]);
+  });
+});
+
+describe('TASK-011: disclosure, caption and gating (source level)', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  it('ships the collapsed disclosure under the map with a live N, in both languages', () => {
+    assert.ok(inc.includes('<details class="fd-mapspecies"'));
+    assert.ok(inc.includes('Species on the map (<span id="fd-mapsp-n">0</span>)'));
+    assert.ok(inc.includes('地図上の種（<span id="fd-mapsp-n">0</span>）'));
+    for (const id of ['fd-mapsp-list', 'fd-mapsp-more', 'fd-mapsp-note']) assert.ok(inc.includes(`id="${id}"`), id);
+    assert.ok(inc.indexOf('id="fd-map"') < inc.indexOf('class="fd-mapspecies"'), 'under the map');
+  });
+  it('adds the caption sentence to the map figure in both languages', () => {
+    assert.ok(inc.includes('<figcaption class="fd-mapcap">'));
+    assert.ok(inc.includes("Select a square or island to see what's recorded there and what could be found nearby."));
+    assert.ok(inc.includes('マスまたは島を選ぶと、その地域の記録と近隣で見つかる可能性のある種が表示されます。'));
+  });
+  it('gates possible-species content to the area view; the Japan view stays clean', () => {
+    const areaAt = inc.indexOf('id="fd-area"');
+    const nationalAt = inc.indexOf('class="fd-national"');
+    assert.ok(areaAt > 0 && nationalAt > areaAt, 'area section precedes the national stats');
+    for (const id of ['fd-tab-possible', 'fd-panel-possible', 'fd-poss-count', 'fd-poss-more'])
+      assert.ok(inc.indexOf(`id="${id}"`) > areaAt && inc.indexOf(`id="${id}"`) < nationalAt, `${id} lives inside the area section`);
+    const japan = inc.slice(inc.indexOf('id="fd-japan"'), areaAt);
+    assert.ok(!/possib|見つかる/.test(japan), 'the All Japan overview markup names no possible-species content');
+    const rj = /function renderJapan\(\) \{([\s\S]*?)\n  \}/.exec(src);
+    assert.ok(rj, 'renderJapan found');
+    assert.ok(!/possib/i.test(rj[1]), 'renderJapan renders nothing possible');
+  });
+  it('re-renders on month change and selection load, paging +50 from 50', () => {
+    assert.ok(/function filterChanged\(\) \{[\s\S]*?renderMapSpecies\(\);[\s\S]*?\n  \}/.test(src), 'month chips refresh the disclosure');
+    assert.ok(src.includes('state.mapspLimit = state.mapspLimit >= rows.length ? MAPSP_ROWS : state.mapspLimit + 50'));
+    assert.ok(src.includes("moreButton('fd-mapsp-more'"));
+    assert.ok(/function renderArea\(\) \{[\s\S]*?renderMapSpecies\(\);[\s\S]*?\n  \}/.test(src), 'a loaded selection refreshes the disclosure');
+  });
+  it('shares the name search: the combobox query filters this list too', () => {
+    assert.ok(/state\.q = q;/.test(src), 'run() records the query');
+    assert.ok((src.match(/renderMapSpecies\(\);/g) || []).length >= 4, 'wired into filter/selection/search paths');
+    assert.ok(src.includes('mapSpeciesRank('), 'rows come from the pure ranker');
+  });
+  it('styles the disclosure for touch and small screens', () => {
+    assert.ok(/\.fd-mapspecies > summary \{[^}]*min-height: 44px/.test(css), '44 px summary target');
+    assert.ok(/\.fd-mapsp__list \{[^}]*overflow-y: auto/.test(css), 'the list scrolls, never the page');
   });
 });

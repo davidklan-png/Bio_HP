@@ -84,6 +84,21 @@
           <p class="fd-preview__text" id="fd-preview-text"></p>
           <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
         </div>
+        {%- comment -%} Caption + disclosure (TASK-011, spec item 9): one sentence pointing
+          into the area view, then one collapsed line. The ranked list accrues from the
+          area files the visitor opens (no per-species national bundle ships yet), so a
+          cold page shows the empty note until an area loads. Native <details>: it opens
+          without JavaScript; the list itself renders via JS. {%- endcomment -%}
+        <figcaption class="fd-mapcap">{% if ja %}マスまたは島を選ぶと、その地域の記録と近隣で見つかる可能性のある種が表示されます。{% else %}Select a square or island to see what's recorded there and what could be found nearby.{% endif %}</figcaption>
+        {%- comment -%} TASK-011: session-scoped interim (areas opened this visit); the
+          national summary swap lands with the species-summary publish; areas union
+          across identities once the deduplicated summary ships. {%- endcomment -%}
+        <details class="fd-mapspecies" id="fd-mapspecies">
+          <summary>{% if ja %}地図上の種（<span id="fd-mapsp-n">0</span>）{% else %}Species on the map (<span id="fd-mapsp-n">0</span>){% endif %}</summary>
+          <p class="fd-note" id="fd-mapsp-note">{% if ja %}地図のマスや島を開くと、ここに種が一覧表示されます。{% else %}Open a square or island on the map to list its species here.{% endif %}</p>
+          <ul class="fd-ovlist fd-mapsp__list" id="fd-mapsp-list"></ul>
+          <button type="button" class="fd-btn fd-more" id="fd-mapsp-more" aria-label="{% if ja %}さらに表示{% else %}Show more{% endif %}" hidden></button>
+        </details>
         <span class="fd-sr"><span id="fd-map-cells"></span> squares · masked <span id="fd-masked"></span></span>
       </figure>
     </div>
