@@ -759,6 +759,18 @@ describe('TASK-007: history actions', () => {
 // TASK-006: author display rules were beating the UA [hidden] style — #fd-area
 // rendered on load with empty tables and the label-less more-buttons showed as
 // empty 44x44 boxes. No browser in tests, so these are source-level assertions.
+describe('species index aliases (PR #65 review)', () => {
+  it('readSpeciesIndex exposes the alias map when present, empty otherwise', () => {
+    assert.deepStrictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {}, aliases: { bombyliospora: 'megalospora' } }).aliases,
+      { bombyliospora: 'megalospora' });
+    assert.deepStrictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {} }).aliases, {});
+  });
+  it('speciesSlugFor takes the first name token, lowercased', () => {
+    assert.strictEqual(fd.speciesSlugFor('Bombyliospora japonica'), 'bombyliospora');
+    assert.strictEqual(fd.speciesSlugFor(''), null);
+  });
+});
+
 describe('[hidden] stays hidden (TASK-006)', () => {
   const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
   const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
@@ -1248,7 +1260,8 @@ describe('TASK-010: interaction and network wiring (source-level)', () => {
     assert.ok(src.includes("e.target.closest('.fd-name-toggle')"), 'the delegate resolves the toggle');
   });
   it('loaded genus files backfill markers onto every matching row', () => {
-    assert.ok(/function backfillMarkers\(slug, entries\)[\s\S]*?insertAdjacentHTML\('beforeend'/.test(src));
+    assert.ok(/function backfillMarkers\(slug, entries, displaySlug\)[\s\S]*?insertAdjacentHTML\('beforeend'/.test(src));
+    assert.ok(src.includes('backfillMarkers(slug, r.entries, display)'), 'rows match on their display token');
   });
   it('makes no browser calls to Wikidata, Commons or Wikipedia APIs', () => {
     for (const banned of ['api.wikidata', 'commons.wikimedia.org/w/api.php', 'wikipedia.org/w/api.php', 'query.wikidata', 'specimen?'])
