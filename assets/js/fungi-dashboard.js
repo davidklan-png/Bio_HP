@@ -699,7 +699,7 @@
           var sr = wordsRank(e.syn[s]);
           if (sr < rank) { rank = sr; syn = e.synRaw[s]; }
         }
-        if (e.fam) { // the family ranks the species, and feeds the 科 group
+        if (e.fam && one) { // a family answers a one-word query only (PR #76 review): a binomial keeps its word-for-word meaning
           var fr = queryRank(e.fam, qw[0]);
           if (fr < rank) rank = fr;
           var fb = byFamily[e.fam];

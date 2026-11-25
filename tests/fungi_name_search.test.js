@@ -265,6 +265,11 @@ describe('name search (TASK-015): 和名, family and synonyms', () => {
     assert.deepStrictEqual(out.families, [{ family: 'Russulaceae', rank: 0, n: 6 }]);
     assert.deepStrictEqual(fd.searchNames(ROWS, 'ycenace', 8, EXTRA).families, [{ family: 'Mycenaceae', rank: 2, n: 3 }], 'a substring family hit');
     assert.deepStrictEqual(fd.searchNames(ROWS, 'amanitaceae', 8, EXTRA).families.map((f) => f.family), ['Amanitaceae']);
+    // PR #76 review: a binomial is word for word; its first word never becomes a family hit
+    const binomial = fd.searchNames(ROWS, 'Amanita muscaria', 8, EXTRA);
+    assert.deepStrictEqual(binomial.families, [], 'no family group for a binomial');
+    assert.deepStrictEqual(binomial.species.map((h) => h.row[0]).filter((n) => n !== 'Amanita muscaria'), [], 'no species ranked in through its family');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'russulaceae nothing', 8, EXTRA), { species: [], genera: [], families: [] }, 'an unmatched second word is a miss');
   });
   it('familyGenera lists the genera of a family with their species counts', () => {
     assert.deepStrictEqual(fd.familyGenera(ROWS, EXTRA, 'Russulaceae'),
