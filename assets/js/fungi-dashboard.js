@@ -1412,7 +1412,7 @@
      snapshot). The summary is not loaded here: a first tap costs the index and this file
      only, and the rows behind the indices load when a panel opens. Absent or untrusted:
      every feature below stays off and nothing else changes, no console error. */
-  var squares = { status: 'idle', byRow: null, bySquare: null, at: 0, pending: null }; // idle | loading | ready | absent
+  var squares = { status: 'idle', byRow: null, bySquare: null, at: 0, pending: null, indexSnap: null }; // idle | loading | ready | absent
   function squaresReady() { return squares.status === 'ready'; }
   function loadSquares() {
     squares.status = 'loading'; // synchronously: the next tap adds no request
@@ -1423,6 +1423,7 @@
       squares.status = 'ready';
       squares.byRow = inv.byRow;
       squares.bySquare = inv.bySquare;
+      squares.indexSnap = species.index.snapshot; // the publication its row indices mean
       squaresArrived();
     });
     return squares.pending;
@@ -1456,6 +1457,13 @@
           // A page left open across a deployment: the refreshed index names another summary, so
           // the next query reloads it instead of searching the previous publication (PR #75
           // review). The names rows and their 和名 ride the summary's publication too (TASK-015).
+          // The squares can be ready while the summary is still idle (a square tapped first):
+          // their row indices ride the index's publication on their own (PR #79 review)
+          if (squares.status === 'ready' && squares.indexSnap !== r.snapshot) {
+            squares.status = 'idle';
+            squares.byRow = squares.bySquare = null;
+            if (state.name) state.name.rowIdx = null;
+          }
           if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
             names.status = 'idle';
             nameIndex.status = 'idle';
@@ -1750,7 +1758,11 @@
   function openSquarePanel(key) {
     var c = parseCellKey(key);
     if (!c) return;
+    // The summary may still be loading: a later square, area or name the visitor chooses
+    // meanwhile supersedes this open, which must not land on top of it (PR #79 review)
+    var token = areaRequests.start(key);
     ensureNameIndex().then(function () {
+      if (!areaRequests.isCurrent(token)) return;
       var idxs = squaresReady() ? (squares.bySquare[key] || []) : [];
       var rows = names.status === 'ready' ? squareSpeciesRows(idxs.map(function (i) { return names.rows[i]; }).filter(Boolean)) : [];
       if (!rows.length) return; // absent bundle or a square with nothing: never a dead panel

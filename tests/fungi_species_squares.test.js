@@ -235,8 +235,17 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
     assert.ok(/root\.fetch\(base \+ path, \{ cache: 'no-cache' \}\)/.test(src), 'one fetch, no-cache, like the summary');
     assert.ok(/\.catch\(function \(\) \{ bundle\.status = 'absent'; bundle\.at = Date\.now\(\); \}\)/.test(src), 'one catch to absent');
   });
+  it('a stale square-panel open never lands on a newer selection (PR #79 review)', () => {
+    assert.ok(/var token = areaRequests\.start\(key\);\s*ensureNameIndex\(\)\.then\(function \(\) \{\s*if \(!areaRequests\.isCurrent\(token\)\) return;/.test(panelBody),
+      'the open waits for the summary behind a request token');
+  });
   it('one shared promise, trusted by squares_sha256 against the index publication', () => {
-    assert.ok(/var squares = \{ status: 'idle', byRow: null, bySquare: null, at: 0, pending: null \}/.test(src));
+    assert.ok(/var squares = \{ status: 'idle', byRow: null, bySquare: null, at: 0, pending: null, indexSnap: null \}/.test(src));
+    assert.ok(/squares\.indexSnap = species\.index\.snapshot;/.test(src), 'the squares remember the publication their row indices mean');
+    // PR #79 review (Codex): squares can be ready while the summary is idle, so they are
+    // invalidated against the refreshed index on their own, not only with the summary
+    assert.ok(/if \(squares\.status === 'ready' && squares\.indexSnap !== r\.snapshot\) \{\s*squares\.status = 'idle';\s*squares\.byRow = squares\.bySquare = null;/.test(src),
+      'a refreshed index of another publication sends ready squares back to idle by themselves');
     assert.ok(/squaresTrusted\(sq, sha, species\.index\)/.test(fn('loadSquares')), 'sha + the index snapshot, no summary at load');
     assert.ok(/invertSpeciesSquares\(sq\.rows\)/.test(fn('loadSquares')), 'inverted once, from the raw rows');
     assert.ok(/squares\.status = 'ready'/.test(src), 'trusted lands ready');
