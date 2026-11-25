@@ -660,11 +660,12 @@ describe('name search (TASK-015): page wiring (source level)', () => {
   const fn = (name) => { const m = new RegExp('\\n( +)function ' + name + '\\([^)]*\\) \\{([\\s\\S]*?)\\n\\1\\}').exec(src); assert.ok(m, name + ' found'); return m[2]; };
 
   it('loads names.json beside the summary on the first query, and trusts it by sha, snapshot and row count', () => {
-    assert.ok(src.includes("base + 'species/names.json'"), 'the names bundle is fetched');
-    assert.ok(/root\.fetch\(base \+ 'species\/names\.json', \{ cache: 'no-cache' \}\)/.test(src), 'no-cache, like the summary');
+    assert.ok(/nameIndex\.pending = loadSpeciesBundle\(nameIndex, 'species\/names\.json',/.test(src),
+      'the names bundle is fetched through the shared species-file loader (TASK-017b review)');
+    assert.ok(/root\.fetch\(base \+ path, \{ cache: 'no-cache' \}\)/.test(src), 'no-cache, like the summary');
     assert.ok(src.includes('nameIndexTrusted('), 'the pure check decides');
-    assert.ok(/Promise\.all\(\[sha256Hex\(buf\), ensureSummary\(\)\]\)/.test(src), 'the bytes and the summary settle together, in parallel');
-    assert.ok(/function loadNameIndex\(\)/.test(src) && /nameIndex\.pending = speciesFiles\(\)/.test(fn('loadNameIndex')), 'the index names the file to expect; the promise is shared');
+    assert.ok(/return ensureSummary\(\)\.then\(function \(\) \{/.test(fn('loadNameIndex')), 'the summary settles beside the bytes, before the trust check');
+    assert.ok(/function loadNameIndex\(\)/.test(src) && /loadSpeciesBundle\(nameIndex/.test(fn('loadNameIndex')), 'the index names the file to expect; the promise is shared');
     const ensure = fn('ensureNameIndex');
     assert.ok(/nameIndex\.status === 'loading' && nameIndex\.pending/.test(ensure), 'a load in flight is awaited');
     assert.ok(/nameIndex\.status === 'idle' \|\| \(nameIndex\.status === 'absent' && Date\.now\(\) - nameIndex\.at > SPECIES_TTL\)/.test(ensure), 'an idle or long-dead bundle (re)loads');
