@@ -321,6 +321,11 @@ tr.fd-detail > td { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex
 .fd-map > svg.is-named .fd-map__nx { opacity: .25; }
 .fd-legend i.fd-map__outline { background: color-mix(in srgb, var(--fd-sel-core) 30%, transparent); border: 2px solid var(--fd-sel-core); }
 .fd-legend i.fd-map__outline--dash { border-style: dashed; background: none; } /* dashed areas are never filled (PR #77 review) */
+/* A panel's own squares (TASK-017): the cells its species were recorded in — the selection
+   core at half strength, stronger than the area fill (0.28) because these are the squares
+   themselves, not the tile that contains them. Legend swatch previews the same mix. */
+.fd-map__sq-fill { fill: var(--fd-sel-core); fill-opacity: .5; }
+.fd-legend i.fd-map__sq { background: color-mix(in srgb, var(--fd-sel-core) 50%, transparent); border: 2px solid var(--fd-sel-core); }
 .fd-ovhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .fd-ovhead .fd-area__h { flex: 1 1 auto; min-width: 0; }
 .fd-seeall { min-height: 44px; align-self: center; font: 500 13.5px var(--sans); color: var(--brand); background: transparent; border: none; padding: 4px 8px; cursor: pointer; }

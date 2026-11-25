@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-3">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-4">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -89,6 +89,10 @@
             <span class="fd-legend__name" id="fd-legend-name">
               <span class="fd-legend__item fd-legend__item--wrap"><i class="fd-map__outline" aria-hidden="true"></i>{% if ja %}種まで同定された記録のある地域{% else %}Areas with species-level records{% endif %}</span>
               <span class="fd-legend__item fd-legend__item--wrap fd-legend__dash"><i class="fd-map__outline fd-map__outline--dash" aria-hidden="true"></i>{% if ja %}近隣で記録があり見つかる可能性のある地域{% else %}Could be found here (recorded nearby){% endif %}</span>
+              {%- comment -%} The panel's own squares (TASK-017): filled cells, a stronger
+                fill than the areas. The wording follows the panel (species or genus), so
+                the script sets the text; the item ships hidden. {%- endcomment -%}
+              <span class="fd-legend__item fd-legend__item--wrap fd-legend__sq" hidden><i class="fd-map__sq" aria-hidden="true"></i><span class="fd-legend__sq-t"></span></span>
             </span>
           </div>
           {%- comment -%} The estimate legend has its own ramp (--fd-e0..4, amber mixed from
@@ -107,6 +111,9 @@
         <div class="fd-preview" id="fd-preview" hidden>
           <p class="fd-preview__text" id="fd-preview-text"></p>
           <button type="button" class="fd-btn fd-preview__open" id="fd-preview-open">{% if ja %}地域を開く{% else %}Open area{% endif %}</button>
+          {%- comment -%} TASK-017: only when the square holds species and the squares bundle
+            loaded; hidden by default so the two-tap flow reads as before without it. {%- endcomment -%}
+          <button type="button" class="fd-btn fd-preview__species" id="fd-preview-species" hidden>{% if ja %}このマスの種{% else %}Species in this square{% endif %}</button>
         </div>
         {%- comment -%} Caption + disclosure (TASK-011, spec item 9): one sentence pointing
           into the area view, then one collapsed line. The ranked list accrues from the

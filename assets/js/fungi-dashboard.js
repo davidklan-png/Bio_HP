@@ -105,11 +105,12 @@
     // aliases (PR #65 review): COL renames keep the old genus token in the display
     // name while the file lives under the accepted genus — token -> real slug
     var al = isObj(d.aliases) ? d.aliases : {};
-    // snapshot, summary_sha256 and names_sha256 (TASK-014/015): what species/summary.json
-    // and species/names.json must match
+    // snapshot, summary_sha256, names_sha256 and squares_sha256 (TASK-014/015/017): what
+    // species/summary.json, species/names.json and species/squares.json must match
     return { ok: true, files: d.files, aliases: al, snapshot: isSnap(d.snapshot) ? d.snapshot : null,
       summary_sha256: isSnap(d.summary_sha256) ? d.summary_sha256 : null,
-      names_sha256: isSnap(d.names_sha256) ? d.names_sha256 : null };
+      names_sha256: isSnap(d.names_sha256) ? d.names_sha256 : null,
+      squares_sha256: isSnap(d.squares_sha256) ? d.squares_sha256 : null };
   }
   function readSpeciesGenus(d) {
     if (!isObj(d) || d.schema_version !== 1 || !Array.isArray(d.species) ||
@@ -249,6 +250,12 @@
     return { row: row, col: col, key: row + ':' + col };
   }
   function cellEdges(row, col) { return [row / 12, (row + 1) / 12, col / 8, (col + 1) / 8]; }
+  // A "row:col" key back to its integers, null for anything else. The one place the
+  // pattern is written (it was spelled out in five readers before, TASK-017b review).
+  function parseCellKey(key) {
+    var m = /^(\d+):(\d+)$/.exec(String(key == null ? '' : key));
+    return m ? { row: +m[1], col: +m[2] } : null;
+  }
 
   // Union silhouette of mesh cells: interior edges cancel (each is traversed once per
   // direction by its two cells), leaving closed boundary rings. A selection then reads
@@ -260,9 +267,9 @@
   function boundaryRings(keys, edgesOf) {
     var dir = new Map(); // "start|end" -> [start, end] with points as "lat,lon" keys
     keys.forEach(function (k) {
-      var m = /^(\d+):(\d+)$/.exec(String(k == null ? '' : k));
-      if (!m) return;
-      var e = edgesOf(+m[1], +m[2]); // [latMin, latMax, lonMin, lonMax]
+      var c = parseCellKey(k);
+      if (!c) return;
+      var e = edgesOf(c.row, c.col); // [latMin, latMax, lonMin, lonMax]
       var pts = [[e[0], e[2]], [e[0], e[3]], [e[1], e[3]], [e[1], e[2]]]; // sw se ne nw, lat/lon
       for (var i = 0; i < 4; i++) {
         var a = pts[i], b = pts[(i + 1) % 4];
@@ -587,6 +594,70 @@
     if (nm.snapshot !== summary.indexSnap) return false;
     return !fileSha || !index || !index.names_sha256 || fileSha === index.names_sha256;
   }
+  // species/squares.json (TASK-017): one row per square, [key, [summary-row idx, …]],
+  // keys "row:col" in numeric order and unique, each index once — a duplicate would list
+  // its species twice and inflate the count. No names: index i is row i of summary.json
+  // (and of names.json). All-time — no month or kind — and a species sits in a square only
+  // through a record that passed the gate and the map's source-precision rule.
+  function readSpeciesSquares(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isSnap(d.snapshot) || !Array.isArray(d.species)) return { ok: false };
+    var prev = [-1, -1];
+    var rowsOk = d.species.every(function (r) {
+      if (!Array.isArray(r) || r.length < 2) return false;
+      var c = parseCellKey(r[0]);
+      if (!c) return false;
+      if (c.row < prev[0] || (c.row === prev[0] && c.col <= prev[1])) return false; // numeric order, each square once
+      prev = [c.row, c.col];
+      var seen = {};
+      return Array.isArray(r[1]) && r[1].every(function (i) {
+        if (typeof i !== 'number' || (i | 0) !== i || i < 0 || seen[i]) return false;
+        seen[i] = true;
+        return true;
+      });
+    });
+    return rowsOk ? { ok: true, snapshot: d.snapshot, rows: d.species } : { ok: false };
+  }
+  // The squares bundle may be drawn only when it is the file the species index names
+  // (sha256) of the index's own publication. The summary is not needed at load: its rows
+  // line up by that shared publication, and a panel resolves indices only once it is in.
+  function squaresTrusted(sq, fileSha, index) {
+    if (!(sq && sq.ok && index)) return false;
+    if (sq.snapshot !== index.snapshot) return false;
+    return !fileSha || !index.squares_sha256 || fileSha === index.squares_sha256;
+  }
+  // The two inversions, built once at load from the raw rows: byRow maps a summary row
+  // index to the keys of the squares it was recorded in, bySquare a key to the row
+  // indices it holds. No summary is needed — a panel resolves i through names.rows[i].
+  function invertSpeciesSquares(rows) {
+    var byRow = new Map(), bySquare = {};
+    for (var r = 0; r < (rows || []).length; r++) {
+      var key = rows[r][0], idxs = rows[r][1];
+      for (var j = 0; j < idxs.length; j++) {
+        var i = idxs[j];
+        var keys = byRow.get(i);
+        if (!keys) byRow.set(i, (keys = []));
+        keys.push(key);
+        (bySquare[key] || (bySquare[key] = [])).push(i);
+      }
+    }
+    return { byRow: byRow, bySquare: bySquare };
+  }
+  // A panel's own squares (TASK-017), pure: the union of its items' keys — a species
+  // passes its one summary row index, a genus its species' indices — deduped, file order.
+  // Rows the bundle does not know (nothing recorded at square precision) simply have no keys.
+  function panelSquares(byRow, items) {
+    var seen = {}, out = [];
+    (items || []).forEach(function (row) {
+      var keys = byRow ? byRow.get(row) : null;
+      (keys || []).forEach(function (k) { if (!seen[k]) { seen[k] = true; out.push(k); } });
+    });
+    return out;
+  }
+  // A square's species (TASK-017), pure: its summary rows, most records first, then name —
+  // the order the panel's table lists them in.
+  function squareSpeciesRows(rows) {
+    return (rows || []).slice().sort(function (a, b) { return b[4] - a[4] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0); });
+  }
   // A name, or a query, as matched: foldQuery, then the hyphen and the rank dot that published
   // names carry (neo-ovoidea, var.) dropped on both sides — they are parts of a word.
   function nameFold(s) { return foldQuery(s).replace(/[-.]/g, ''); }
@@ -653,6 +724,20 @@
           syn: (r[3] || []).map(function (s) { return nameFold(s).split(' '); }), synRaw: r[3] || [] };
       });
       EXFOLDED.set(extra, hit);
+    }
+    return hit;
+  }
+  // Display name → summary row index, built once per rows array (the names are unique:
+  // one summary row per display name) — the genus panel's union looks its listed rows'
+  // names up here, COL aliases included (TASK-017b review: the rows it lists, not a
+  // second token filter).
+  var ROWIDX = new WeakMap();
+  function nameRowIdx(rows) {
+    var hit = ROWIDX.get(rows);
+    if (!hit) {
+      hit = {};
+      rows.forEach(function (r, i) { hit[r[0]] = i; });
+      ROWIDX.set(rows, hit);
     }
     return hit;
   }
@@ -802,8 +887,8 @@
   function outlineBox(outline) {
     var bs = (outline && outline.islands || []).map(function (a) { return a.bbox; });
     (outline && outline.keys || []).forEach(function (k) {
-      var m = /^(\d+):(\d+)$/.exec(String(k));
-      if (m) bs.push(cellEdges(+m[1], +m[2]));
+      var c = parseCellKey(k);
+      if (c) bs.push(cellEdges(c.row, c.col));
     });
     if (!bs.length) return null;
     var lo = Infinity, hi = -Infinity, we = Infinity, ea = -Infinity;
@@ -1049,7 +1134,7 @@
     mapSize: mapSize, project: project, zoomBox: zoomBox, bucket: bucket, bucketClass: bucketClass, meshKey: meshKey, areaAt: areaAt,
     filterSpecies: filterSpecies, samplingNote: samplingNote, leadsTotal: leadsTotal, monthName: monthName, whereText: whereText, visibleRows: visibleRows,
     monthBarHeight: monthBarHeight, latestOnly: latestOnly, isValid: isValid,
-    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, boundaryRings: boundaryRings, locateCell: locateCell, runLocate: runLocate,
+    meshCell: meshCell, cellEdges: cellEdges, cellCenter: cellCenter, parseCellKey: parseCellKey, boundaryRings: boundaryRings, locateCell: locateCell, runLocate: runLocate,
     detailJoinOf: detailJoinOf,
     readDashboard: readDashboard, readIndex: readIndex, readArea: readArea,
     resolveSnapshots: resolveSnapshots, parseAreaHash: parseAreaHash,
@@ -1060,6 +1145,8 @@
     foldQuery: foldQuery, searchPlaces: searchPlaces, readMapReference: readMapReference,
     readSpeciesSummary: readSpeciesSummary, summaryTrusted: summaryTrusted, searchNames: searchNames, genusFileSlug: genusFileSlug,
     readSpeciesNames: readSpeciesNames, nameIndexTrusted: nameIndexTrusted, foldName: foldName, editWithin1: editWithin1,
+    readSpeciesSquares: readSpeciesSquares, squaresTrusted: squaresTrusted,
+    invertSpeciesSquares: invertSpeciesSquares, panelSquares: panelSquares, squareSpeciesRows: squareSpeciesRows, nameRowIdx: nameRowIdx,
     familyGenera: familyGenera,
     speciesByKey: speciesByKey, noMatchKind: noMatchKind,
     nameOutline: nameOutline, genusAreaIds: genusAreaIds, areaOutline: areaOutline, outlineBox: outlineBox,
@@ -1137,6 +1224,12 @@
     chipSpecies: ['Species: {name}', '種：{name}'],
     chipGenus: ['Genus: {name}', '属：{name}'],
     chipFamily: ['Family: {name}', '科：{name}'],
+    chipSquare: ['Square: {name}', 'マス：{name}'],
+    squareTitle: ['Square {key}', 'マス {key}'],
+    squareMeta: ['About 10 km · {n} species (all time, all kinds)', '約10km四方 · 種 {n}（全期間・すべての菌類）'],
+    sqSpecies: ['Squares recording this species (all time, all kinds)', 'この種が記録されたマス（全期間・すべての菌類）'],
+    sqGenus: ["Squares recording this genus' species (all time, all kinds)", 'この属の種が記録されたマス（全期間・すべての菌類）'],
+    recJapan: ['Records in Japan', '全国の記録数'],
     formerly: ['(formerly {name})', '（旧名：{name}）'],
     genusSquares: ['Squares with many genus-only records', '属止まりの記録が多い区画'],
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
@@ -1261,31 +1354,42 @@
      summary (snapshot, row count: row i belongs to row i). Any miss leaves search at its
      TASK-014 behaviour: Latin names, no promise broken. */
   var nameIndex = { status: 'idle', rows: null, jaBy: null, at: 0, pending: null }; // idle | loading | ready | absent
+  /* ---- one species-file load (TASK-017b review): names.json and squares.json share it —
+     fetch → bytes → sha256 → parse → trust → apply, one catch to absent, one pending
+     promise cleared when settled. The reader, its trust check and the apply stay per
+     file, separate and tested; an untrusted file throws and lands in the catch. */
+  function loadSpeciesBundle(bundle, path, parse) {
+    bundle.pending = speciesFiles().then(function () { // the index names the file to expect; the promise is shared
+      if (!species.index) throw new Error('no species index');
+      return root.fetch(base + path, { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(function (buf) {
+          return sha256Hex(buf).then(function (sha) { return parse(buf, sha); });
+        });
+    })
+      .catch(function () { bundle.status = 'absent'; bundle.at = Date.now(); })
+      .then(function () { if (search.refresh) search.refresh(); return bundle.status; })
+      .then(function (st) { bundle.pending = null; return st; });
+    return bundle.pending;
+  }
   function loadNameIndex() {
     nameIndex.status = 'loading';                 // synchronously: the next keystroke adds no request
     if (search.refresh) search.refresh();
-    nameIndex.pending = speciesFiles().then(function () { // the index names the file to expect; the promise is shared
-      if (!species.index) throw new Error('no species index');
-      return root.fetch(base + 'species/names.json', { cache: 'no-cache' })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-        .then(function (buf) {
-          return Promise.all([sha256Hex(buf), ensureSummary()]).then(function (xs) {
-            var nm = readSpeciesNames(JSON.parse(new TextDecoder().decode(buf)));
-            // checked against the states as they settled: a summary that bypass-retried
-            // refetched the index too, so this compares with the publication that survived
-            if (!nameIndexTrusted(nm, xs[0], names, species.index)) { nameIndex.status = 'absent'; nameIndex.at = Date.now(); return; }
-            nameIndex.status = 'ready';
-            nameIndex.rows = nm.rows;
-            nameIndex.jaBy = {};                   // the rendered rows look their 和名 up by raw name
-            nm.rows.forEach(function (r, i) { if (r[0]) nameIndex.jaBy[names.rows[i][0]] = r[0]; });
-            extraWords(nm.rows);                   // the fold cost lands with the load, not a keystroke
-            backfillJa();
-          });
-        });
-    })
-      .catch(function () { nameIndex.status = 'absent'; nameIndex.at = Date.now(); })
-      .then(function () { if (search.refresh) search.refresh(); return nameIndex.status; })
-      .then(function (st) { nameIndex.pending = null; return st; });
+    nameIndex.pending = loadSpeciesBundle(nameIndex, 'species/names.json', function (buf, sha) {
+      // the summary settles beside the bytes: the trust check reads the states as they
+      // settled — a summary that bypass-retried refetched the index too, so this compares
+      // with the publication that survived
+      return ensureSummary().then(function () {
+        var nm = readSpeciesNames(JSON.parse(new TextDecoder().decode(buf)));
+        if (!nameIndexTrusted(nm, sha, names, species.index)) throw new Error('untrusted names bundle');
+        nameIndex.status = 'ready';
+        nameIndex.rows = nm.rows;
+        nameIndex.jaBy = {};                   // the rendered rows look their 和名 up by raw name
+        nm.rows.forEach(function (r, i) { if (r[0]) nameIndex.jaBy[names.rows[i][0]] = r[0]; });
+        extraWords(nm.rows);                   // the fold cost lands with the load, not a keystroke
+        backfillJa();
+      });
+    });
     return nameIndex.pending;
   }
   // The same shape as ensureSummary: an idle bundle loads, a long-dead one retries, a load
@@ -1302,6 +1406,44 @@
     return ensureNameIndex();
   }
 
+  /* ---- species/squares.json (TASK-017): which square holds which species. Fetched on the
+     first need — a 種／属 panel opening or a square first tapped — never at boot, one shared
+     promise, and used only when it is the file the species index names (sha256, its own
+     snapshot). The summary is not loaded here: a first tap costs the index and this file
+     only, and the rows behind the indices load when a panel opens. Absent or untrusted:
+     every feature below stays off and nothing else changes, no console error. */
+  var squares = { status: 'idle', byRow: null, bySquare: null, at: 0, pending: null, indexSnap: null }; // idle | loading | ready | absent
+  function squaresReady() { return squares.status === 'ready'; }
+  function loadSquares() {
+    squares.status = 'loading'; // synchronously: the next tap adds no request
+    squares.pending = loadSpeciesBundle(squares, 'species/squares.json', function (buf, sha) {
+      var sq = readSpeciesSquares(JSON.parse(new TextDecoder().decode(buf)));
+      if (!squaresTrusted(sq, sha, species.index)) throw new Error('untrusted squares bundle');
+      var inv = invertSpeciesSquares(sq.rows);
+      squares.status = 'ready';
+      squares.byRow = inv.byRow;
+      squares.bySquare = inv.bySquare;
+      squares.indexSnap = species.index.snapshot; // the publication its row indices mean
+      squaresArrived();
+    });
+    return squares.pending;
+  }
+  // The same shape as ensureNameIndex: an idle bundle loads, a long-dead one retries, a load
+  // in flight is awaited. Called when a 種／属 panel opens and when a square is first tapped.
+  function ensureSquares() {
+    if (squares.status === 'loading' && squares.pending) return squares.pending;
+    if (squares.status === 'idle' || (squares.status === 'absent' && Date.now() - squares.at > SPECIES_TTL)) return loadSquares();
+    return Promise.resolve(squares.status);
+  }
+  // The bundle landed: a panel open before it re-outlines (its squares join the areas), a
+  // preview showing re-checks its button. The camera stays put — it fitted the areas, and
+  // the squares are already inside the country.
+  function squaresArrived() {
+    if (state.name) applyNameOutline();
+    if (tapState) renderPreview(tapState, meshCells[tapState.cell] || null);
+    drawViews();
+  }
+
   function speciesFiles() {
     if (species.index && Date.now() - species.indexAt < SPECIES_TTL) return Promise.resolve(species.index.files);
     if (!speciesFiles.pending) { // the summary and names loads share one index fetch (TASK-015)
@@ -1315,11 +1457,21 @@
           // A page left open across a deployment: the refreshed index names another summary, so
           // the next query reloads it instead of searching the previous publication (PR #75
           // review). The names rows and their 和名 ride the summary's publication too (TASK-015).
+          // The squares can be ready while the summary is still idle (a square tapped first):
+          // their row indices ride the index's publication on their own (PR #79 review)
+          if (squares.status === 'ready' && squares.indexSnap !== r.snapshot) {
+            squares.status = 'idle';
+            squares.byRow = squares.bySquare = null;
+            if (state.name) state.name.rowIdx = null;
+          }
           if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
             names.status = 'idle';
             nameIndex.status = 'idle';
             nameIndex.jaBy = null;
+            squares.status = 'idle';
+            squares.byRow = squares.bySquare = null; // squares rows ride the summary's publication too (TASK-017)
             species.genera = {}; // genus files belong to a publication too
+            if (state.name) state.name.rowIdx = null; // a stored row index never outlives its publication: re-resolve by key
           }
           return r.files;
         })
@@ -1452,16 +1604,40 @@
      overview and any open area step aside — and never goes through selectArea(). */
   function nameChip() {
     var n = state.name;
-    return n && !n.miss ? [{ id: n.id, label: t(n.id === 'genus' ? 'chipGenus' : n.id === 'family' ? 'chipFamily' : 'chipSpecies').replace('{name}', n.label), removable: true }] : [];
+    if (!n || n.miss) return [];
+    // The square chip carries the key, not the label: 「マス：431:1110」, no second space
+    return [{ id: n.id, label: t(n.id === 'genus' ? 'chipGenus' : n.id === 'family' ? 'chipFamily' : n.id === 'square' ? 'chipSquare' : 'chipSpecies')
+      .replace('{name}', n.id === 'square' ? n.key : n.label), removable: true }];
+  }
+  // A 種／属 panel's own squares (TASK-017), from the inverted bundle: a species passes its
+  // one summary row index (stored when search or a square panel opened it from its row,
+  // resolved by key when an entry or a deep link did), a genus the union over the rows its
+  // panel lists — every listed entry's name looked up in the summary, COL aliases included.
+  // All-time, so the month and kind chips never reshape it.
+  function nameSquares(n) {
+    if (!n || !squaresReady() || (n.id !== 'species' && n.id !== 'genus')) return [];
+    var items;
+    if (n.id === 'species') {
+      if (n.rowIdx == null) { // opened from an entry or a #species-<key> link: resolve by key
+        if (names.status !== 'ready') return []; // not yet: resolved and cached once the summary is in (PR #79 review)
+        var row = n.key ? speciesByKey(names.rows, n.key) : null;
+        n.rowIdx = row ? names.rows.indexOf(row) : -1;
+      }
+      items = [n.rowIdx];
+    } else if (names.status === 'ready') items = (n.rows || []).map(function (e) { return nameRowIdx(names.rows)[e.name]; });
+    else items = [];
+    return panelSquares(squares.byRow, items);
   }
   // The outline sets both renderers read: a species' recorded areas (solid) and the areas
   // it could be found in (dashed); a genus' union over the rows its chips leave (solid).
+  // A panel's own squares (TASK-017) ride along: the cells its species were recorded in.
   function applyNameOutline() {
     var n = state.name, o = { solid: [], dashed: [] };
     if (n && n.id === 'species' && n.entry) o = nameOutline(n.entry);
     else if (n && n.id === 'genus') o.solid = genusAreaIds(n.shown);
-    state.nout = n && (o.solid.length || o.dashed.length) ? {
-      solid: areaOutline(o.solid, state.index), dashed: areaOutline(o.dashed, state.index) } : null;
+    var sq = nameSquares(n);
+    state.nout = n && (o.solid.length || o.dashed.length || sq.length) ? {
+      solid: areaOutline(o.solid, state.index), dashed: areaOutline(o.dashed, state.index), sq: sq } : null;
   }
   // Outline from the panel's data, then the camera — once per pick; the chips re-filter a
   // genus without moving it. The camera fits what was recorded: could-be-found areas can run
@@ -1530,10 +1706,15 @@
   function showSpecies(spec, source) {
     var e = spec.entry || null;
     var key = String(spec.key || (spec.row && (spec.row[1] || spec.row[2])) || (e && (e.key || e.legacy_key)) || '');
-    var n = { id: 'species', key: key, label: spec.row ? spec.row[0] : e.name, entry: e, settled: !!e };
+    // the summary row index rides the panel (TASK-017b review): an object identity would
+    // miss the reloaded rows after a publication change, an index re-resolves by key
+    var n = { id: 'species', key: key, rowIdx: spec.row && names.status === 'ready' ? names.rows.indexOf(spec.row) : null,
+      label: spec.row ? spec.row[0] : e.name, entry: e, settled: !!e };
     speciesTriedKey = key; // shown: the router must not show it twice, but must after a close
     openNameShell(n);
     filterChanged();
+    ensureSquares(); // its own squares load on first need (TASK-017)
+    ensureNameIndex().then(function () { if (state.name === n) { applyNameOutline(); drawViews(); } }); // the summary may still be loading: the squares join it when it lands
     announce(n.label);
     if (historyAction(source)) pushUrl('#species-' + key);
     if (n.settled) return nameOutlined();
@@ -1555,6 +1736,8 @@
     openNameShell(n);
     filterChanged();
     announce(genus);
+    ensureSquares(); // the genus' union loads on first need (TASK-017)
+    ensureNameIndex().then(function () { if (state.name === n) { applyNameOutline(); drawViews(); } }); // the union needs the summary rows
     if (historyAction(source) && root.location.hash) pushUrl(root.location.pathname);
     if (!researchReady()) (research.loading && research.pending ? research.pending : loadResearch(false))
       .then(function () { if (state.name === n) renderNamePanel(); });
@@ -1566,6 +1749,35 @@
       n.rows = (entries || []).filter(function (x) { return slug === token || speciesSlugFor(x.name) === token; });
       renderNamePanel();
       nameOutlined();
+    });
+  }
+  // A square's species (TASK-017): the preview bar's second button opens the square in the
+  // inspector — the same shell a 種／属 panel takes, never selectArea(), and no hash: the
+  // two-tap flow and the deep links keep the URL to themselves. The square itself is drawn
+  // on the map in the locate-cell style (both renderers read the panel's cell). Its rows
+  // are summary rows, so the summary loads here (ensureNameIndex), never on the first tap.
+  function openSquarePanel(key) {
+    var c = parseCellKey(key);
+    if (!c) return;
+    // The summary may still be loading: a later square, area or name the visitor chooses
+    // meanwhile supersedes this open, which must not land on top of it (PR #79 review)
+    var token = areaRequests.start(key);
+    // The summary is what the rows are built from; the names only add the 和名. The
+    // summary loads on its own, so a failed names bundle still leaves a list (PR #79 review)
+    Promise.all([ensureSummary(), ensureNameIndex()]).then(function () {
+      if (!areaRequests.isCurrent(token)) return;
+      var idxs = squaresReady() ? (squares.bySquare[key] || []) : [];
+      var rows = names.status === 'ready' ? squareSpeciesRows(idxs.map(function (i) { return names.rows[i]; }).filter(Boolean)) : [];
+      if (!rows.length) return; // absent bundle or a square with nothing: never a dead panel
+      var n = { id: 'square', key: key, cell: { key: key, row: c.row, col: c.col },
+        label: t('squareTitle').replace('{key}', key), rows: rows };
+      openNameShell(n);
+      // One camera move, as a species panel fits its outline (planner check in WebKit): at
+      // national zoom a single square is a few pixels, so the visitor could not see which.
+      state.box = zoomBox(cellEdges(n.cell.row, n.cell.col));
+      drawViews();
+      filterChanged();
+      announce(n.label);
     });
   }
   // The inspector panel: a species' details (the same body the inline row uses, the month
@@ -1595,6 +1807,12 @@
         !n.genera ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : familyRowsHtml(n);
       return;
     }
+    if (n.id === 'square') { // a square's species (TASK-017): no loading state — rows are in hand
+      title.textContent = n.label;
+      meta.textContent = t('squareMeta').replace('{n}', fmtInt(n.rows.length));
+      body.innerHTML = squareRowsHtml(n.rows);
+      return;
+    }
     // Rows follow the chips by the same rule as the area tables; the outline follows the rows.
     n.shown = filterSpecies((n.rows || []).map(function (x) { return { x: x, k: x.kind, m: x.fruiting_months }; }), state.kind, state.month)
       .map(function (v) { return v.x; });
@@ -1614,6 +1832,20 @@
           markersHtml(speciesMarkers(e), lang) + '<span class="fd-cell__sub">' + sub + '</span></td>' +
           '<td class="num">' + fmtInt((tiers.s || 0) + (tiers.d || 0) + (tiers.o || 0)) + '</td><td>' + monthStrip(e.fruiting_months || [], state.month, lang) + '</td></tr>';
       }).join('') : '<tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr>') + '</tbody></table></div>';
+  }
+  // A square's species (TASK-017): summary rows, so each button carries the keys the
+  // species panel resolves through — and the 和名 rides names.json like every row does.
+  // The count column is the species' Japan-wide record count: the file has no per-square
+  // count, and the panel sorts by it.
+  function squareRowsHtml(rows) {
+    var head = [t('sp'), t('recJapan')];
+    return '<div class="fd-scroll"><table class="fd-table"><thead><tr>' + head.map(function (h, i) { return '<th' + (i === 1 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') +
+      '</tr></thead><tbody>' + rows.map(function (r) {
+        var ja = jaOf(r[0]);
+        return '<tr><td class="fd-cell"><button type="button" class="fd-name-toggle" data-nm-col="' + esc(r[1] || '') + '" data-nm-legacy="' + esc(r[2] || '') + '" data-nm-name="' + esc(r[0]) + '"><i>' + esc(r[0]) + '</i></button>' +
+          (ja ? '<span lang="ja" class="fd-ja">' + esc(ja) + '</span>' : '') + '</td>' +
+          '<td class="num">' + fmtInt(r[4]) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
   }
   // A family's genera (TASK-015): the same pill buttons the genus panel's squares use,
   // each carrying its species count and opening the genus panel.
@@ -1652,6 +1884,11 @@
   }
   function pickNameRow(btn) {
     var name = btn.getAttribute('data-nm-name'), n = state.name;
+    // A square panel's rows are summary rows (TASK-017): the species is public by
+    // construction, so it opens from the row at once and a failed detail load is
+    // reported inside its panel, never a silent no-op (PR #79 review)
+    var r = n && n.id === 'square' ? (n.rows || []).filter(function (x) { return x[0] === name; })[0] : null;
+    if (r) return showSpecies({ row: r }, 'search');
     // The open panel already holds the row's entry: use it, with no request that could fail
     // or land after the visitor moved on (PR #75 review)
     var e = n && (n.rows || []).filter(function (x) { return x.name === name; })[0];
@@ -1714,7 +1951,9 @@
   }
   function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
   // The name-outline legend entries sit inside whichever legend is showing, and only while
-  // a panel outlines something; the dashed entry only for a species with such areas.
+  // a panel outlines something; the dashed entry only for a species with such areas, the
+  // squares entry only while the panel's own squares are drawn (TASK-017) — its wording
+  // follows the panel, a genus showing its species' squares.
   function nameLegend() {
     var el = $('fd-legend-name');
     if (!el) return;
@@ -1723,6 +1962,12 @@
     el.classList.toggle('is-on', !!state.nout);
     var d = state.nout && state.nout.dashed;
     el.querySelector('.fd-legend__dash').hidden = !(d && d.islands.length + d.keys.length);
+    var sq = el.querySelector('.fd-legend__sq');
+    var on = !!(state.nout && state.nout.sq && state.nout.sq.length);
+    if (sq) {
+      sq.hidden = !on;
+      if (on) sq.querySelector('.fd-legend__sq-t').textContent = t(state.name && state.name.id === 'genus' ? 'sqGenus' : 'sqSpecies');
+    }
   }
   // Redraw every live renderer: the SVG always, the street map only while it is open.
   // The street redraw is forced so a research-mode recolour reaches it immediately.
@@ -1774,7 +2019,10 @@
     if (rline) txt += (txt ? ' — ' : '') + rline;
     $('fd-preview-text').textContent = txt;
     $('fd-preview-open').hidden = !tap.areaId;
+    var sqb = $('fd-preview-species'); // this square's species (TASK-017), only with the bundle
+    if (sqb) sqb.hidden = !(tap.cell && squaresReady() && (squares.bySquare[tap.cell] || []).length);
     el.hidden = false;
+    if (tap.cell) ensureSquares(); // a square first tapped: the bundle loads, the button catches up
   }
 
   function barRows(rows, total, fmt) {
@@ -1925,13 +2173,32 @@
             '" width="' + Math.max(3, q.x - p.x).toFixed(1) + '" height="' + Math.max(3, q.y - p.y).toFixed(1) + '"></rect>';
         });
       }
-      // The located cell is an exact JIS rectangle rebuilt from its key (never the raw fix).
-      var loc = '';
-      if (state.locCell) {
-        var le = cellEdges(state.locCell.row, state.locCell.col);
+      // The located cell is an exact JIS rectangle rebuilt from its key (never the raw fix);
+      // the square panel's own square (TASK-017) takes the same locate-cell style.
+      var locRect = function (cell) {
+        var le = cellEdges(cell.row, cell.col);
         var lp = project(le[1], le[2], size.width, size.height, box), lq = project(le[0], le[3], size.width, size.height, box);
-        loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
+        return '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
+      };
+      var loc = '';
+      if (state.locCell) loc += locRect(state.locCell);
+      var sqc = state.name && state.name.id === 'square' ? state.name.cell : null;
+      if (sqc) loc += locRect(sqc);
+      // A 種／属 panel's own squares (TASK-017): the cells its species were recorded in —
+      // cell rects, one path, above the record squares and under the outline strokes (the
+      // same set the street map fills).
+      var sqOut = '';
+      if (state.nout && state.nout.sq.length) {
+        var sd = '';
+        state.nout.sq.forEach(function (k) {
+          var c = parseCellKey(k);
+          if (!c) return;
+          var e = cellEdges(c.row, c.col);
+          var p = project(e[1], e[2], size.width, size.height, box), q = project(e[0], e[3], size.width, size.height, box);
+          sd += 'M' + (p.x + ox).toFixed(1) + ' ' + (p.y + oy).toFixed(1) + 'h' + (q.x - p.x).toFixed(1) + 'v' + (q.y - p.y).toFixed(1) + 'h' + (-(q.x - p.x)).toFixed(1) + 'z';
+        });
+        if (sd) sqOut = '<path class="fd-map__sq-fill" d="' + sd + '"/>';
       }
       // While a panel outlines, the record squares and hatch fade (CSS under .fd-map >
       // svg.is-named) so the filled areas are the signal (TASK-016).
@@ -1941,7 +2208,7 @@
         paths.map(function (p, i) { return '<path class="' + band + i + '" d="' + p + '"/>'; }).join('') +
         (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
         (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') +
-        nameOut +
+        sqOut + nameOut +
         loc + labels;
     }
     function pointer(e) {
@@ -2545,8 +2812,9 @@
       box: function () { return state.box; },
       mesh: function () { return state.d ? state.d.mesh : []; },
       tapAt: tapAt, selectedKeys: selectedKeys,
-      nameOutlines: function () { return state.nout; }, // a 種／属 panel's solid and dashed sets (TASK-014)
+      nameOutlines: function () { return state.nout; }, // a 種／属 panel's solid, dashed and square sets (TASK-014/017)
       locCell: function () { return state.locCell; },
+      squareCell: function () { return state.name && state.name.id === 'square' ? state.name.cell : null; }, // a square panel's own square (TASK-017)
       researchView: function () { return state.rview; }, // street cells recolour with research
       onEvent: streetEvent
     };
@@ -2947,6 +3215,9 @@
     if (!el) return;
     $('fd-preview-open').addEventListener('click', function () {
       if (tapState && tapState.areaId) { var id = tapState.areaId; clearPreview(); selectArea(id); }
+    });
+    $('fd-preview-species').addEventListener('click', function () { // this square's species (TASK-017)
+      if (tapState && tapState.cell) openSquarePanel(tapState.cell);
     });
     $('fd-area-retry').addEventListener('click', function () {
       if (street.failed) { enterStreet(); return; } // blocked tiles: retry re-enters the default street map
