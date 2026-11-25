@@ -247,6 +247,8 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/function loadSummary\(bypass\)/.test(src) && /cache: bypass \? 'reload' : 'no-cache'/.test(src), 'one bypassed refetch is the standard treatment');
     assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
     assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
+    assert.ok(/names\.status = 'ready'; names\.rows = sum\.rows; names\.indexSnap = index\.snapshot;/.test(src), 'a ready summary remembers the index it was checked against');
+    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) names\.status = 'idle';/.test(src), 'a refreshed index of another publication sends the summary back to idle (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
     const run = fn('run');
@@ -325,6 +327,9 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/n\.failed = !entry;/.test(show), 'a missing entry for a summary row is a failure');
     const render = fn('renderNamePanel');
     assert.ok(/n\.failed \? '<p class="fd-empty">' \+ esc\(t\('nameFailed'\)\) \+ '<\/p>' : nameMissHtml\(\)/.test(render), 'the failure gets its own line, the miss stays for what was never listed');
+    // the same for a genus the summary listed whose file failed to load
+    assert.ok(/n\.failed = !entries;/.test(fn('selectGenus')), 'a genus file that did not load is a failure');
+    assert.ok(/n\.failed \? '<p class="fd-empty">' \+ esc\(t\('nameFailed'\)\) \+ '<\/p>' : genusRowsHtml\(n\.shown\)/.test(render), 'never rendered as an empty genus');
   });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');

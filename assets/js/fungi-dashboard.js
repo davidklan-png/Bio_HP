@@ -971,7 +971,7 @@
     allTimeScope: ['All of Japan, all time', '日本全体・全期間'],
     matching: ['Matching species: {n}', '条件に合う種：{n}'],
     searchCount: ['results', '件の結果'],
-    nameFailed: ['The details for this species could not be loaded. Try again in a moment.', 'この種の詳細を読み込めませんでした。しばらくしてからもう一度お試しください。'],
+    nameFailed: ['The details could not be loaded. Try again in a moment.', '詳細を読み込めませんでした。しばらくしてからもう一度お試しください。'],
     geoDead: ['Area and place search are unavailable: their data could not be loaded. Scientific names can still be searched.', '地域一覧も地名データも読み込めないため、地域・地名の検索は利用できません。学名は検索できます。'],
     sgAreas: ['Areas', '地域'],
     sgPlaces: ['Places', '地名'],
@@ -1081,7 +1081,7 @@
         .then(function (buf) {
           return sha256Hex(buf).then(function (sha) {
             var sum = readSpeciesSummary(JSON.parse(new TextDecoder().decode(buf)));
-            if (summaryTrusted(sum, sha, index)) { names.status = 'ready'; names.rows = sum.rows; return; }
+            if (summaryTrusted(sum, sha, index)) { names.status = 'ready'; names.rows = sum.rows; names.indexSnap = index.snapshot; return; }
             if (!names.bypassed) { names.bypassed = true; return loadSummary(true); }
             names.status = 'mismatch';
           });
@@ -1106,6 +1106,9 @@
         species.index = r;
         species.indexAt = Date.now();
         species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
+        // A page left open across a deployment: the refreshed index names another summary, so the
+        // next query reloads it instead of searching the previous publication (PR #75 review)
+        if (names.status === 'ready' && names.indexSnap !== r.snapshot) names.status = 'idle';
         return r.files;
       })
       .catch(function () {
@@ -1321,6 +1324,7 @@
       if (state.name !== n) return;
       var slug = genusFileSlug(genus, species.index && species.index.aliases);
       n.settled = true;
+      n.failed = !entries; // the summary listed this genus: no file is a load failure, never an empty genus
       n.rows = (entries || []).filter(function (x) { return slug === token || speciesSlugFor(x.name) === token; });
       renderNamePanel();
       nameOutlined();
@@ -1348,9 +1352,10 @@
     n.shown = filterSpecies((n.rows || []).map(function (x) { return { x: x, k: x.kind, m: x.fruiting_months }; }), state.kind, state.month)
       .map(function (v) { return v.x; });
     title.textContent = n.label;
-    meta.textContent = !n.settled ? t('loadingArea') : fmtInt(n.rows.length) + ' ' + t('species') +
+    meta.textContent = !n.settled ? t('loadingArea') : n.failed ? '' : fmtInt(n.rows.length) + ' ' + t('species') +
       (n.shown.length !== n.rows.length ? ' · ' + t('matching').replace('{n}', fmtInt(n.shown.length)) : '');
-    body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' : genusRowsHtml(n.shown) + genusSquaresHtml(n);
+    body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
+      n.failed ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : genusRowsHtml(n.shown) + genusSquaresHtml(n);
   }
   function genusRowsHtml(rows) {
     var head = [t('sp'), t('rec'), t('months')];
