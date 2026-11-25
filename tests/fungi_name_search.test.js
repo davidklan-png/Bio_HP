@@ -595,7 +595,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     for (const s of ['種まで同定された記録のある地域', 'Areas with species-level records', 'fd-map__outline--dash', 'id="fd-legend-name"']) assert.ok(inc.includes(s), s);
     assert.ok(inc.includes('島・地名・学名・和名で検索') && inc.includes('Search islands, places, scientific or Japanese names'), 'label and placeholder');
     assert.strictEqual((inc.match(/Search islands, places, scientific or Japanese names/g) || []).length, 2, 'label and placeholder');
-    assert.ok(inc.includes('?v=2026-11-25-4'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-25-5'), 'CSS stamp bumped');
     assert.ok(/\.fd-legend__name \{ display: none; \}/.test(css) && /\.fd-legend__name\.is-on \{ display: contents; \}/.test(css));
     assert.ok(/\.fd-legend i\.fd-map__outline \{[^}]*border: 2px solid var\(--fd-sel-core\)/.test(css) && !/--fd-name/.test(css), 'outline swatches reuse the selection tokens: no new colour token');
     assert.ok(/\.fd-name \.fd-seg button \{ min-height: 44px; \}/.test(css), '44 px targets in the secondary list');

@@ -47,6 +47,13 @@ a.fd-kpi { display: block; text-decoration: none; }
 a.fd-kpi:hover, a.fd-kpi:focus-visible { border-color: var(--brand); }
 .fd-kpi__value { font: 600 clamp(20px, 2.4vw, 26px)/1.05 var(--display); color: var(--ink); white-space: nowrap; }
 .fd-kpi__label { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.35; }
+/* Under 600 px (TASK-018): two columns, the leads tile spanning both, so the map starts
+   one screen sooner at 375 px instead of five stacked tiles. minmax(0, 1fr) lets a tile
+   shrink before its nowrap figure can overflow at 320 px. */
+@media (max-width: 599px) {
+  .fd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fd-kpi:last-child { grid-column: 1 / -1; }
+}
 
 /* Workspace (TASK-007): one toolbar above both columns — sticky map left, inspector right. */
 .fd-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--fd-gap); }
