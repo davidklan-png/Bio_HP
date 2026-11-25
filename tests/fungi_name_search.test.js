@@ -457,7 +457,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    else names\.bypassed = false;[^\n]*\n    names\.pending = speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
     assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
     assert.ok(/names\.status = 'ready'; names\.rows = sum\.rows; names\.indexSnap = index\.snapshot;/.test(src), 'a ready summary remembers the index it was checked against');
-    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*nameIndex\.status = 'idle';\s*nameIndex\.jaBy = null;\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review; the names bundle with it, TASK-015)');
+    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*nameIndex\.status = 'idle';\s*nameIndex\.jaBy = null;\s*squares\.status = 'idle';\s*squares\.byRow = squares\.bySquare = null;[^\n]*\n\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review; the names and squares bundles with it, TASK-015/017)');
     assert.ok(/else names\.bypassed = false;/.test(src), 'each fresh summary load earns its own bypassed retry (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
@@ -595,7 +595,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     for (const s of ['種まで同定された記録のある地域', 'Areas with species-level records', 'fd-map__outline--dash', 'id="fd-legend-name"']) assert.ok(inc.includes(s), s);
     assert.ok(inc.includes('島・地名・学名・和名で検索') && inc.includes('Search islands, places, scientific or Japanese names'), 'label and placeholder');
     assert.strictEqual((inc.match(/Search islands, places, scientific or Japanese names/g) || []).length, 2, 'label and placeholder');
-    assert.ok(inc.includes('?v=2026-11-25-3'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-25-4'), 'CSS stamp bumped');
     assert.ok(/\.fd-legend__name \{ display: none; \}/.test(css) && /\.fd-legend__name\.is-on \{ display: contents; \}/.test(css));
     assert.ok(/\.fd-legend i\.fd-map__outline \{[^}]*border: 2px solid var\(--fd-sel-core\)/.test(css) && !/--fd-name/.test(css), 'outline swatches reuse the selection tokens: no new colour token');
     assert.ok(/\.fd-name \.fd-seg button \{ min-height: 44px; \}/.test(css), '44 px targets in the secondary list');
@@ -633,7 +633,7 @@ describe('name areas highlight (TASK-016)', () => {
     assert.ok(/outlineLayers\(nm\.solid, solidRings, pal\.core, 0, null, true\)/.test(fm), 'a fill group under the strokes');
     assert.ok(/fill: true, fillColor: color, fillOpacity: 0\.28, stroke: false/.test(fm), 'the same flat fill');
     assert.ok(/\(fill \? \[\] : o\.islands\.map/.test(fm), 'no filled island box');
-    assert.strictEqual((fm.match(/boundaryRings\(nm\./g) || []).length, 2, 'each set is dissolved once per redraw, not once per style (PR #77 review)');
+    assert.strictEqual((fm.match(/boundaryRings\(nm\./g) || []).length, 3, 'each set — solid, dashed, the panel\'s squares — is dissolved once per redraw, not once per style (PR #77 review; TASK-017)');
     assert.ok(/outlineLayers\(nm\.dashed, dashedRings, pal\.halo, 4, '8 4'\)/.test(fm), 'the strokes share the dissolved rings');
     assert.ok(/var named = ctx\.nameOutlines \? ctx\.nameOutlines\(\) : null;/.test(fm) &&
       /fillOpacity: named \? 0\.14 : 0\.7/.test(fm) && /fillOpacity: named \? 0\.25 : \.8/.test(fm),
@@ -682,7 +682,7 @@ describe('name search (TASK-015): page wiring (source level)', () => {
     assert.ok(/item\.ja \? ' <span lang="ja" class="fd-ja">'/.test(rg), 'a species option shows its 和名');
     assert.ok(/t\('formerly'\)\.replace\('\{name\}', item\.syn\)/.test(rg), 'a synonym hit shows the synonym it matched');
     assert.ok(/function selectFamily\(family, source\) \{[\s\S]*?familyGenera\(names\.rows, nameIndex\.rows, family\)/.test(src), 'the panel lists the family\'s genera');
-    assert.ok(/n\.id === 'family' \? 'chipFamily' : 'chipSpecies'/.test(fn('nameChip')), 'the 表示中 line gains a 科 chip');
+    assert.ok(/n\.id === 'family' \? 'chipFamily' : n\.id === 'square' \? 'chipSquare' : 'chipSpecies'/.test(fn('nameChip')), 'the 表示中 line gains a 科 chip (and a マス chip, TASK-017)');
     assert.ok(/data-nm-genus=/.test(fn('familyRowsHtml')) && /selectGenus\(t\.getAttribute\('data-nm-genus'\), 'toolbar'\)/.test(src), 'each genus opens the TASK-014 genus panel');
   });
   it('species rows show their 和名 next to the scientific name, including rows rendered before the bundle landed', () => {

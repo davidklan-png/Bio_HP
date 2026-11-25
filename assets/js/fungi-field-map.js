@@ -115,10 +115,12 @@
   }
 
   // ctx: { container, shared (dashboard api), latestOnly, box(), mesh(), tapAt(lat,lon),
-  //        selectedKeys(), locCell(), nameOutlines(), researchView(), onEvent(kind) } with kind
-  // 'ready'|'fail'|'exit'. researchView(), when non-null, is the estimate view: the mesh
-  // takes the estimate ramp by slice band, and squares with no estimate are hatched.
-  //        nameOutlines() → { solid, dashed } of { islands, keys }, or null (TASK-014).
+  //        selectedKeys(), locCell(), squareCell(), nameOutlines(), researchView(),
+  //        onEvent(kind) } with kind 'ready'|'fail'|'exit'. researchView(), when non-null,
+  // is the estimate view: the mesh takes the estimate ramp by slice band, and squares with
+  // no estimate are hatched. locCell() and squareCell() are {key, row, col} or null.
+  //        nameOutlines() → { solid, dashed } of { islands, keys } plus sq: [keys] for the
+  //        panel's own squares (TASK-017), or null (TASK-014).
   api.enter = function (ctx) {
     if (active) return false;
     var L = root.L, shared = ctx.shared;
@@ -209,18 +211,26 @@
           multipoly(rings, { stroke: true, color: pal.core, weight: 2, fill: false })
         ]).addTo(view);
       }
+      // The located cell and the square panel's own square (TASK-017) share the locate
+      // style: amber, stroked, never filled — the same rect the SVG draws.
+      var locRings = [];
       var lc = ctx.locCell();
-      if (lc) {
-        var ring = cellRing(lc.key, shared.cellEdges);
-        if (ring) locLayer = multipoly([ring], { stroke: true, color: pal.loc, weight: 2.5, fill: false }).addTo(view);
-      }
+      if (lc) { var lr = cellRing(lc.key, shared.cellEdges); if (lr) locRings.push(lr); }
+      var sc = ctx.squareCell ? ctx.squareCell() : null;
+      if (sc) { var sr = cellRing(sc.key, shared.cellEdges); if (sr) locRings.push(sr); }
+      if (locRings.length) locLayer = multipoly(locRings, { stroke: true, color: pal.loc, weight: 2.5, fill: false }).addTo(view);
       // The selection's two-tone stroke; the could-be-found set dashes. The recorded areas
-      // carry the flat fill under the strokes (TASK-016).
+      // carry the flat fill under the strokes (TASK-016), and the panel's own squares
+      // (TASK-017) the half-strength one — the same set the SVG draws, dissolved once.
       var nm = ctx.nameOutlines ? ctx.nameOutlines() : null;
       if (nm) {
         var solidRings = shared.boundaryRings(nm.solid.keys, shared.cellEdges);
         var dashedRings = shared.boundaryRings(nm.dashed.keys, shared.cellEdges);
-        nameLayer = L.layerGroup([].concat(
+        var sqLayers = nm.sq && nm.sq.length
+          ? [multipoly(shared.boundaryRings(nm.sq, shared.cellEdges), { renderer: renderer, interactive: false,
+              fill: true, fillColor: pal.core, fillOpacity: 0.5, stroke: false })]
+          : [];
+        nameLayer = L.layerGroup([].concat(sqLayers,
           outlineLayers(nm.solid, solidRings, pal.core, 0, null, true),
           outlineLayers(nm.solid, solidRings, pal.halo, 4), outlineLayers(nm.solid, solidRings, pal.core, 2),
           outlineLayers(nm.dashed, dashedRings, pal.halo, 4, '8 4'), outlineLayers(nm.dashed, dashedRings, pal.core, 2, '8 4'))).addTo(view);
