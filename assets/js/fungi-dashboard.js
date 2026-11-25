@@ -1831,6 +1831,11 @@
   }
   function pickNameRow(btn) {
     var name = btn.getAttribute('data-nm-name'), n = state.name;
+    // A square panel's rows are summary rows (TASK-017): the species is public by
+    // construction, so it opens from the row at once and a failed detail load is
+    // reported inside its panel, never a silent no-op (PR #79 review)
+    var r = n && n.id === 'square' ? (n.rows || []).filter(function (x) { return x[0] === name; })[0] : null;
+    if (r) return showSpecies({ row: r }, 'search');
     // The open panel already holds the row's entry: use it, with no request that could fail
     // or land after the visitor moved on (PR #75 review)
     var e = n && (n.rows || []).filter(function (x) { return x.name === name; })[0];

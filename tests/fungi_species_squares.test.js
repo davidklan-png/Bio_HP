@@ -190,6 +190,11 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
     assert.ok(/openNameShell\(n\);[\s\S]*?state\.box = zoomBox\(cellEdges\(n\.cell\.row, n\.cell\.col\)\);\s*drawViews\(\);/.test(panelBody), 'one move, to the square');
     assert.strictEqual((panelBody.match(/state\.box =/g) || []).length, 1, 'never a stop at Japan in between');
   });
+  it('a square panel row opens its species from the summary row, with no genus-file request to fail (PR #79 review)', () => {
+    const pick = src.slice(src.indexOf('function pickNameRow'), src.indexOf('function speciesInLoaded'));
+    assert.ok(/n\.id === 'square' \? \(n\.rows \|\| \[\]\)\.filter\(function \(x\) \{ return x\[0\] === name; \}\)\[0\] : null;\s*if \(r\) return showSpecies\(\{ row: r \}, 'search'\);/.test(pick),
+      'a square row is a summary row: showSpecies from it, so a failed detail load lands in the panel');
+  });
   it('one shared promise, trusted by squares_sha256 through sha256Hex and the summary\'s snapshot', () => {
     assert.ok(/var squares = \{ status: 'idle', byRow: null, bySquare: null, at: 0, pending: null \}/.test(src));
     assert.ok(/root\.fetch\(base \+ 'species\/squares\.json', \{ cache: 'no-cache' \}\)/.test(src), 'the file, no-cache, like its siblings');
