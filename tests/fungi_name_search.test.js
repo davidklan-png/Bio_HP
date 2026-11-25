@@ -245,13 +245,15 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/root\.crypto && root\.crypto\.subtle/.test(src) && src.includes("'SHA-256'"), 'sha256 through WebCrypto');
     assert.ok(src.includes('summaryTrusted('), 'the pure check decides');
     assert.ok(/function loadSummary\(bypass\)/.test(src) && /cache: bypass \? 'reload' : 'no-cache'/.test(src), 'one bypassed refetch is the standard treatment');
-    assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    else names\.bypassed = false;[^\n]*\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
+    assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    else names\.bypassed = false;[^\n]*\n    names\.pending = speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
     assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
     assert.ok(/names\.status = 'ready'; names\.rows = sum\.rows; names\.indexSnap = index\.snapshot;/.test(src), 'a ready summary remembers the index it was checked against');
     assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review)');
     assert.ok(/else names\.bypassed = false;/.test(src), 'each fresh summary load earns its own bypassed retry (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
+    assert.ok(/if \(names\.status === 'loading' && names\.pending\) return names\.pending;/.test(ensure), 'a load in flight is awaited, never answered as unavailable (PR #75 review)');
+    assert.ok(/names\.pending = speciesFiles\(\)/.test(fn('loadSummary')) && /\.then\(function \(st\) \{ names\.pending = null; return st; \}\);\s*return names\.pending;/.test(fn('loadSummary')), 'the load shares its promise and clears it when settled');
     const run = fn('run');
     assert.ok(!/fetch\(|loadSummary\(/.test(run), 'the input handler fetches nothing itself');
     assert.ok(/search\.live = false; \}/.test(fn('finish')) && /if \(search\.live && \(!results\.hidden \|\| doc\.activeElement === input\)\) run\(\);/.test(src),

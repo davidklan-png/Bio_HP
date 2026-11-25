@@ -1074,7 +1074,7 @@
     // the bypassed retry must compare against a refetched index, or it fails the same way (PR #75 review)
     if (bypass) { species.index = null; species.genera = {}; } // and the genus files of the old publication
     else names.bypassed = false;                    // each fresh load earns its own bypassed retry
-    return speciesFiles().then(function () {       // the index names the file to expect
+    names.pending = speciesFiles().then(function () { // the index names the file to expect; the promise is shared (PR #75 review)
       if (!species.index) throw new Error('no species index'); // nothing to check a summary against
       var index = species.index;
       return root.fetch(base + 'species/summary.json', { cache: bypass ? 'reload' : 'no-cache' })
@@ -1089,11 +1089,15 @@
         });
     })
       .catch(function () { names.status = 'absent'; names.at = Date.now(); })
-      .then(function () { if (search.refresh) search.refresh(); return names.status; });
+      .then(function () { if (search.refresh) search.refresh(); return names.status; })
+      .then(function (st) { names.pending = null; return st; });
+    return names.pending;
   }
   // The one entry point: an idle summary loads, a long-dead one retries (SPECIES_TTL, like
-  // the genus index), anything else answers at once. Called on every Latin keystroke.
+  // the genus index), a load in flight is awaited, anything else answers at once. Called on
+  // every Latin keystroke and by a species deep link.
   function ensureSummary() {
+    if (names.status === 'loading' && names.pending) return names.pending; // one route must not call another's load "unavailable"
     if (names.status === 'idle' || (names.status === 'absent' && Date.now() - names.at > SPECIES_TTL)) return loadSummary(false);
     return Promise.resolve(names.status);
   }
