@@ -245,10 +245,11 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/root\.crypto && root\.crypto\.subtle/.test(src) && src.includes("'SHA-256'"), 'sha256 through WebCrypto');
     assert.ok(src.includes('summaryTrusted('), 'the pure check decides');
     assert.ok(/function loadSummary\(bypass\)/.test(src) && /cache: bypass \? 'reload' : 'no-cache'/.test(src), 'one bypassed refetch is the standard treatment');
-    assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
+    assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    else names\.bypassed = false;[^\n]*\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
     assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
     assert.ok(/names\.status = 'ready'; names\.rows = sum\.rows; names\.indexSnap = index\.snapshot;/.test(src), 'a ready summary remembers the index it was checked against');
-    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) names\.status = 'idle';/.test(src), 'a refreshed index of another publication sends the summary back to idle (PR #75 review)');
+    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review)');
+    assert.ok(/else names\.bypassed = false;/.test(src), 'each fresh summary load earns its own bypassed retry (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
     const run = fn('run');

@@ -1073,6 +1073,7 @@
     // A deployment between the two files leaves the cached index naming the old summary:
     // the bypassed retry must compare against a refetched index, or it fails the same way (PR #75 review)
     if (bypass) { species.index = null; species.genera = {}; } // and the genus files of the old publication
+    else names.bypassed = false;                    // each fresh load earns its own bypassed retry
     return speciesFiles().then(function () {       // the index names the file to expect
       if (!species.index) throw new Error('no species index'); // nothing to check a summary against
       var index = species.index;
@@ -1108,7 +1109,10 @@
         species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
         // A page left open across a deployment: the refreshed index names another summary, so the
         // next query reloads it instead of searching the previous publication (PR #75 review)
-        if (names.status === 'ready' && names.indexSnap !== r.snapshot) names.status = 'idle';
+        if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
+          names.status = 'idle';
+          species.genera = {}; // genus files belong to a publication too
+        }
         return r.files;
       })
       .catch(function () {
