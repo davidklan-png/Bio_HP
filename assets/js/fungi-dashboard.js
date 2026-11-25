@@ -2546,7 +2546,6 @@
       state.d = res.data;
       state.snaps.dashboard = res.snapshot;
       render(res.data);
-      trySpeciesHash(); // a cold #species-<key> may match a lead, rendered just now
     } else if (!state.d) {
       $('fd-status').hidden = false;
       $('fd-status').textContent = t('loadError');
@@ -2593,6 +2592,10 @@
       announce(t('snapMismatch'));
       drawViews();
     }
+    // A cold #species-<key> routes here, once both boot files have settled and whatever
+    // either did: its panel needs the area index for its outline, never dashboard.json
+    // (PR #75 review). Idempotent while one key is pending or shown.
+    if (parseSpeciesHash(root.location.hash)) trySpeciesHash();
   }
 
   function loadBoot(bypass) {

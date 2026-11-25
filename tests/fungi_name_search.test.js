@@ -281,6 +281,9 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/function openSpeciesByKey\(key\) \{[\s\S]*?speciesByKey\(names\.rows, key\)/.test(src), 'the summary resolves a bare key');
     assert.ok(/function trySpeciesHash\(\) \{[\s\S]*?openSpeciesByKey\(key\)/.test(src), 'the router reaches it');
     assert.ok(/routeFromLocation[\s\S]*?parseSpeciesHash\(h\)[\s\S]*?trySpeciesHash\(\)/.test(src));
+    // PR #75 review: a cold deep link must not depend on dashboard.json succeeding
+    assert.ok(/function reconcile\(\) \{[\s\S]*?if \(parseSpeciesHash\(root\.location\.hash\)\) trySpeciesHash\(\);\n  \}/.test(src), 'routed once both boot files settled, whatever either did');
+    assert.ok(!/trySpeciesHash\(/.test(fn('applyDashboard')), 'no longer only from the dashboard success branch');
     assert.ok(!fn('selectGenus').includes('#species-'), 'a genus pick writes no species hash');
     assert.ok(src.includes("pushUrl('#species-' + key)"), 'a species pick sets its hash');
     assert.ok(/function pushUrl\(url, how\) \{[\s\S]*?lastRoute = root\.location\.href;/.test(src),
