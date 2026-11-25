@@ -332,6 +332,11 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/n\.failed = !entries;/.test(fn('selectGenus')), 'a genus file that did not load is a failure');
     assert.ok(/n\.failed \? '<p class="fd-empty">' \+ esc\(t\('nameFailed'\)\) \+ '<\/p>' : genusRowsHtml\(n\.shown\)/.test(render), 'never rendered as an empty genus');
   });
+  it('a genus panel row opens from the entry the panel already holds, and a late lookup never replaces a newer selection (PR #75 review)', () => {
+    const pick = fn('pickNameRow');
+    assert.ok(/\(n\.rows \|\| \[\]\)\.filter\(function \(x\) \{ return x\.name === name; \}\)\[0\];\s*if \(e\) return showSpecies\(\{ entry: e \}, 'search'\);/.test(pick), 'the rendered entry is used first');
+    assert.ok(/\.then\(function \(entry\) \{ if \(entry && state\.name === n\) showSpecies\(/.test(pick), 'the fallback lookup is guarded by the panel it was started from');
+  });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
     assert.ok(/function selectArea\(id, source\) \{[\s\S]*?closeName\(\);/.test(src), 'selecting an area closes the panel');

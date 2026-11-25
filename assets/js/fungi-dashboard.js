@@ -1383,8 +1383,13 @@
     }).join('') + '</div>' : '';
   }
   function pickNameRow(btn) {
-    speciesEntry(btn.getAttribute('data-nm-col') || null, btn.getAttribute('data-nm-legacy') || null, btn.getAttribute('data-nm-name'))
-      .then(function (entry) { if (entry) showSpecies({ entry: entry }, 'search'); });
+    var name = btn.getAttribute('data-nm-name'), n = state.name;
+    // The open panel already holds the row's entry: use it, with no request that could fail
+    // or land after the visitor moved on (PR #75 review)
+    var e = n && (n.rows || []).filter(function (x) { return x.name === name; })[0];
+    if (e) return showSpecies({ entry: e }, 'search');
+    speciesEntry(btn.getAttribute('data-nm-col') || null, btn.getAttribute('data-nm-legacy') || null, name)
+      .then(function (entry) { if (entry && state.name === n) showSpecies({ entry: entry }, 'search'); });
   }
   // The name of a #species-<key> the page already holds: a row of the open area, or a lead.
   function speciesInLoaded(key) {
