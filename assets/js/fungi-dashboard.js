@@ -1247,6 +1247,7 @@
   // animation, which Leaflet runs last (found in the browser: genus → species showed Japan).
   function openNameShell(n) {
     closeName();
+    closeSpeciesDetail(); // the area's inline row leaves with the area: Escape must reach the panel (PR #75 review)
     areaRequests.start(null);
     state.sel = null;
     state.detailJoin = true;
@@ -1423,7 +1424,11 @@
       $('fd-name').scrollIntoView({ block: 'center' });
     }
     var loc = speciesInLoaded(key);
-    if (loc) return speciesEntry(key, key, loc.name).then(settle);
+    if (loc) return speciesEntry(key, key, loc.name).then(function (x) {
+      // The loaded row is public: no entry is a load failure, so fall back to the summary
+      // (PR #75 review); still nothing is the failure line, never an absence
+      return x || ensureSummary().then(function () { return names.status === 'ready' ? speciesByKey(names.rows, key) : null; });
+    }).then(function (x) { return x || { miss: t('nameFailed') }; }).then(settle);
     return ensureSummary().then(function () {
       // A summary that never arrived has looked nothing up: say so, never "no page".
       if (names.status !== 'ready') return settle({ miss: t('namesUnavailable') });

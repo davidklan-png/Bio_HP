@@ -337,6 +337,12 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/\(n\.rows \|\| \[\]\)\.filter\(function \(x\) \{ return x\.name === name; \}\)\[0\];\s*if \(e\) return showSpecies\(\{ entry: e \}, 'search'\);/.test(pick), 'the rendered entry is used first');
     assert.ok(/\.then\(function \(entry\) \{ if \(entry && state\.name === n\) showSpecies\(/.test(pick), 'the fallback lookup is guarded by the panel it was started from');
   });
+  it('a key found in loaded data is never shown as absent when its details fail to load; the inline detail closes with the area (PR #75 review)', () => {
+    const open = fn('openSpeciesByKey');
+    assert.ok(/if \(loc\) return speciesEntry\(key, key, loc\.name\)\.then\(function \(x\) \{[\s\S]*?speciesByKey\(names\.rows, key\)[\s\S]*?\}\)\.then\(function \(x\) \{ return x \|\| \{ miss: t\('nameFailed'\) \}; \}\)\.then\(settle\);/.test(open),
+      'a missing entry for a loaded row falls back to the summary, then to the failure line');
+    assert.ok(/function openNameShell\(n\) \{\s*closeName\(\);\s*closeSpeciesDetail\(\);/.test(src), 'opening a panel closes the area inline detail, so Escape reaches the panel');
+  });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
     assert.ok(/function selectArea\(id, source\) \{[\s\S]*?closeName\(\);/.test(src), 'selecting an area closes the panel');
