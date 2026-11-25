@@ -1619,7 +1619,8 @@
     var items;
     if (n.id === 'species') {
       if (n.rowIdx == null) { // opened from an entry or a #species-<key> link: resolve by key
-        var row = names.status === 'ready' && n.key ? speciesByKey(names.rows, n.key) : null;
+        if (names.status !== 'ready') return []; // not yet: resolved and cached once the summary is in (PR #79 review)
+        var row = n.key ? speciesByKey(names.rows, n.key) : null;
         n.rowIdx = row ? names.rows.indexOf(row) : -1;
       }
       items = [n.rowIdx];

@@ -253,6 +253,10 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
   it('a publication change reloads the bundle, and an open panel re-resolves its row', () => {
     assert.ok(/names\.status = 'idle';\s*\n\s*nameIndex\.status = 'idle';\s*\n\s*nameIndex\.jaBy = null;\s*\n\s*squares\.status = 'idle';\s*\n\s*squares\.byRow = squares\.bySquare = null;/.test(src));
     assert.ok(/if \(state\.name\) state\.name\.rowIdx = null;/.test(src), 'a stored row index never outlives its publication');
+    // PR #79 review (Codex): nothing is cached before the summary is in, or a species opened
+    // from a genus entry while the summary still loads would keep -1 for good
+    assert.ok(/if \(n\.rowIdx == null\) \{[\s\S]*?if \(names\.status !== 'ready'\) return \[\];[\s\S]*?n\.rowIdx = row \? names\.rows\.indexOf\(row\) : -1;/.test(src),
+       'the row index is resolved and cached only once the summary is ready');
   });
   it("a species panel stores its summary row index when it opens and re-resolves by key otherwise (TASK-017b review)", () => {
     assert.ok(/rowIdx: spec\.row && names\.status === 'ready' \? names\.rows\.indexOf\(spec\.row\) : null/.test(fn('showSpecies')),
