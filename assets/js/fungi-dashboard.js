@@ -1761,7 +1761,9 @@
     // The summary may still be loading: a later square, area or name the visitor chooses
     // meanwhile supersedes this open, which must not land on top of it (PR #79 review)
     var token = areaRequests.start(key);
-    ensureNameIndex().then(function () {
+    // The summary is what the rows are built from; the names only add the 和名. The
+    // summary loads on its own, so a failed names bundle still leaves a list (PR #79 review)
+    Promise.all([ensureSummary(), ensureNameIndex()]).then(function () {
       if (!areaRequests.isCurrent(token)) return;
       var idxs = squaresReady() ? (squares.bySquare[key] || []) : [];
       var rows = names.status === 'ready' ? squareSpeciesRows(idxs.map(function (i) { return names.rows[i]; }).filter(Boolean)) : [];

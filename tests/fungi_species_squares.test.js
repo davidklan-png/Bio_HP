@@ -215,7 +215,7 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
   });
   it('a first tap costs the index and the squares file only; the summary waits for a panel (TASK-017b review)', () => {
     assert.ok(!/ensureSummary|ensureNameIndex|names\./.test(fn('loadSquares')), 'the load touches no summary');
-    assert.ok(/ensureNameIndex\(\)\.then\(/.test(panelBody), 'the square panel resolves its rows once the summary is in');
+    assert.ok(/Promise\.all\(\[ensureSummary\(\), ensureNameIndex\(\)\]\)\.then\(/.test(panelBody), 'the square panel resolves its rows once the summary is in, loaded on its own (PR #79 review)');
     assert.ok(/names\.rows\[i\]/.test(panelBody), 'an index resolves to its row through names.rows[i]');
   });
   it('the square panel fits the map to its square in one camera move, as a species panel fits its outline', () => {
@@ -236,8 +236,8 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
     assert.ok(/\.catch\(function \(\) \{ bundle\.status = 'absent'; bundle\.at = Date\.now\(\); \}\)/.test(src), 'one catch to absent');
   });
   it('a stale square-panel open never lands on a newer selection (PR #79 review)', () => {
-    assert.ok(/var token = areaRequests\.start\(key\);\s*ensureNameIndex\(\)\.then\(function \(\) \{\s*if \(!areaRequests\.isCurrent\(token\)\) return;/.test(panelBody),
-      'the open waits for the summary behind a request token');
+    assert.ok(/var token = areaRequests\.start\(key\);[\s\S]*?Promise\.all\(\[ensureSummary\(\), ensureNameIndex\(\)\]\)\.then\(function \(\) \{\s*if \(!areaRequests\.isCurrent\(token\)\) return;/.test(panelBody),
+      'the open waits for the summary and the names behind a request token, the summary on its own (PR #79 review: a failed names bundle still leaves a list)');
   });
   it('one shared promise, trusted by squares_sha256 against the index publication', () => {
     assert.ok(/var squares = \{ status: 'idle', byRow: null, bySquare: null, at: 0, pending: null, indexSnap: null \}/.test(src));
