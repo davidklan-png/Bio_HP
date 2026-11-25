@@ -1862,19 +1862,24 @@
       };
       if (selKeys.length) sel = ringPath(selKeys);
       // A 種／属 panel's outline (TASK-014): islands by their index bbox, tiles as dissolved
-      // cells, in the selection's two-tone stroke; could-be-found areas dash.
-      var nameOut = '';
+      // cells, in the selection's two-tone stroke; could-be-found areas dash. The recorded
+      // (solid) areas also carry a flat translucent fill under the strokes (TASK-016), and the
+      // svg takes is-named so CSS fades the record squares — the named areas are the signal.
+      var nameOut = '', nameFill = '';
       if (state.nout) ['solid', 'dashed'].forEach(function (part, i) {
         var o = state.nout[part], mod = i ? ' is-dash' : '', boxes = '';
         var dd = ringPath(o.keys);
         o.islands.forEach(function (ar) {
           var bb = ar.bbox, p1 = project(bb[1], bb[2], size.width, size.height, box), q1 = project(bb[0], bb[3], size.width, size.height, box);
+          if (!i) nameFill += '<rect class="fd-map__sel-fill" x="' + (p1.x + ox).toFixed(1) + '" y="' + (p1.y + oy).toFixed(1) +
+            '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
           ['fd-map__sel-halo', 'fd-map__sel'].forEach(function (cls) {
             boxes += '<rect class="' + cls + mod + '" x="' + (p1.x + ox).toFixed(1) + '" y="' + (p1.y + oy).toFixed(1) +
               '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
           });
         });
-        nameOut += (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
+        nameOut += (i ? '' : (dd ? '<path class="fd-map__sel-fill" d="' + dd + '"/>' : '') + nameFill) +
+          (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
       });
       // Reference geography under the cells: Natural Earth coast (0E) + curated labels.
       // With a coast present the always-on dashed island boxes go away — selected
@@ -1928,6 +1933,9 @@
         loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
+      // While a panel outlines, the record squares and hatch fade (CSS under .fd-map >
+      // svg.is-named) so the filled areas are the signal (TASK-016).
+      svg.classList.toggle('is-named', !!state.nout);
       var band = rv ? 'fd-map__e' : 'fd-map__b'; // estimate bands take the estimate ramp, never the all-time colours
       svg.innerHTML = HATCH + (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
         paths.map(function (p, i) { return '<path class="' + band + i + '" d="' + p + '"/>'; }).join('') +

@@ -152,6 +152,9 @@
       fillLayers = [];
       var rv = ctx.researchView ? ctx.researchView() : null;
       var ramp = rv ? pal.e : pal.b; // the estimate view never borrows the all-time colours
+      // While a 種／属 panel outlines (TASK-016), the squares fade so the filled areas are the
+      // signal; the redraw is forced on every panel change, so this tracks the panel.
+      var named = ctx.nameOutlines ? ctx.nameOutlines() : null;
       var buckets = [[], [], [], [], []], nx = [];
       var unpub = {}; // base squares with no cell in the active slice → hatched, never empty
       if (rv) shared.unpublishedCells(mesh, rv).forEach(function (k) { unpub[k] = true; });
@@ -168,18 +171,23 @@
         if (rings.length)
           // Semi-transparent over the pale tiles: street labels and terrain stay
           // legible under the mesh (David, PR #46 review).
-          fillLayers.push(multipoly(rings, { stroke: true, color: ramp[i], weight: 0.75, opacity: .9,
-            fill: true, fillColor: ramp[i], fillOpacity: 0.7 }).addTo(view));
+          // At all-Japan zoom a cell is a few pixels wide, so its stroke covers most of it: the
+          // stroke fades with the fill (planner check, TASK-016).
+          fillLayers.push(multipoly(rings, { stroke: true, color: ramp[i], weight: 0.75, opacity: named ? 0.14 : .9,
+            fill: true, fillColor: ramp[i], fillOpacity: named ? 0.14 : 0.7 }).addTo(view));
       });
       if (nx.length)
         fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .6,
-          fill: true, fillColor: hatchPattern(pal.nx), fillOpacity: .8 }).addTo(view));
+          fill: true, fillColor: hatchPattern(pal.nx), fillOpacity: named ? 0.25 : .8 }).addTo(view));
     }
     var selLayer = null, locLayer = null, nameLayer = null;
     // A 種／属 outline (TASK-014): islands as their index bbox, tile cells dissolved through
-    // the shared boundaryRings — the same sets the simple map draws.
-    function outlineLayers(o, color, weight, dash) {
-      var opts = { renderer: renderer, interactive: false, fill: false, stroke: true, color: color, weight: weight, dashArray: dash || null };
+    // the shared boundaryRings — the same sets the simple map draws. With fill (TASK-016) the
+    // recorded areas take the flat translucent fill instead of the stroke.
+    function outlineLayers(o, color, weight, dash, fill) {
+      var opts = fill
+        ? { renderer: renderer, interactive: false, fill: true, fillColor: color, fillOpacity: 0.28, stroke: false }
+        : { renderer: renderer, interactive: false, fill: false, stroke: true, color: color, weight: weight, dashArray: dash || null };
       return o.islands.map(function (a) { return L.rectangle([[a.bbox[0], a.bbox[2]], [a.bbox[1], a.bbox[3]]], opts); })
         .concat([multipoly(shared.boundaryRings(o.keys, shared.cellEdges), opts)]);
     }
@@ -202,9 +210,11 @@
         var ring = cellRing(lc.key, shared.cellEdges);
         if (ring) locLayer = multipoly([ring], { stroke: true, color: pal.loc, weight: 2.5, fill: false }).addTo(view);
       }
-      // The selection's two-tone stroke; the could-be-found set dashes.
+      // The selection's two-tone stroke; the could-be-found set dashes. The recorded areas
+      // carry the flat fill under the strokes (TASK-016).
       var nm = ctx.nameOutlines ? ctx.nameOutlines() : null;
       if (nm) nameLayer = L.layerGroup([].concat(
+        outlineLayers(nm.solid, pal.core, 0, null, true),
         outlineLayers(nm.solid, pal.halo, 4), outlineLayers(nm.solid, pal.core, 2),
         outlineLayers(nm.dashed, pal.halo, 4, '8 4'), outlineLayers(nm.dashed, pal.core, 2, '8 4'))).addTo(view);
     }
