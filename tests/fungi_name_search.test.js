@@ -392,6 +392,12 @@ describe('name search (TASK-014): outline id sets', () => {
     assert.deepStrictEqual(fd.nameOutline({ area_ids: null, could_be_found_area_ids: null }), { solid: [], dashed: [] });
     assert.deepStrictEqual(fd.nameOutline(null), { solid: [], dashed: [] });
   });
+  it('the fill set is the solid set: an area both recorded and nearby-found fills, never outline-only (TASK-016)', () => {
+    // t5339 sits in area_ids and could_be_found_area_ids: the fill must take it as recorded.
+    const o = fd.nameOutline(entry);
+    assert.ok(o.solid.indexOf('t5339') >= 0 && o.dashed.indexOf('t5339') < 0, 'the shared id lands solid');
+    o.solid.forEach((id) => assert.ok(o.dashed.indexOf(id) < 0, id + ' is never also dashed'));
+  });
   it('splits an id set into islands (by index bbox) and tile cells, dropping unknown ids and groups', () => {
     const o = fd.areaOutline(['okinawa-honto', 't5339', 'g-ok', 'yakushima', 'nope'], INDEX);
     assert.deepStrictEqual(o.islands.map((a) => a.id), ['okinawa-honto', 'yakushima']);
@@ -578,7 +584,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/if \(state\.nout\) \['solid', 'dashed'\]\.forEach/.test(src), 'both sets');
     assert.ok(fm.includes('ctx.nameOutlines()'), 'the street layer reads the shared sets');
     assert.ok(/nameOutlines: function \(\) \{ return state\.nout; \}/.test(src), 'the dashboard hands them over');
-    assert.ok(/outlineKeys|boundaryRings\(o\.keys, shared\.cellEdges\)/.test(fm), 'street tiles dissolve through boundaryRings');
+    assert.ok(/outlineKeys|boundaryRings\(nm\.(solid|dashed)\.keys, shared\.cellEdges\)/.test(fm), 'street tiles dissolve through boundaryRings');
     assert.ok(/L\.rectangle\(/.test(fm), 'street islands draw their bbox');
     assert.ok(/is-dash/.test(src) && /'8 4'|8 4/.test(fm), 'dashed on both');
   });
@@ -589,7 +595,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     for (const s of ['種まで同定された記録のある地域', 'Areas with species-level records', 'fd-map__outline--dash', 'id="fd-legend-name"']) assert.ok(inc.includes(s), s);
     assert.ok(inc.includes('島・地名・学名・和名で検索') && inc.includes('Search islands, places, scientific or Japanese names'), 'label and placeholder');
     assert.strictEqual((inc.match(/Search islands, places, scientific or Japanese names/g) || []).length, 2, 'label and placeholder');
-    assert.ok(inc.includes('?v=2026-11-25-2'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-25-3'), 'CSS stamp bumped');
     assert.ok(/\.fd-legend__name \{ display: none; \}/.test(css) && /\.fd-legend__name\.is-on \{ display: contents; \}/.test(css));
     assert.ok(/\.fd-legend i\.fd-map__outline \{[^}]*border: 2px solid var\(--fd-sel-core\)/.test(css) && !/--fd-name/.test(css), 'outline swatches reuse the selection tokens: no new colour token');
     assert.ok(/\.fd-name \.fd-seg button \{ min-height: 44px; \}/.test(css), '44 px targets in the secondary list');
@@ -600,6 +606,48 @@ describe('name search (TASK-014): page wiring (source level)', () => {
       assert.ok(m, k + ' must be a paired [EN, JA] string');
     }
     assert.ok(src.includes("sgGenera: ['Genera', '属']") && src.includes("sgSpecies: ['Species', '種']"));
+  });
+});
+
+// ---- TASK-016: a named species' recorded areas are filled and everything else fades, so the
+// named areas are the signal (the thin white boxes of TASK-014 were easy to miss).
+describe('name areas highlight (TASK-016)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  it('the simple map fills the recorded tile cells under their strokes, never the dashed set nor an island box', () => {
+    assert.ok(/'<path class="fd-map__sel-fill" d="' \+ dd \+ '"\/>'/.test(src), 'a fill path for the dissolved cells');
+    assert.ok(/nameOut \+= \(i \? '' : \(dd \? '<path class="fd-map__sel-fill" d="' \+ dd \+ '"\/>' : ''\)\) \+/.test(src),
+      'the fill is emitted before the strokes, and only for the solid set (part 0)');
+    // PR #77 review: an island's bbox is mostly open sea (Ogasawara's is 3.8 degrees of it)
+    assert.ok(!/rect class="fd-map__sel-fill"/.test(src), 'islands keep their outline alone');
+    assert.ok(/svg\.classList\.toggle\('is-named', !!state\.nout\)/.test(src), 'the svg carries is-named while a panel outlines');
+  });
+  it('the CSS fills from the selection core and fades the squares and hatch under is-named', () => {
+    assert.ok(/\.fd-map__sel-fill \{ fill: var\(--fd-sel-core\); fill-opacity: \.28; \}/.test(css), 'the flat translucent fill, no new token');
+    assert.ok(/\.fd-map > svg\.is-named path\[class\^="fd-map__b"\], \.fd-map > svg\.is-named path\[class\^="fd-map__e"\] \{ opacity: \.18; \}/.test(css), 'the record squares fade');
+    assert.ok(/\.fd-map > svg\.is-named \.fd-map__nx \{ opacity: \.25; \}/.test(css), 'the hatch fades less');
+  });
+  it('the street layer fills the recorded tile cells under the strokes, dissolves each set once, and fades everything else', () => {
+    assert.ok(/outlineLayers\(nm\.solid, solidRings, pal\.core, 0, null, true\)/.test(fm), 'a fill group under the strokes');
+    assert.ok(/fill: true, fillColor: color, fillOpacity: 0\.28, stroke: false/.test(fm), 'the same flat fill');
+    assert.ok(/\(fill \? \[\] : o\.islands\.map/.test(fm), 'no filled island box');
+    assert.strictEqual((fm.match(/boundaryRings\(nm\./g) || []).length, 2, 'each set is dissolved once per redraw, not once per style (PR #77 review)');
+    assert.ok(/outlineLayers\(nm\.dashed, dashedRings, pal\.halo, 4, '8 4'\)/.test(fm), 'the strokes share the dissolved rings');
+    assert.ok(/var named = ctx\.nameOutlines \? ctx\.nameOutlines\(\) : null;/.test(fm) &&
+      /fillOpacity: named \? 0\.14 : 0\.7/.test(fm) && /fillOpacity: named \? 0\.25 : \.8/.test(fm),
+      'bands and hatch fade while a panel outlines');
+    // At all-Japan zoom a cell is a few pixels wide, so its stroke would cover most of it:
+    // the strokes fade too, or the squares and the hatch read at full strength (planner
+    // check in WebKit, then PR #77 review for the hatch)
+    assert.ok(/opacity: named \? 0\.14 : \.9,\s*fill: true, fillColor: ramp\[i\], fillOpacity: named \? 0\.14 : 0\.7/.test(fm), 'the band stroke fades with its fill');
+    assert.ok(/opacity: named \? 0\.15 : \.6,\s*fill: true, fillColor: hatchPattern/.test(fm), 'and so does the hatch stroke');
+  });
+  it('the legend swatch shows the fill under its border', () => {
+    assert.ok(/\.fd-legend i\.fd-map__outline \{ background: color-mix\(in srgb, var\(--fd-sel-core\) 30%, transparent\); border: 2px solid var\(--fd-sel-core\); \}/.test(css),
+      'the swatch previews the fill from the selection token');
+    assert.ok(/\.fd-legend i\.fd-map__outline--dash \{ border-style: dashed; background: none; \}/.test(css), 'the dashed swatch stays unfilled: dashed areas are never filled (PR #77 review)');
   });
 });
 

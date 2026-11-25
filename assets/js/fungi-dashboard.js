@@ -1862,7 +1862,11 @@
       };
       if (selKeys.length) sel = ringPath(selKeys);
       // A 種／属 panel's outline (TASK-014): islands by their index bbox, tiles as dissolved
-      // cells, in the selection's two-tone stroke; could-be-found areas dash.
+      // cells, in the selection's two-tone stroke; could-be-found areas dash. The recorded
+      // (solid) areas also carry a flat translucent fill under the strokes (TASK-016), and the
+      // svg takes is-named so CSS fades the record squares — the named areas are the signal.
+      // Only tile cells are filled (PR #77 review): an island's bbox is open sea for the most
+      // part (Ogasawara's is 3.8 degrees of Pacific), so islands keep their outline alone.
       var nameOut = '';
       if (state.nout) ['solid', 'dashed'].forEach(function (part, i) {
         var o = state.nout[part], mod = i ? ' is-dash' : '', boxes = '';
@@ -1874,7 +1878,8 @@
               '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
           });
         });
-        nameOut += (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
+        nameOut += (i ? '' : (dd ? '<path class="fd-map__sel-fill" d="' + dd + '"/>' : '')) +
+          (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
       });
       // Reference geography under the cells: Natural Earth coast (0E) + curated labels.
       // With a coast present the always-on dashed island boxes go away — selected
@@ -1928,6 +1933,9 @@
         loc = '<rect class="fd-map__loc" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1) +
           '" width="' + (lq.x - lp.x).toFixed(1) + '" height="' + (lq.y - lp.y).toFixed(1) + '"></rect>';
       }
+      // While a panel outlines, the record squares and hatch fade (CSS under .fd-map >
+      // svg.is-named) so the filled areas are the signal (TASK-016).
+      svg.classList.toggle('is-named', !!state.nout);
       var band = rv ? 'fd-map__e' : 'fd-map__b'; // estimate bands take the estimate ramp, never the all-time colours
       svg.innerHTML = HATCH + (coast ? '<path class="fd-map__coast" d="' + coast + '"/>' : '') + outlines +
         paths.map(function (p, i) { return '<path class="' + band + i + '" d="' + p + '"/>'; }).join('') +

@@ -502,8 +502,10 @@ describe('reference geography renders in the default SVG view', () => {
 describe('street fills stay transparent over tiles (PR #46 review)', () => {
   it('cell fills are semi-transparent so tile labels stay legible', () => {
     const src = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
-    const m = /fillOpacity:\s*([0-9.]+)/.exec(src);
-    assert.ok(m, 'fills carry an explicit fillOpacity');
+    // The steady-state band fill; the TASK-016 named fade (0.14 while a panel outlines) is
+    // extra transparency on purpose, not the value this review pinned.
+    const m = /fillOpacity: named \? [0-9.]+ : (0\.[0-9]+)/.exec(src);
+    assert.ok(m, 'band fills carry an explicit fillOpacity');
     assert.ok(+m[1] > 0.4 && +m[1] < 0.85, `fillOpacity ${m[1]} must let tiles read through`);
   });
 });
@@ -911,7 +913,7 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-25-2'), 'CSS stamp bumped (TASK-015)');
+    assert.ok(inc.includes('?v=2026-11-25-3'), 'CSS stamp bumped (TASK-016)');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');

@@ -312,8 +312,15 @@ tr.fd-detail > td { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex
 .fd-map__sel-halo.is-dash, .fd-map__sel.is-dash { stroke-dasharray: 8 4; }
 .fd-legend__name { display: none; }
 .fd-legend__name.is-on { display: contents; }
-.fd-legend i.fd-map__outline { background: none; border: 2px solid var(--fd-sel-core); }
-.fd-legend i.fd-map__outline--dash { border-style: dashed; }
+/* Named areas highlight (TASK-016): the recorded (solid) areas take a flat translucent fill
+   of the selection core under the strokes, and while a panel outlines, the record squares
+   and hatch fade so the filled areas are the signal. Coast, labels and the other outlines
+   keep their strength. The legend swatch previews the fill under its border. */
+.fd-map__sel-fill { fill: var(--fd-sel-core); fill-opacity: .28; }
+.fd-map > svg.is-named path[class^="fd-map__b"], .fd-map > svg.is-named path[class^="fd-map__e"] { opacity: .18; }
+.fd-map > svg.is-named .fd-map__nx { opacity: .25; }
+.fd-legend i.fd-map__outline { background: color-mix(in srgb, var(--fd-sel-core) 30%, transparent); border: 2px solid var(--fd-sel-core); }
+.fd-legend i.fd-map__outline--dash { border-style: dashed; background: none; } /* dashed areas are never filled (PR #77 review) */
 .fd-ovhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .fd-ovhead .fd-area__h { flex: 1 1 auto; min-width: 0; }
 .fd-seeall { min-height: 44px; align-self: center; font: 500 13.5px var(--sans); color: var(--brand); background: transparent; border: none; padding: 4px 8px; cursor: pointer; }
