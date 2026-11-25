@@ -2518,20 +2518,25 @@
   function renderMapSpecies() {
     var box = $('fd-mapspecies');
     if (!box) return;
-    // No filter and a trusted summary: the published national ranking (all-months,
-    // all-kinds). Any filter — or no summary — falls back to the accumulator above.
-    var national = !state.month && state.kind === 'all' && names.status === 'ready';
+    // No filter: the published national ranking (all-months, all-kinds) once the summary is
+    // in; it loads on the first name search or when this disclosure is opened (PR #80
+    // review), never at boot. Any filter falls back to the accumulator above.
+    var unfiltered = !state.month && state.kind === 'all';
+    var national = unfiltered && names.status === 'ready';
     var loaded = national ? [] : loadedAreaSpecies();
     var rows = national ? summarySpeciesRank(names.rows, state.q || '') : mapSpeciesRank(loaded, state.month, state.q || '', state.kind);
-    var any = national ? (names.rows || []).length > 0 : loaded.length > 0;
+    var any = unfiltered || loaded.length > 0;
     box.hidden = !any; // a "(0)" under an empty map reads as "no species"
     var nEl = $('fd-mapsp-n');
-    if (nEl) nEl.textContent = fmtInt(rows.length);
+    if (nEl) nEl.textContent = unfiltered && !national ? '…' : fmtInt(rows.length);
     var note = $('fd-mapsp-note');
-    if (note) { note.hidden = false; note.textContent = national ? t('mapspNational') : (loaded.length ? t('mapspNote') : t('mapspEmpty')); }
+    if (note) {
+      note.hidden = false;
+      note.textContent = national ? t('mapspNational') : unfiltered ? (names.status === 'ready' ? t('mapspNational') : t('namesLoading')) : (loaded.length ? t('mapspNote') : t('mapspEmpty'));
+    }
     var list = $('fd-mapsp-list');
     if (list) {
-      if (!any) list.innerHTML = '';
+      if (!any || (unfiltered && !national)) list.innerHTML = ''; // nothing yet: not "no matches" while the summary loads
       else if (!rows.length) list.innerHTML = '<li class="fd-empty">' + esc(t('noResults')) + '</li>';
       else {
         var view = visibleRows(rows, state.mapspLimit, false);
@@ -2766,6 +2771,7 @@
     renderKpis(d);
     renderJapan();
     setupMap(d);
+    renderMapSpecies(); // the national disclosure is offered from the first paint (PR #80 review); its data loads when opened
     $('fd-evidence').innerHTML = barRows(d.evidence.slice(0, 5), d.totals.records, function (k) { return label(k, lang); });
     $('fd-depth').innerHTML = barRows(d.id_depth, d.totals.records, function (k) { return label(k, lang); });
     $('fd-decades').innerHTML = barRows(d.decades.filter(function (r) { return r[0] >= 1950; }).reverse(), 0,
@@ -3290,6 +3296,12 @@
     });
     wireLocate();
     setupToolbar();
+    // The national species-on-map list needs the species summary: it loads when the
+    // disclosure is first opened on the unfiltered view, never at boot (PR #80 review)
+    var mapsp = $('fd-mapspecies');
+    if (mapsp) mapsp.addEventListener('toggle', function () {
+      if (mapsp.open && !state.month && state.kind === 'all' && names.status !== 'ready') ensureSummary().then(renderMapSpecies);
+    });
     wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);
