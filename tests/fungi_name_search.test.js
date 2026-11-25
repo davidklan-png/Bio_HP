@@ -245,6 +245,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/root\.crypto && root\.crypto\.subtle/.test(src) && src.includes("'SHA-256'"), 'sha256 through WebCrypto');
     assert.ok(src.includes('summaryTrusted('), 'the pure check decides');
     assert.ok(/function loadSummary\(bypass\)/.test(src) && /cache: bypass \? 'reload' : 'no-cache'/.test(src), 'one bypassed refetch is the standard treatment');
+    assert.ok(/if \(bypass\) species\.index = null;\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too: a deployment between the two files (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
     const run = fn('run');

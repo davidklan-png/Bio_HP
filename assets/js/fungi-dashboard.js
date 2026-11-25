@@ -1069,6 +1069,9 @@
   function loadSummary(bypass) {
     names.status = 'loading';                      // synchronously: the next keystroke adds no request
     if (search.refresh) search.refresh();
+    // A deployment between the two files leaves the cached index naming the old summary:
+    // the bypassed retry must compare against a refetched index, or it fails the same way (PR #75 review)
+    if (bypass) species.index = null;
     return speciesFiles().then(function () {       // the index names the file to expect
       if (!species.index) throw new Error('no species index'); // nothing to check a summary against
       var index = species.index;
