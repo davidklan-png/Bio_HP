@@ -971,15 +971,14 @@
     }
     return groups;
   }
-  // ---- "Species on the map" disclosure (TASK-011, spec item 9). No per-species national
-  // bundle ships with the page (the species index carries only hashes/counts, and the
-  // genus files are too many to fetch), so the list accrues from the area files the page
-  // has already loaded — the selected area plus the detail cache. `areas` is a list of
-  // species arrays, one per loaded area; rows merge by name, count how many of those
-  // areas record the species and sum records. Month and kind semantics match filterSpecies
-  // (a species counts in an area only if it fruits there that month; 0 = all months, and
-  // 'all' = every kind), and `query` folds like the search box so the combobox filters
-  // this list too.
+  // ---- "Species on the map" disclosure (TASK-011, spec item 9; national path TASK-018).
+  // Unfiltered, the list ranks the nation from species/summary.json (see
+  // summarySpeciesRank below); filtered, it accrues from the area files the page has
+  // opened this visit — `areas` is a list of species arrays, one per opened area; rows
+  // merge by name, count how many of those areas record the species and sum records.
+  // Month and kind semantics match filterSpecies (a species counts in an area only if it
+  // fruits there that month; 0 = all months, and 'all' = every kind), and `query` folds
+  // like the search box so the combobox filters this list too.
   function mapSpeciesRank(areas, month, query, kind) {
     var needle = foldQuery(query);
     var byName = {};
@@ -999,6 +998,18 @@
       });
     });
     return Object.keys(byName).map(function (k) { return byName[k]; })
+      .filter(function (row) { return !needle || foldQuery(row.n).indexOf(needle) >= 0; })
+      .sort(function (a, b) { return b.areas - a.areas || b.r - a.r || (a.n < b.n ? -1 : a.n > b.n ? 1 : 0); });
+  }
+  // The national ranking (TASK-018): summary.json rows are all-months and all-kinds, so
+  // they may rank the list only while no filter is active. Rows are [name, col_key|null,
+  // legacy_key|null, area_count, record_count, …]; the output carries mapSpeciesRank's
+  // shape, so the disclosure renders both sources identically.
+  function summarySpeciesRank(rows, query) {
+    var needle = foldQuery(query);
+    return (rows || []).map(function (r) {
+      return { n: r[0], c: r[1] || undefined, lk: r[2] || undefined, areas: r[3], r: r[4] };
+    })
       .filter(function (row) { return !needle || foldQuery(row.n).indexOf(needle) >= 0; })
       .sort(function (a, b) { return b.areas - a.areas || b.r - a.r || (a.n < b.n ? -1 : a.n > b.n ? 1 : 0); });
   }
@@ -1150,7 +1161,7 @@
     familyGenera: familyGenera,
     speciesByKey: speciesByKey, noMatchKind: noMatchKind,
     nameOutline: nameOutline, genusAreaIds: genusAreaIds, areaOutline: areaOutline, outlineBox: outlineBox,
-    isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
+    isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank, summarySpeciesRank: summarySpeciesRank,
     tapTransition: tapTransition, tapGuard: tapGuard,
     areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, topRecorded: topRecorded, familyLabel: familyLabel,
     hasRecords: hasRecords, nextTab: nextTab, historyAction: historyAction,
@@ -1241,6 +1252,7 @@
     areasN: ['areas', '地域'],
     mapspEmpty: ['Open a square or island on the map to list its species here.', '地図のマスや島を開くと、ここに種が一覧表示されます。'],
     mapspNote: ['From the areas opened in this session, ranked by how many of them record each species.', 'このセッションで開いた地域のうち、記録している地域の数が多い順に表示しています。'],
+    mapspNational: ['All public species nationwide, ranked by number of areas with records.', '全国の公開種を、記録のある地域数の順に表示しています。'],
     showAll: ['Show all', 'すべて表示'],
     showFewer: ['Show fewer', '表示を減らす'],
     showMore: ['Show more', 'さらに表示'],
@@ -1273,7 +1285,7 @@
   var AREA_ROWS = 50;
   var MAPSP_ROWS = 50; // species-on-map disclosure: first window, then +50 per Show more
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // month + kind: all / m / l / o, both drive the map (TASK-013)
-    cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
+    cache: {}, cacheSnap: undefined, seenAreas: {}, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     q: '', mapspLimit: MAPSP_ROWS,
     name: null, nout: null, // the open 種／属／科 panel {id, label, …} and its outline sets (TASK-014/015)
     locCell: null, snaps: { dashboard: null, index: null },
@@ -1334,7 +1346,11 @@
         });
     })
       .catch(function () { names.status = 'absent'; names.at = Date.now(); })
-      .then(function () { if (search.refresh) search.refresh(); return names.status; })
+      .then(function () {
+        if (search.refresh) search.refresh();
+        if (!state.month && state.kind === 'all') renderMapSpecies(); // the national ranking may just have become available
+        return names.status;
+      })
       .then(function (st) { names.pending = null; return st; });
     return names.pending;
   }
@@ -2439,6 +2455,7 @@
       if (res.snapshot && state.snaps.index && res.snapshot !== state.snaps.index && !bypass)
         return loadDetail(row, token, true);
       cachePut(row.id, res);
+      state.seenAreas[row.id] = res.data.species; // non-evicting: the species-on-map list never shrinks within a visit (TASK-018)
       state.sel.detail = res.data;
       state.sel.failed = false;
       state.detailJoin = detailJoinOf(res, state.snaps.index);
@@ -2491,31 +2508,30 @@
     b.onclick = toggle;
   }
 
-  // Species-on-map disclosure: every area file the page holds — the detail cache plus
-  // the open selection (which is cached on load, so the set only ever grows). No new
-  // fetches; the species index/genus files stay untouched (TASK-011's data path).
+  // Species-on-map disclosure (TASK-011; data path corrected TASK-018): the areas opened
+  // this visit, held in the non-evicting state.seenAreas — the five-entry detail cache
+  // evicts, so reading it here made the list shrink once a 6th area loaded. No new
+  // fetches; the species index/genus files stay untouched.
   function loadedAreaSpecies() {
-    var out = [], seen = {};
-    var add = function (d) {
-      if (d && d.id && Array.isArray(d.species) && !seen[d.id]) { seen[d.id] = true; out.push(d.species); }
-    };
-    Object.keys(state.cache).forEach(function (id) { var r = state.cache[id]; if (r && r.ok) add(r.data); });
-    if (state.sel && state.sel.detail) add(state.sel.detail);
-    return out;
+    return Object.keys(state.seenAreas).map(function (id) { return state.seenAreas[id]; });
   }
   function renderMapSpecies() {
     var box = $('fd-mapspecies');
     if (!box) return;
-    var loaded = loadedAreaSpecies();
-    box.hidden = !loaded.length; // a "(0)" under an empty map reads as "no species"
-    var rows = mapSpeciesRank(loaded, state.month, state.q || '', state.kind);
+    // No filter and a trusted summary: the published national ranking (all-months,
+    // all-kinds). Any filter — or no summary — falls back to the accumulator above.
+    var national = !state.month && state.kind === 'all' && names.status === 'ready';
+    var loaded = national ? [] : loadedAreaSpecies();
+    var rows = national ? summarySpeciesRank(names.rows, state.q || '') : mapSpeciesRank(loaded, state.month, state.q || '', state.kind);
+    var any = national ? (names.rows || []).length > 0 : loaded.length > 0;
+    box.hidden = !any; // a "(0)" under an empty map reads as "no species"
     var nEl = $('fd-mapsp-n');
     if (nEl) nEl.textContent = fmtInt(rows.length);
     var note = $('fd-mapsp-note');
-    if (note) { note.hidden = false; note.textContent = loaded.length ? t('mapspNote') : t('mapspEmpty'); }
+    if (note) { note.hidden = false; note.textContent = national ? t('mapspNational') : (loaded.length ? t('mapspNote') : t('mapspEmpty')); }
     var list = $('fd-mapsp-list');
     if (list) {
-      if (!loaded.length) list.innerHTML = '';
+      if (!any) list.innerHTML = '';
       else if (!rows.length) list.innerHTML = '<li class="fd-empty">' + esc(t('noResults')) + '</li>';
       else {
         var view = visibleRows(rows, state.mapspLimit, false);
@@ -3138,7 +3154,7 @@
     if (res.ok) {
       state.index = res.data;
       state.snaps.index = res.snapshot;
-      if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
+      if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.seenAreas = {}; state.cacheSnap = res.snapshot; } // a new publication invalidates the visit's opened areas too
       renderJapan(); // the island-group suggestions need the validated index
       if (state.name) nameOutlined(); else drawViews(); // a deep link that resolved first now gets its outline
       if (!state.routed) { // early route: the camera fits from the validated index alone

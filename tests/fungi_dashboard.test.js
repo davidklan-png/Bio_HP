@@ -913,7 +913,7 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-25-4'), 'CSS stamp bumped (TASK-017)');
+    assert.ok(inc.includes('?v=2026-11-25-5'), 'CSS stamp bumped (TASK-018, again over TASK-017)');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -1449,10 +1449,9 @@ describe('pre-contact review: citations and method wording', () => {
     assert.ok(!inc.includes('作成に向いて'), 'typo 向いて is gone');
     assert.strictEqual((inc.match(/日本産固有菌類目録の作成に向けて/g) || []).length, 2, 'JA and EN both carry the real title');
   });
-  it('cites Katumoto with his real initial (勝本謙 = Ken Katumoto)', () => {
-    assert.ok(!inc.includes('Katumoto Y.'));
-    assert.strictEqual((inc.match(/Katumoto K\. 2010/g) || []).length, 2);
-  });
+  // The Katumoto 2010 citation was removed by TASK-018: no name on the page ever came
+  // from it, so the 和名 line now credits Japanese Wikipedia (asserted in the TASK-018
+  // block, including that no Katumoto remains anywhere in the include).
   it('describes deduplication as one specimen published twice, not one species', () => {
     assert.ok(!inc.includes('別のデータセットに同じ種がある場合'));
     assert.ok(!inc.includes('same species reported by different datasets'));
@@ -1516,9 +1515,11 @@ describe('pre-contact review: rendering seams (source level)', () => {
     assert.ok(!ov.includes("t('rec')"), 'no "33 記録数"');
     assert.ok(ov.includes('topRecorded('), 'top 5 comes from the DNA-excluding helper');
   });
-  it('hides the species-on-map disclosure until an area has loaded, from the first paint', () => {
+  it('hides the species-on-map disclosure until a source exists, from the first paint', () => {
+    // TASK-018: the source is the national summary (unfiltered) or the opened areas
+    // (filtered) — either way, an empty source keeps the box hidden, not a "(0)".
     const rm = /function renderMapSpecies\(\) \{([\s\S]*?)\n  \}/.exec(src)[1];
-    assert.ok(rm.includes('box.hidden = !loaded.length'));
+    assert.ok(rm.includes('box.hidden = !any'));
     const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
     assert.ok(inc.includes('<details class="fd-mapspecies" id="fd-mapspecies" hidden>'), 'cold page: hidden in markup (PR #70 review)');
   });
@@ -1762,5 +1763,81 @@ describe('TASK-012: Protection subsection names fungi and lichens (decision M1)'
     assert.deepStrictEqual(names(jaRaw), ['環境省第5次レッドリスト（菌類）', '環境省第5次レッドリスト（地衣類）']);
     assert.deepStrictEqual(names(enRaw), ['5th Red List for fungi (March 2025)', '5th Red List for lichens (March 2025)']);
     assert.ok(!/aria-label/.test(enRaw), 'EN link text is the name: nothing repeats it');
+  });
+});
+
+// TASK-018: the 和名 attribution says what is true (Japanese Wikipedia, some species),
+// the inspector's Japan panel is labelled all-time like the KPIs, the KPI tiles pair up
+// under 600 px, and the species-on-map list ranks nationally when no filter is active —
+// and never shrinks within a visit when one is.
+describe('TASK-018: attribution, All-Japan label, mobile KPIs, species-on-map source', () => {
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+
+  it('credits Japanese Wikipedia for the 和名 in both languages, and names no Katumoto standard', () => {
+    // Every 和名 today is a Japanese Wikipedia article title (ShroomHunt name_ja_from);
+    // the Katumoto 2010 citation claimed a standard nothing on the page follows.
+    assert.ok(inc.includes('和名は日本語版ウィキペディアの記事名から取得しています（現在は一部の種のみ）。'), 'JA sentence');
+    assert.ok(inc.includes('Japanese names come from Japanese Wikipedia article titles (some species only, for now).'), 'EN sentence');
+    assert.ok(!/Katumoto/.test(inc), 'Katumoto 2010 is no longer cited as a 和名 source');
+  });
+  it('labels the inspector\'s Japan panel all-time, like the KPI caption and the national section', () => {
+    assert.ok(
+      /<h2 class="fd-inspector__title">\{% if ja %\}日本全体・全期間\{% else %\}All of Japan, all time\{% endif %\}<\/h2>/.test(inc),
+      'the heading gains the 全期間 / all-time wording');
+  });
+  it('pairs the KPI tiles into two columns under 600 px, the leads tile spanning both, behind a bumped stamp', () => {
+    assert.ok(/@media \(max-width: 599px\) \{\s*\.fd-kpis \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/.test(css),
+      'a two-column grid under 600 px');
+    assert.ok(/\.fd-kpi:last-child \{ grid-column: 1 \/ -1; \}/.test(css), 'the leads tile spans both columns');
+    assert.ok(/fungi-dashboard\.css' \| relative_url \}\}\?v=2026-11-25-5"/.test(inc), 'the CSS stamp is bumped');
+    assert.ok(!inc.includes('?v=2026-11-25-4'), 'the old stamp is gone');
+  });
+  it('mapSpeciesRank over the areas a visit opened keeps a 6th area\'s predecessors', () => {
+    // The old path read the five-entry detail cache, so opening a 6th area evicted the
+    // first and the list shrank. seenAreas feeds the ranker every area ever opened.
+    const areas = [];
+    for (let i = 0; i < 6; i++) {
+      areas.push([
+        { n: 'Shared', k: 'm', r: 2, m: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        { n: 'Only' + i, k: 'm', r: 1, m: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+      ]);
+    }
+    const rows = fd.mapSpeciesRank(areas, 0, '', 'all');
+    const shared = rows.find((r) => r.n === 'Shared');
+    assert.strictEqual(shared.areas, 6, 'all six areas still count');
+    assert.ok(rows.some((r) => r.n === 'Only0'), "the first area's own species survive the fifth eviction");
+    assert.strictEqual(rows.length, 7, 'Shared plus six area-only species');
+  });
+  it('summarySpeciesRank: national rows ranked by area count, keys and query carried', () => {
+    const rows = [
+      ['C', 3, null, 2, 40, 0, 0],
+      ['A', 1, 9, 9, 10, 1, 0],
+      ['B', null, null, 9, 5, 0, 1]
+    ];
+    const ranked = fd.summarySpeciesRank(rows, '');
+    assert.deepStrictEqual(ranked.map((r) => r.n), ['A', 'B', 'C'], 'areas desc, then records, then name');
+    assert.strictEqual(ranked[0].areas, 9);
+    assert.strictEqual(ranked[0].r, 10);
+    assert.strictEqual(ranked[0].c, 1, 'col key kept');
+    assert.strictEqual(ranked[0].lk, 9, 'legacy key kept');
+    assert.strictEqual(ranked[1].c, undefined, 'a null key degrades to the name link');
+    assert.deepStrictEqual(fd.summarySpeciesRank(rows, 'a').map((r) => r.n), ['A'], 'the name filter is shared');
+    assert.deepStrictEqual(fd.summarySpeciesRank(null, ''), []);
+  });
+  it('picks the ranking source by filter state and summary availability', () => {
+    assert.ok(src.includes("var national = !state.month && state.kind === 'all' && names.status === 'ready';"),
+      'national only with no filter and a trusted summary');
+    assert.ok(/var rows = national \? summarySpeciesRank\(names\.rows, state\.q \|\| ''\) : mapSpeciesRank\(loaded, state\.month, state\.q \|\| '', state\.kind\);/.test(src),
+      'any filter, or a missing summary, falls back to the accumulator');
+    assert.ok(src.includes('state.seenAreas[row.id] = res.data.species;'), 'a loaded detail feeds the non-evicting map');
+    assert.ok(/function loadedAreaSpecies\(\) \{[\s\S]*?state\.seenAreas[\s\S]*?\n  \}/.test(src), 'the accumulator reads seenAreas');
+    assert.ok(!src.includes('Object.keys(state.cache).forEach'), 'the evicting detail cache no longer feeds the list');
+  });
+  it('the national footnote is paired EN/JA and replaces the session note on that path', () => {
+    assert.ok(src.includes("mapspNational: ['All public species nationwide, ranked by number of areas with records.', '全国の公開種を、記録のある地域数の順に表示しています。']"));
+    assert.ok(/note\.textContent = national \? t\('mapspNational'\) : \(loaded\.length \? t\('mapspNote'\) : t\('mapspEmpty'\)\);/.test(src),
+      'unfiltered says the national footnote; filtered keeps the session one');
   });
 });
