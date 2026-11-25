@@ -52,7 +52,7 @@
     "avatar.role": "AI/MLエンジニア · ITプロジェクトマネージャー · 東京",
 
     "proj.modlabel": "// 選抜プロダクト · 実装済みシステム",
-    "proj.h2": "実働する仕組みを持つ4つのプロダクト。",
+    "proj.h2": "実働する仕組みを持つ5つのプロダクト。",
     "proj.lead": "データ経路が動き、失敗条件が明示され、出力を検証できる。プロトタイプの演出ではなく実装で示します。",
     "proj.system_label": "システム",
 
@@ -95,6 +95,15 @@
     "proj.p4.tag2": "Cloudflare + Clerk",
     "proj.p4.tag3": "デフォルト拒否アクセス",
     "proj.p4.cta": "プロダクトを見る",
+    "proj.p5.id": "PRODUCT 05 · FIELD DATA",
+    "proj.p5.status": "公開中 · パブリックデータ",
+    "proj.p5.title": "Shroom Hunter",
+    "proj.p5.summary": "日本の菌類フィールドアプリ。GBIFが保持する日本の全菌類記録（34万件・1.2万種）を約10km四方のマスに集計し、学名・和名の検索と月別の推定を備えます。",
+    "proj.p5.system": "GBIFダウンロード → 重複除去 → マスキングゲート → 10kmメッシュ → 種バンドル → 検証済みパブリッシュ",
+    "proj.p5.tag1": "GBIF",
+    "proj.p5.tag2": "種マスキング",
+    "proj.p5.tag3": "決定論的ビルド",
+    "proj.p5.cta": "ダッシュボードを開く",
 
     "fam.modlabel": "// -MON ファミリー · 特化型システム",
     "fam.h2": "プロダクト、コパイロット、実験。一つの仕事に一体ずつ。",
