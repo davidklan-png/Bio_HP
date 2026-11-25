@@ -537,6 +537,44 @@ describe('boundaryRings dissolves cell unions (PR #47 review)', () => {
     assert.ok(Math.min(...xs) === e[2] && Math.max(...xs) === e[3]);
     assert.ok(Math.min(...ys) === e[0] && Math.max(...ys) === e[1]);
   });
+  // TASK-014 found this in the browser: a species outline over tile t5339 drew a diagonal.
+  // The trace marked vertices as used, so a second loop through a pinch vertex (two cells
+  // touching at a corner) lost its way back and came out as an open chain.
+  const axisAligned = (rings) => rings.every((r) => r.every((p, i) => {
+    const q = r[(i + 1) % r.length];
+    return (p[0] === q[0]) !== (p[1] === q[1]); // consecutive points share exactly one coordinate
+  }));
+  it('two cells touching only at a corner become two closed 4-point rings', () => {
+    const r = boundaryRings(['300:1000', '301:1001'], cellEdges);
+    assert.strictEqual(r.length, 2, 'one ring per cell, neither lost');
+    assert.ok(r.every((x) => x.length === 4));
+    assert.ok(axisAligned(r));
+  });
+  it('every published tile dissolves into closed, axis-aligned rings (the t5339 case)', () => {
+    const index = require('../assets/data/shroomhunt/areas/index.json');
+    const byTile = {};
+    Object.entries(index.cells).forEach(([k, id]) => { (byTile[id] = byTile[id] || []).push(k); });
+    const tiles = index.areas.filter((a) => a.kind === 'tile');
+    assert.ok(tiles.length > 100);
+    for (const t of tiles) {
+      const keys = byTile[t.id] || [];
+      if (!keys.length) continue;
+      const rings = boundaryRings(keys, cellEdges);
+      assert.ok(axisAligned(rings), t.id + ' has a diagonal segment');
+      // a dissolved outline walks every boundary edge exactly once
+      const edges = new Set();
+      keys.forEach((k) => {
+        const [row, col] = k.split(':').map(Number);
+        const e = cellEdges(row, col), pts = [[e[0], e[2]], [e[0], e[3]], [e[1], e[3]], [e[1], e[2]]];
+        for (let i = 0; i < 4; i++) {
+          const a = pts[i].join(','), b = pts[(i + 1) % 4].join(',');
+          if (edges.has(b + '>' + a)) edges.delete(b + '>' + a); else edges.add(a + '>' + b);
+        }
+      });
+      const walked = rings.reduce((n, r) => n + r.length, 0);
+      assert.strictEqual(walked, edges.size, t.id + ': ring points must equal boundary edges (an open chain walks fewer)');
+    }
+  });
 });
 
 // UI/UX pass: breadcrumb context, joined search, on-map legend, themed street chrome.
@@ -546,17 +584,22 @@ describe('UI restructure (comprehensive visual pass)', () => {
   const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
   it('selected area surfaces as breadcrumb + context line, cleared on deselect', () => {
-    assert.ok(/function setCrumb\(row\)/.test(src) && /function clearCrumb\(\)/.test(src));
+    assert.ok(/function setCrumb\(row, label\)/.test(src) && /function clearCrumb\(\)/.test(src));
     assert.ok(inc.includes('fd-crumb-area') && inc.includes('id="fd-context"'));
-    assert.ok(/selectArea[\s\S]*setCrumb\(row\)/.test(src) && /clearArea[\s\S]*clearCrumb\(\)/.test(src));
+    assert.ok(/selectArea[\s\S]*setCrumb\(row\)/.test(src), 'an area sets its crumb');
+    assert.ok(/function clearArea\(keepHash\) \{\n    closeName\(\);/.test(src) && /function closeName\(push\) \{[\s\S]*?clearCrumb\(\)/.test(src),
+      'deselecting goes through closeName, which clears the crumb (TASK-014)');
   });
   it('legend overlays the map itself (both renderers) with backdrop and no pointer capture', () => {
     assert.ok(inc.includes('fd-legend--onmap'));
     assert.ok(/\.fd-legend \{[^}]*position: absolute/.test(css) && css.includes('pointer-events: none'));
   });
-  it('street zoom control sits bottom-right away from the legend', () => {
+  it('the legend owns the bottom edge: zoom sits top right, the legend sits above the attribution', () => {
     const fm = fs.readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
-    assert.ok(fm.includes("L.control.zoom({ position: 'bottomright' })"));
+    assert.ok(fm.includes("L.control.zoom({ position: 'topright' })"), 'zoom top right, clear of a legend that wraps at any width');
+    assert.ok(/\.fd-map__street \.leaflet-control-zoom \{[^}]*top: 10px;/.test(css), 'and not at the bottom');
+    assert.ok(/\.fd-legend \{[^}]*bottom: 26px;/.test(css), 'legend above the one-line tile attribution');
+    assert.ok(/@media \(max-width: 380px\) \{ \.fd-legend \{ bottom: 40px; \} \}/.test(css), 'and above a two-line attribution on the narrowest screens');
   });
   it('buckets stay a single-hue sequential ramp per theme (no warm accent mid-scale)', () => {
     const dark = /--fd-b0: (#[0-9a-f]+); --fd-b1: (#[0-9a-f]+); --fd-b2: (#[0-9a-f]+); --fd-b3: (#[0-9a-f]+); --fd-b4: (#[0-9a-f]+);/.exec(css);
@@ -577,13 +620,14 @@ describe('street map is the default view (no toggle)', () => {
     assert.ok(!inc.includes('id="fd-street"'));
   });
 });
-// TASK-013: the Research filters button is gone (the month always drives the map). The boot
-// probe stays: genus search and the masking caption read the same payload.
-describe('research payload is probed at boot; no research button remains (TASK-013)', () => {
-  it('boot probes mesh-research.json and no longer gates a button', () => {
+// TASK-013: the Research filters button is gone (the month always drives the map). TASK-014
+// dropped the boot probe with it: the first non-default filter and the first genus pick load
+// the payload, and the masking caption shows whatever it did.
+describe('research payload loads lazily; no research button remains (TASK-013/014)', () => {
+  it('nothing probes mesh-research.json at boot and nothing gates a button', () => {
     const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
     const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
-    assert.ok(/loadResearch\(false\); \/\/ availability probe/.test(src), 'probe at boot');
+    assert.ok(!/loadResearch\(/.test(src.slice(src.indexOf('function start() {'))), 'no probe at boot');
     assert.ok(!inc.includes('id="fd-research"'), 'the Research filters button is gone');
     assert.ok(!src.includes('function researchAvailable()'), 'nothing left to gate');
     assert.ok(!src.includes('function wireResearch()'), 'no toggle wiring');
@@ -634,22 +678,9 @@ describe('product round: app identity and layout', () => {
   });
 });
 
-describe('name search matches common names and aliases', () => {
-  const fd = require('../assets/js/fungi-dashboard.js');
-  const ix = { areas: [{ id: 'okisle', kind: 'island', name_en: 'Ok Island', name_ja: '島', bbox: [26, 27, 127, 128] }] };
-  const genera = [
-    ['Amanita', ['okisle'], ['Amanita', 'テングタケ属', 'amanita']],
-    ['Tricholoma', ['okisle'], ['Tricholoma', 'キシメジ属', 'matsutake', 'マツタケ']]
-  ];
-  it('matches Latin, English alias and Japanese alias by prefix', () => {
-    const q = (x) => fd.genusResults(genera, x, ix);
-    assert.strictEqual(q('Aman')[0].genus, 'Amanita');
-    assert.strictEqual(q('matsutake')[0].genus, 'Tricholoma');
-    assert.strictEqual(q('マツタケ')[0].genus, 'Tricholoma');
-    assert.ok(q('テング')[0].label.includes('テングタケ属'));
-    assert.strictEqual(q('zzz').length, 0);
-  });
-});
+// TASK-014: genus options come from every published genus (species/summary.json), so the
+// common-name/alias match over three reviewed research genera is retired with genusResults();
+// 和名 and synonym search is Phase 2 (filters-and-search-plan S2).
 
 describe('street fills rebuild when the research slice changes', () => {
   it('redraw compares the slice key, not just the palette', () => {
@@ -682,10 +713,10 @@ describe('readResearch accepts the names element', () => {
 // TASK-005: masking notice on name search; Where column hidden until habitat ships.
 describe('masking notice and hidden Where column (TASK-005)', () => {
   const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
-  it('name search carries a persistent bilingual caption, repeated on empty results (TASK-008 port)', () => {
+  it('name search carries a bilingual caption under the box, whatever the research payload did; a miss never repeats it (TASK-014)', () => {
     assert.ok(/masking: \['/.test(src), 'bilingual T.masking entry exists');
-    assert.ok(/researchReady\(\) \? t\('masking'\) : ''/.test(src), 'a research-ready search shows the caption persistently');
-    assert.ok(src.includes("note(t('noResults') + (researchReady() ? ' ' + t('masking') : ''))"), 'empty name results repeat the caption');
+    assert.ok(/geo\.status === 'loading' \? t\('geoLoading'\) : t\('masking'\)/.test(src), 'the caption no longer waits for mesh-research.json');
+    assert.ok(!/t\('noResults'\) \+ \(researchReady\(\)/.test(src) && !/t\('noResults'\) \+ ' ' \+ t\('masking'\)/.test(src), 'empty results carry no masking note');
   });
   it('hides the Where column while has_habitat is false; groups show islands as a row subline (TASK-007)', () => {
     assert.ok(src.includes("var showWhere = a.kind !== 'group' && (a.has_habitat !== false && !(state.index && state.index.has_habitat === false))"),
@@ -762,10 +793,18 @@ describe('TASK-007: history actions', () => {
   it('selectArea routes every history write through historyAction, clearArea pushes', () => {
     const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
     assert.ok(/var act = historyAction\(source\)/.test(src), 'one decision point');
-    assert.ok(src.includes("root.history[act + 'State']"), 'act picks push vs replace');
-    assert.ok(/clearArea[\s\S]*?pushState/.test(src), 'the crumb clear pushes the bare path');
+    assert.ok(src.includes("pushUrl('#area-' + row.id, act + 'State')"), 'act picks push vs replace');
+    assert.ok(/function clearArea\(keepHash\) \{[\s\S]*?pushUrl\(root\.location\.pathname\)/.test(src), 'the crumb clear pushes the bare path');
     assert.ok(src.includes("addEventListener('popstate'"), 'popstate listener wired');
     assert.ok(src.includes("addEventListener('hashchange'"), 'hashchange listener wired');
+  });
+  it('every history write goes through pushUrl, so the router guard hears of it (TASK-014)', () => {
+    // Found in the browser: a species panel closed by the 日本全体 crumb, or replaced by an
+    // area chosen on the map, did not come back on Back. clearArea() and selectArea() pushed
+    // on their own, so lastRoute never moved and the router took that Back for a duplicate.
+    const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+    assert.strictEqual((src.match(/root\.history\b/g) || []).length, 1, 'one history write in the whole script');
+    assert.ok(/function pushUrl\(url, how\) \{[\s\S]*?root\.history\[how \|\| 'pushState'\]\(null, '', url\); lastRoute = root\.location\.href;/.test(src), 'it writes, then remembers the href');
   });
 });
 
@@ -867,12 +906,12 @@ describe('TASK-008: unified search markup', () => {
     for (const attr of ['role="combobox"', 'aria-controls="fd-search-results"', 'aria-expanded="false"', 'aria-autocomplete="list"'])
       assert.ok(input[0].includes(attr), 'input carries ' + attr);
     assert.ok(/id="fd-search-results"[^>]*role="listbox"/.test(inc), 'results are a listbox');
-    assert.ok(inc.includes('Search islands, places or genus names') && inc.includes('島・地名・属名で検索'), 'placeholder EN/JA');
+    assert.ok(inc.includes('Search islands, places, genus or species names') && inc.includes('島・地名・属名・種名で検索'), 'placeholder EN/JA (TASK-014)');
   });
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-24-1'), 'CSS stamp bumped');
+    assert.ok(inc.includes('?v=2026-11-25-1'), 'CSS stamp bumped (TASK-014)');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -886,7 +925,8 @@ describe('TASK-008: unified search markup', () => {
     assert.ok(src.includes("selectArea(row.id, 'search')"), 'area options select');
     assert.ok(src.includes("selectArea(p.area_id, 'search')"), 'places with an area select it');
     assert.ok(src.includes('centreOn(p)'), 'places without an area centre the camera');
-    assert.ok(src.includes("selectArea(item.areaId, 'search')"), 'genus options select their area');
+    assert.ok(src.includes("showSpecies({ row: sp }, 'search')") && src.includes("selectGenus(item.genus, 'search')"),
+      'a species or genus option opens its panel (TASK-014; panels never go through selectArea)');
   });
   it('street success only clears a status it owns, so the index-failure line survives', () => {
     assert.ok(/if \(street\.ownsMsg\) \{ street\.ownsMsg = false; areaMsg\(null\); \}/.test(src),
@@ -907,16 +947,33 @@ describe('TASK-008: searchAll', () => {
     { en: 'Amami', ja: '奄美', aliases: [], at: [129.5, 28.38] },
     { en: 'Yakushima', ja: '屋久島', aliases: [], at: [130.5, 30.3], area_id: 'yakushima' }
   ];
-  const genera = [
-    ['Russula', ['okinawa-honto', 'hokkaido'], ['Russula', 'ベニタケ属', 'brittlegill']],
-    ['Amanita', ['amami-oshima'], ['Amanita', 'テングタケ属']]
-  ];
-  it('groups areas, places and genera in that order', () => {
-    const g = fd.searchAll('am', { areas, places, genera });
-    assert.deepStrictEqual(g.map((x) => x.group), ['areas', 'places', 'genera']);
+  // TASK-014: summary rows [name, col_key, legacy_key, area_count, record_count, mhlw, endemic]
+  const names = { rows: [
+    ['Amanita muscaria', 'E1', null, 70, 4000, true, false],
+    ['Amphinema byssoides', 'N1', null, 30, 500, false, false],
+    ['Russula vesca', 'B2', null, 60, 1200, false, false]
+  ] };
+  it('groups areas, places, species and genera in that order', () => {
+    const g = fd.searchAll('am', { areas, places, names });
+    assert.deepStrictEqual(g.map((x) => x.group), ['areas', 'places', 'species', 'genera']);
     assert.deepStrictEqual(g[0].items.map((x) => x.area.id), ['amami-oshima']);
     assert.deepStrictEqual(g[1].items.map((x) => x.place.en), ['Amami']);
-    assert.deepStrictEqual(g[2].items.map((x) => x.areaId), ['amami-oshima']);
+    assert.deepStrictEqual(g[2].items.map((x) => x.row[0]), ['Amanita muscaria', 'Amphinema byssoides']); // most areas first
+    assert.deepStrictEqual(g[3].items.map((x) => x.genus), ['Amanita', 'Amphinema']);
+  });
+  it('puts the genus panel above the species for a one-word query that names a genus', () => {
+    assert.deepStrictEqual(fd.searchAll('amanita', { names }).map((x) => x.group), ['genera', 'species']);
+    assert.deepStrictEqual(fd.searchAll('amanita muscaria', { names }).map((x) => x.group), ['species', 'genera']); // a binomial: the species first
+    assert.deepStrictEqual(fd.searchAll('am', { names }).map((x) => x.group), ['species', 'genera']); // a prefix: the species first
+  });
+  it('finds a hyphenated or dotted name typed exactly, the binomial above its own variety', () => {
+    // 280 published names carry a hyphen; typed exactly they must not be turned away
+    const rows = [['Amanita neo-ovoidea', 'H1', null, 1, 9, false, false], ['Amanita neo-ovoidea var. claristriata', 'H2', null, 4, 40, false, false],
+      ['Amanita spreta', 'H3', null, 12, 300, false, false]];
+    const hit = fd.searchNames(rows, 'Amanita neo-ovoidea', 8).species.map((x) => x.row[0]);
+    assert.deepStrictEqual(hit, ['Amanita neo-ovoidea', 'Amanita neo-ovoidea var. claristriata']); // exact first, then its prefix match
+    assert.deepStrictEqual(fd.searchNames(rows, 'Amanita neo-ovoidea var', 8).species.map((x) => x.row[0]), ['Amanita neo-ovoidea var. claristriata']);
+    for (const q of ['Amanita neo-ovoidea', 'neo-ovoidea', 'Amanita neo-ovoidea var. claristriata']) assert.ok(fd.isLatinQuery(q), q);
   });
   it('caps each group at 8 by default and reports the rest as more', () => {
     const isles = Array.from({ length: 10 }, (_, i) => ({ id: 'i' + i, kind: 'island', name_en: 'Isla ' + i, name_ja: '島' + i, bbox: [30 + i, 31, 130, 131], species: i }));
@@ -943,18 +1000,11 @@ describe('TASK-008: searchAll', () => {
     assert.strictEqual(ja.rank, 0); // exact match outranks prefixes
     assert.deepStrictEqual(fd.searchAll('yak', { places })[0].items[0].place.area_id, 'yakushima');
   });
-  it('flattens genus results into one option per genus × area', () => {
-    const g = fd.searchAll('russ', { areas, genera })[0];
-    assert.strictEqual(g.group, 'genera');
-    assert.deepStrictEqual(g.items.map((x) => x.areaId), ['okinawa-honto', 'hokkaido']);
-    assert.strictEqual(g.items[0].genus, 'Russula');
-    assert.strictEqual(g.items[0].label, 'Russula · ベニタケ属');
-  });
   it('returns no group for absent sources or no matches', () => {
-    assert.deepStrictEqual(fd.searchAll('zzz', { areas, places, genera }), []);
+    assert.deepStrictEqual(fd.searchAll('zzz', { areas, places, names }), []);
     assert.deepStrictEqual(fd.searchAll('okin', { places }), []); // no index: areas cannot match
-    assert.deepStrictEqual(fd.searchAll('russ', { areas, genera: null }), []); // research not loaded
-    assert.deepStrictEqual(fd.searchAll('russ', { genera }), []); // no index: no valid leaf areas
+    assert.deepStrictEqual(fd.searchAll('russ', { areas, names: null }), []); // summary not loaded
+    assert.deepStrictEqual(fd.searchAll('amanita zz', { names }).map((x) => x.group), ['genera']); // only the genus half hits
   });
 });
 
@@ -976,13 +1026,13 @@ describe('TASK-008: empty-state suggestions and lazy genus option', () => {
   it('tolerates a missing index', () => {
     assert.deepStrictEqual(fd.suggestGroups(null), []);
   });
-  it('offers the genus lazy-load only for 3+ plain Latin-letter queries', () => {
+  it('a Latin query is letters and spaces from two letters, so a binomial counts (TASK-014)', () => {
     assert.strictEqual(fd.isLatinQuery('Russula'), true);
     assert.strictEqual(fd.isLatinQuery('  amanita '), true);   // folded and trimmed
     assert.strictEqual(fd.isLatinQuery('Chūbu'), true);        // diacritics fold to plain letters
-    assert.strictEqual(fd.isLatinQuery('ru'), false);
+    assert.strictEqual(fd.isLatinQuery('ru'), true);           // two letters are enough (was 3)
+    assert.strictEqual(fd.isLatinQuery('Amanita muscaria'), true);
     assert.strictEqual(fd.isLatinQuery('ab1'), false);
-    assert.strictEqual(fd.isLatinQuery('na ha'), false);
     assert.strictEqual(fd.isLatinQuery('マツタケ'), false);
     assert.strictEqual(fd.isLatinQuery(''), false);
   });
@@ -1267,9 +1317,9 @@ describe('TASK-010: interaction and network wiring (source-level)', () => {
   it('Esc closes the detail row and the card before the preview and the area', () => {
     const esc = /doc\.addEventListener\('keydown', function \(e\) \{[\s\S]*?\}\);/.exec(src)[0];
     const iDetail = esc.indexOf('closeSpeciesDetail()');
-    const iCard = esc.indexOf('hideSpeciesCard()');
+    const iCard = esc.indexOf('closeName(true)');
     const iPreview = esc.indexOf("var pv = $('fd-preview')");
-    assert.ok(iDetail >= 0 && iCard > iDetail && iPreview > iCard, 'detail row → card → preview → area');
+    assert.ok(iDetail >= 0 && iCard > iDetail && iPreview > iCard, 'detail row → 種／属 panel → preview → area');
   });
   it('tables delegate toggle clicks, so rebuilt rows keep working', () => {
     assert.ok(src.includes("'fd-area-species', 'fd-area-possible'"), 'both tables delegate');
@@ -1285,8 +1335,9 @@ describe('TASK-010: interaction and network wiring (source-level)', () => {
     assert.ok(src.includes("base + 'species/index.json'") && src.includes("base + 'species/' + encodeURIComponent(slug)"),
       'the only species fetches are the bundle index and genus files');
   });
-  it('the include ships the deep-link card container', () => {
-    assert.ok(inc.includes('id="fd-species-card"'));
+  it('the deep-link card became the inspector panel: one surface (TASK-014)', () => {
+    assert.ok(!inc.includes('id="fd-species-card"') && !src.includes('fd-species-card'), 'the card under the workspace is gone');
+    assert.ok(inc.includes('id="fd-name-body"') && /<section[^>]*id="fd-name"[^>]*hidden/.test(inc), 'the panel ships hidden in the inspector');
   });
 });
 
@@ -1451,11 +1502,6 @@ describe('pre-contact review: pure helpers', () => {
     assert.ok(!found.includes('hateruma'), 'empty island hidden from search');
     assert.ok(found.includes('t3723'), 'genus-only tiles (records, 0 species) still searchable');
   });
-  it('genusScope lists the searchable genera, sorted and unique', () => {
-    const genera = [['Russula', ['t1']], ['Amanita', ['t2']], ['Ganoderma', ['t3']], ['Amanita', ['t4']]];
-    assert.deepStrictEqual(fd.genusScope(genera), ['Amanita', 'Ganoderma', 'Russula']);
-    assert.deepStrictEqual(fd.genusScope(null), []);
-  });
 });
 
 describe('pre-contact review: rendering seams (source level)', () => {
@@ -1475,12 +1521,12 @@ describe('pre-contact review: rendering seams (source level)', () => {
     assert.ok(inc.includes('<details class="fd-mapspecies" id="fd-mapspecies" hidden>'), 'cold page: hidden in markup (PR #70 review)');
   });
   it('the context line does not repeat the breadcrumb name', () => {
-    const sc = /function setCrumb\(row\) \{([\s\S]*?)\n  \}/.exec(src)[1];
+    const sc = /function setCrumb\(row, label\) \{([\s\S]*?)\n  \}/.exec(src)[1];
     assert.ok(!/ctx\.innerHTML = esc\(areaName\(row\)\)/.test(sc));
   });
-  it('a Latin query with no genus hit explains the genus scope instead of implying masking', () => {
-    assert.ok(src.includes("genusScope(research.res.data.genera)"));
-    assert.ok(src.includes('genusScopeNote'));
+  it('a Latin miss points at scientific-name search; a place miss says only 該当なし (TASK-014)', () => {
+    assert.ok(src.includes("note(nn || t(noMatchKind(q) === 'names' ? 'noResultsNames' : 'noResults'))"), 'the miss picks per query type');
+    assert.ok(!src.includes('genusScopeNote') && !src.includes('genusScope('), 'the three-genus scope note is gone with the path');
   });
 });
 
@@ -1635,7 +1681,7 @@ describe('TASK-013: honest filters (source level)', () => {
     assert.ok(est.includes('fd-legend__title fd-legend__title--long') && est.includes('fd-legend__item fd-legend__item--wrap'), 'the include carries both');
   });
   it('the chip row renders a ✕ per removable chip, one Reset all, and nothing removable by default', () => {
-    assert.ok(/function renderActiveFilters\(\) \{[\s\S]*?var chips = activeFilters\(state, lang\);[\s\S]*?\n  \}/.test(src));
+    assert.ok(/function renderActiveFilters\(\) \{[\s\S]*?var chips = activeFilters\(state, lang, nameChip\(\)\);[\s\S]*?\n  \}/.test(src), 'the 種／属 chip is the extra (TASK-014)');
     assert.ok(src.includes("remove: ['Remove filter: {label}', '{label}を解除']"));
     assert.ok(src.includes("resetAll: ['Reset all', 'すべて解除']"));
     assert.ok(src.includes('data-fd-clear'), 'removable chips and Reset all route through one data attribute');
@@ -1643,7 +1689,7 @@ describe('TASK-013: honest filters (source level)', () => {
     // found in the browser: the line was blank until the first click, because only
     // filterChanged() rendered it. "Always visible" includes the default view at boot.
     assert.ok(/function setupToolbar\(\) \{[\s\S]*?renderActiveFilters\(\);[\s\S]*?\n  \}/.test(src), 'the default line renders at boot');
-    assert.strictEqual((src.match(/[^.\w]renderActiveFilters\(\);/g) || []).length, 2, 'rendered from exactly two places: boot and a change');
+    assert.strictEqual((src.match(/[^.\w]renderActiveFilters\(\);/g) || []).length, 3, 'rendered from exactly three places: boot, a change, and closing a 種／属 panel (TASK-014)');
   });
   it('kind chips drive the species-on-map list through the pure ranker', () => {
     assert.ok(src.includes("mapSpeciesRank(loaded, state.month, state.q || '', state.kind)"));

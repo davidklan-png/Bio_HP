@@ -219,40 +219,28 @@ describe('place search: folding and aliases', () => {
   });
 });
 
-describe('genus search: allowlist and unknown-id drop', () => {
-  const index = {
-    areas: [
-      { id: 'okinawa-honto', kind: 'island' },
-      { id: 'ishigaki', kind: 'island' },
-      { id: 't5339', kind: 'tile' },
-      { id: 'g-okinawa-prefecture', kind: 'group' }
-    ]
-  };
-  const genera = [
-    ['Amanita', ['okinawa-honto', 'ghost-id', 'g-okinawa-prefecture']],
-    ['Amanitopsis', ['ishigaki']],
-    ['Russula', ['t5339']],
-    ['Xylaria', ['ghost-id']]
-  ];
-  it('prefix-matches Latin names case-insensitively', () => {
-    assert.deepStrictEqual(fd.genusResults(genera, 'ama', index).map((g) => g.genus), ['Amanita', 'Amanitopsis']);
-    assert.deepStrictEqual(fd.genusResults(genera, 'AMANITA', index).map((g) => g.genus), ['Amanita']);
-    assert.deepStrictEqual(fd.genusResults(genera, 'russ', index).map((g) => g.genus), ['Russula']);
+// TASK-014: the research-genera path is retired as the combobox's genus source. searchAll
+// takes searchNames() output as `names` and appends its two groups after areas and places;
+// the matching itself is covered in tests/fungi_name_search.test.js.
+describe('searchAll: species and genera come from summary rows (TASK-014)', () => {
+  const areas = [{ id: 'okinawa-honto', kind: 'island', name_en: 'Okinawa Island', name_ja: '沖縄本島', bbox: [26.07, 26.88, 127.63, 128.33], species: 1100 }];
+  const names = { rows: [
+    ['Russula vesca', 'B2', null, 60, 1200, false, false],
+    ['Russula cyanoxantha', 'B1', null, 40, 800, false, false],
+    ['Amanita muscaria', 'E1', null, 70, 4000, true, false]
+  ] };
+  it('appends 種 then 属 after the areas and places groups', () => {
+    const g = fd.searchAll('russ', { areas, names });
+    assert.deepStrictEqual(g.map((x) => x.group), ['species', 'genera']);
+    assert.deepStrictEqual(g[0].items.map((x) => x.row[0]), ['Russula vesca', 'Russula cyanoxantha']); // most areas first
+    assert.deepStrictEqual(g[1].items, [{ genus: 'Russula', rank: 1 }]);
   });
-  it('is prefix-only: mid-string matches return nothing', () => {
-    assert.deepStrictEqual(fd.genusResults(genera, 'manita', index), []);
-  });
-  it('keeps only known leaf areas (unknown ids and groups drop)', () => {
-    const [amanita] = fd.genusResults(genera, 'amanita', index);
-    assert.deepStrictEqual(amanita.areas, ['okinawa-honto']);
-    assert.deepStrictEqual(fd.genusResults(genera, 'russ', index)[0].areas, ['t5339']); // tiles are leaves
-  });
-  it('drops a genus whose every area was filtered away', () => {
-    assert.deepStrictEqual(fd.genusResults(genera, 'xyl', index), []);
-  });
-  it('caps the result list', () => {
-    const many = Array.from({ length: 12 }, (_, i) => ['Genus' + i, ['okinawa-honto']]);
-    assert.strictEqual(fd.genusResults(many, 'genus', index, 8).length, 8);
+  it('an absent names source adds no group; a query whose genus half alone hits adds the genus group only', () => {
+    assert.deepStrictEqual(fd.searchAll('russ', { areas: null, names: null }), []);
+    // a one-word query that is a genus name: the genus panel first, then its species
+    assert.deepStrictEqual(fd.searchAll('russula', { names }).map((x) => x.group), ['genera', 'species']);
+    assert.deepStrictEqual(fd.searchAll('russula zz', { names }).map((x) => x.group), ['genera']);
+    assert.deepStrictEqual(fd.searchAll('zzz', { names }), []);
   });
 });
 
