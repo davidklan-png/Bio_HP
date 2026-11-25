@@ -971,6 +971,7 @@
     allTimeScope: ['All of Japan, all time', '日本全体・全期間'],
     matching: ['Matching species: {n}', '条件に合う種：{n}'],
     searchCount: ['results', '件の結果'],
+    nameFailed: ['The details for this species could not be loaded. Try again in a moment.', 'この種の詳細を読み込めませんでした。しばらくしてからもう一度お試しください。'],
     geoDead: ['Area and place search are unavailable: their data could not be loaded. Scientific names can still be searched.', '地域一覧も地名データも読み込めないため、地域・地名の検索は利用できません。学名は検索できます。'],
     sgAreas: ['Areas', '地域'],
     sgPlaces: ['Places', '地名'],
@@ -1071,7 +1072,7 @@
     if (search.refresh) search.refresh();
     // A deployment between the two files leaves the cached index naming the old summary:
     // the bypassed retry must compare against a refetched index, or it fails the same way (PR #75 review)
-    if (bypass) species.index = null;
+    if (bypass) { species.index = null; species.genera = {}; } // and the genus files of the old publication
     return speciesFiles().then(function () {       // the index names the file to expect
       if (!species.index) throw new Error('no species index'); // nothing to check a summary against
       var index = species.index;
@@ -1104,6 +1105,7 @@
         if (!r.ok) throw new Error('invalid species index');
         species.index = r;
         species.indexAt = Date.now();
+        species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
         return r.files;
       })
       .catch(function () {
@@ -1297,6 +1299,7 @@
     speciesEntry(spec.row[1], spec.row[2], spec.row[0]).then(function (entry) {
       if (state.name !== n) return; // superseded or closed meanwhile
       n.entry = entry || null;
+      n.failed = !entry;            // the summary lists this species: no entry is a load failure, never an absence
       n.settled = true;
       renderNamePanel();
       nameOutlined();
@@ -1337,7 +1340,8 @@
         (e ? markersHtml(speciesMarkers(e), lang) : '');
       meta.textContent = '';
       body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
-        e ? '<div class="fd-detail__wrap">' + speciesDetailsHtml(e, lang, state.month) + '</div>' : nameMissHtml();
+        e ? '<div class="fd-detail__wrap">' + speciesDetailsHtml(e, lang, state.month) + '</div>' :
+        n.failed ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : nameMissHtml();
       return;
     }
     // Rows follow the chips by the same rule as the area tables; the outline follows the rows.

@@ -245,7 +245,8 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/root\.crypto && root\.crypto\.subtle/.test(src) && src.includes("'SHA-256'"), 'sha256 through WebCrypto');
     assert.ok(src.includes('summaryTrusted('), 'the pure check decides');
     assert.ok(/function loadSummary\(bypass\)/.test(src) && /cache: bypass \? 'reload' : 'no-cache'/.test(src), 'one bypassed refetch is the standard treatment');
-    assert.ok(/if \(bypass\) species\.index = null;\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too: a deployment between the two files (PR #75 review)');
+    assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    return speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
+    assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
     const run = fn('run');
@@ -319,6 +320,12 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(m && /Scientific names/.test(m[1]) && /学名/.test(m[2]), 'geoDead is paired and names the working search');
     assert.ok(!/\bsearchUnavailable/.test(src), 'the old all-search-unavailable text is gone (researchUnavailable is another key)');
   });
+  it('a species the summary lists is never shown as absent when its genus file fails to load (PR #75 review)', () => {
+    const show = fn('showSpecies');
+    assert.ok(/n\.failed = !entry;/.test(show), 'a missing entry for a summary row is a failure');
+    const render = fn('renderNamePanel');
+    assert.ok(/n\.failed \? '<p class="fd-empty">' \+ esc\(t\('nameFailed'\)\) \+ '<\/p>' : nameMissHtml\(\)/.test(render), 'the failure gets its own line, the miss stays for what was never listed');
+  });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
     assert.ok(/function selectArea\(id, source\) \{[\s\S]*?closeName\(\);/.test(src), 'selecting an area closes the panel');
@@ -360,7 +367,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/\.fd-name \.fd-seg button \{ min-height: 44px; \}/.test(css), '44 px targets in the secondary list');
   });
   it('every new string the script adds is paired EN/JA', () => {
-    for (const k of ['noResultsNames', 'namesLoading', 'namesUnavailable', 'chipSpecies', 'chipGenus', 'genusSquares']) {
+    for (const k of ['noResultsNames', 'namesLoading', 'namesUnavailable', 'nameFailed', 'geoDead', 'chipSpecies', 'chipGenus', 'genusSquares']) {
       const m = new RegExp("\\n    " + k + ": \\['[^']+', '[^']+'\\],?\\n").exec(src);
       assert.ok(m, k + ' must be a paired [EN, JA] string');
     }
