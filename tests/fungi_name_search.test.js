@@ -584,7 +584,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/if \(state\.nout\) \['solid', 'dashed'\]\.forEach/.test(src), 'both sets');
     assert.ok(fm.includes('ctx.nameOutlines()'), 'the street layer reads the shared sets');
     assert.ok(/nameOutlines: function \(\) \{ return state\.nout; \}/.test(src), 'the dashboard hands them over');
-    assert.ok(/outlineKeys|boundaryRings\(o\.keys, shared\.cellEdges\)/.test(fm), 'street tiles dissolve through boundaryRings');
+    assert.ok(/outlineKeys|boundaryRings\(nm\.(solid|dashed)\.keys, shared\.cellEdges\)/.test(fm), 'street tiles dissolve through boundaryRings');
     assert.ok(/L\.rectangle\(/.test(fm), 'street islands draw their bbox');
     assert.ok(/is-dash/.test(src) && /'8 4'|8 4/.test(fm), 'dashed on both');
   });
@@ -616,11 +616,12 @@ describe('name areas highlight (TASK-016)', () => {
   const fm = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
   const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
-  it('the simple map fills the recorded areas under their strokes, never the dashed set', () => {
-    assert.ok(/if \(!i\) nameFill \+= '<rect class="fd-map__sel-fill"/.test(src), 'island fill rects, solid set only');
+  it('the simple map fills the recorded tile cells under their strokes, never the dashed set nor an island box', () => {
     assert.ok(/'<path class="fd-map__sel-fill" d="' \+ dd \+ '"\/>'/.test(src), 'a fill path for the dissolved cells');
-    assert.ok(/nameOut \+= \(i \? '' : \(dd \? '<path class="fd-map__sel-fill" d="' \+ dd \+ '"\/>' : ''\) \+ nameFill\) \+/.test(src),
+    assert.ok(/nameOut \+= \(i \? '' : \(dd \? '<path class="fd-map__sel-fill" d="' \+ dd \+ '"\/>' : ''\)\) \+/.test(src),
       'the fill is emitted before the strokes, and only for the solid set (part 0)');
+    // PR #77 review: an island's bbox is mostly open sea (Ogasawara's is 3.8 degrees of it)
+    assert.ok(!/rect class="fd-map__sel-fill"/.test(src), 'islands keep their outline alone');
     assert.ok(/svg\.classList\.toggle\('is-named', !!state\.nout\)/.test(src), 'the svg carries is-named while a panel outlines');
   });
   it('the CSS fills from the selection core and fades the squares and hatch under is-named', () => {
@@ -628,19 +629,25 @@ describe('name areas highlight (TASK-016)', () => {
     assert.ok(/\.fd-map > svg\.is-named path\[class\^="fd-map__b"\], \.fd-map > svg\.is-named path\[class\^="fd-map__e"\] \{ opacity: \.18; \}/.test(css), 'the record squares fade');
     assert.ok(/\.fd-map > svg\.is-named \.fd-map__nx \{ opacity: \.25; \}/.test(css), 'the hatch fades less');
   });
-  it('the street layer fills the recorded areas under the strokes and fades its squares', () => {
-    assert.ok(/outlineLayers\(nm\.solid, pal\.core, 0, null, true\)/.test(fm), 'a fill group under the strokes');
+  it('the street layer fills the recorded tile cells under the strokes, dissolves each set once, and fades everything else', () => {
+    assert.ok(/outlineLayers\(nm\.solid, solidRings, pal\.core, 0, null, true\)/.test(fm), 'a fill group under the strokes');
     assert.ok(/fill: true, fillColor: color, fillOpacity: 0\.28, stroke: false/.test(fm), 'the same flat fill');
+    assert.ok(/\(fill \? \[\] : o\.islands\.map/.test(fm), 'no filled island box');
+    assert.strictEqual((fm.match(/boundaryRings\(nm\./g) || []).length, 2, 'each set is dissolved once per redraw, not once per style (PR #77 review)');
+    assert.ok(/outlineLayers\(nm\.dashed, dashedRings, pal\.halo, 4, '8 4'\)/.test(fm), 'the strokes share the dissolved rings');
     assert.ok(/var named = ctx\.nameOutlines \? ctx\.nameOutlines\(\) : null;/.test(fm) &&
       /fillOpacity: named \? 0\.14 : 0\.7/.test(fm) && /fillOpacity: named \? 0\.25 : \.8/.test(fm),
       'bands and hatch fade while a panel outlines');
     // At all-Japan zoom a cell is a few pixels wide, so its stroke would cover most of it:
-    // the stroke fades too, or the squares read at full strength (planner check in WebKit)
+    // the strokes fade too, or the squares and the hatch read at full strength (planner
+    // check in WebKit, then PR #77 review for the hatch)
     assert.ok(/opacity: named \? 0\.14 : \.9,\s*fill: true, fillColor: ramp\[i\], fillOpacity: named \? 0\.14 : 0\.7/.test(fm), 'the band stroke fades with its fill');
+    assert.ok(/opacity: named \? 0\.15 : \.6,\s*fill: true, fillColor: hatchPattern/.test(fm), 'and so does the hatch stroke');
   });
   it('the legend swatch shows the fill under its border', () => {
     assert.ok(/\.fd-legend i\.fd-map__outline \{ background: color-mix\(in srgb, var\(--fd-sel-core\) 30%, transparent\); border: 2px solid var\(--fd-sel-core\); \}/.test(css),
       'the swatch previews the fill from the selection token');
+    assert.ok(/\.fd-legend i\.fd-map__outline--dash \{ border-style: dashed; background: none; \}/.test(css), 'the dashed swatch stays unfilled: dashed areas are never filled (PR #77 review)');
   });
 });
 

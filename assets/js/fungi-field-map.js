@@ -177,19 +177,23 @@
             fill: true, fillColor: ramp[i], fillOpacity: named ? 0.14 : 0.7 }).addTo(view));
       });
       if (nx.length)
-        fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .6,
+        // the hatch stroke fades with its fill (PR #77 review), as the simple map's whole path does
+        fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: named ? 0.15 : .6,
           fill: true, fillColor: hatchPattern(pal.nx), fillOpacity: named ? 0.25 : .8 }).addTo(view));
     }
     var selLayer = null, locLayer = null, nameLayer = null;
     // A 種／属 outline (TASK-014): islands as their index bbox, tile cells dissolved through
     // the shared boundaryRings — the same sets the simple map draws. With fill (TASK-016) the
-    // recorded areas take the flat translucent fill instead of the stroke.
-    function outlineLayers(o, color, weight, dash, fill) {
+    // recorded tile cells take the flat translucent fill instead of the stroke; islands keep
+    // their outline alone (PR #77 review: their bbox is mostly open sea). `rings` is the
+    // dissolved cell set, computed once per set by the caller (PR #77 review: a large genus
+    // re-dissolved it five times per redraw).
+    function outlineLayers(o, rings, color, weight, dash, fill) {
       var opts = fill
         ? { renderer: renderer, interactive: false, fill: true, fillColor: color, fillOpacity: 0.28, stroke: false }
         : { renderer: renderer, interactive: false, fill: false, stroke: true, color: color, weight: weight, dashArray: dash || null };
-      return o.islands.map(function (a) { return L.rectangle([[a.bbox[0], a.bbox[2]], [a.bbox[1], a.bbox[3]]], opts); })
-        .concat([multipoly(shared.boundaryRings(o.keys, shared.cellEdges), opts)]);
+      return (fill ? [] : o.islands.map(function (a) { return L.rectangle([[a.bbox[0], a.bbox[2]], [a.bbox[1], a.bbox[3]]], opts); }))
+        .concat([multipoly(rings, opts)]);
     }
     function drawOverlays() {
       if (selLayer) { view.removeLayer(selLayer); selLayer = null; }
@@ -213,10 +217,14 @@
       // The selection's two-tone stroke; the could-be-found set dashes. The recorded areas
       // carry the flat fill under the strokes (TASK-016).
       var nm = ctx.nameOutlines ? ctx.nameOutlines() : null;
-      if (nm) nameLayer = L.layerGroup([].concat(
-        outlineLayers(nm.solid, pal.core, 0, null, true),
-        outlineLayers(nm.solid, pal.halo, 4), outlineLayers(nm.solid, pal.core, 2),
-        outlineLayers(nm.dashed, pal.halo, 4, '8 4'), outlineLayers(nm.dashed, pal.core, 2, '8 4'))).addTo(view);
+      if (nm) {
+        var solidRings = shared.boundaryRings(nm.solid.keys, shared.cellEdges);
+        var dashedRings = shared.boundaryRings(nm.dashed.keys, shared.cellEdges);
+        nameLayer = L.layerGroup([].concat(
+          outlineLayers(nm.solid, solidRings, pal.core, 0, null, true),
+          outlineLayers(nm.solid, solidRings, pal.halo, 4), outlineLayers(nm.solid, solidRings, pal.core, 2),
+          outlineLayers(nm.dashed, dashedRings, pal.halo, 4, '8 4'), outlineLayers(nm.dashed, dashedRings, pal.core, 2, '8 4'))).addTo(view);
+      }
     }
 
     buildFills();

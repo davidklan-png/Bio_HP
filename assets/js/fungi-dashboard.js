@@ -1865,20 +1865,20 @@
       // cells, in the selection's two-tone stroke; could-be-found areas dash. The recorded
       // (solid) areas also carry a flat translucent fill under the strokes (TASK-016), and the
       // svg takes is-named so CSS fades the record squares — the named areas are the signal.
-      var nameOut = '', nameFill = '';
+      // Only tile cells are filled (PR #77 review): an island's bbox is open sea for the most
+      // part (Ogasawara's is 3.8 degrees of Pacific), so islands keep their outline alone.
+      var nameOut = '';
       if (state.nout) ['solid', 'dashed'].forEach(function (part, i) {
         var o = state.nout[part], mod = i ? ' is-dash' : '', boxes = '';
         var dd = ringPath(o.keys);
         o.islands.forEach(function (ar) {
           var bb = ar.bbox, p1 = project(bb[1], bb[2], size.width, size.height, box), q1 = project(bb[0], bb[3], size.width, size.height, box);
-          if (!i) nameFill += '<rect class="fd-map__sel-fill" x="' + (p1.x + ox).toFixed(1) + '" y="' + (p1.y + oy).toFixed(1) +
-            '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
           ['fd-map__sel-halo', 'fd-map__sel'].forEach(function (cls) {
             boxes += '<rect class="' + cls + mod + '" x="' + (p1.x + ox).toFixed(1) + '" y="' + (p1.y + oy).toFixed(1) +
               '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
           });
         });
-        nameOut += (i ? '' : (dd ? '<path class="fd-map__sel-fill" d="' + dd + '"/>' : '') + nameFill) +
+        nameOut += (i ? '' : (dd ? '<path class="fd-map__sel-fill" d="' + dd + '"/>' : '')) +
           (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
       });
       // Reference geography under the cells: Natural Earth coast (0E) + curated labels.

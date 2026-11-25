@@ -504,7 +504,7 @@ describe('street fills stay transparent over tiles (PR #46 review)', () => {
     const src = readFileSync(new URL('../assets/js/fungi-field-map.js', import.meta.url), 'utf8');
     // The steady-state band fill; the TASK-016 named fade (0.14 while a panel outlines) is
     // extra transparency on purpose, not the value this review pinned.
-    const m = /fillOpacity: named \? 0\.14 : (0\.[0-9]+)/.exec(src);
+    const m = /fillOpacity: named \? [0-9.]+ : (0\.[0-9]+)/.exec(src);
     assert.ok(m, 'band fills carry an explicit fillOpacity');
     assert.ok(+m[1] > 0.4 && +m[1] < 0.85, `fillOpacity ${m[1]} must let tiles read through`);
   });
