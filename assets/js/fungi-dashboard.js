@@ -2527,12 +2527,15 @@
     var rows = national ? summarySpeciesRank(names.rows, state.q || '') : mapSpeciesRank(loaded, state.month, state.q || '', state.kind);
     var any = unfiltered || loaded.length > 0;
     box.hidden = !any; // a "(0)" under an empty map reads as "no species"
+    // A failed summary (absent, or still mismatched after its retry) is not a load in
+    // progress: say so (PR #80 review). ensureSummary() retries an absent one after its TTL.
+    var failed = names.status === 'absent' || names.status === 'mismatch';
     var nEl = $('fd-mapsp-n');
-    if (nEl) nEl.textContent = unfiltered && !national ? '…' : fmtInt(rows.length);
+    if (nEl) nEl.textContent = national ? fmtInt(rows.length) : unfiltered ? (failed ? '' : '…') : fmtInt(rows.length);
     var note = $('fd-mapsp-note');
     if (note) {
       note.hidden = false;
-      note.textContent = national ? t('mapspNational') : unfiltered ? (names.status === 'ready' ? t('mapspNational') : t('namesLoading')) : (loaded.length ? t('mapspNote') : t('mapspEmpty'));
+      note.textContent = national ? t('mapspNational') : unfiltered ? (failed ? t('namesUnavailable') : t('namesLoading')) : (loaded.length ? t('mapspNote') : t('mapspEmpty'));
     }
     var list = $('fd-mapsp-list');
     if (list) {
@@ -2549,6 +2552,18 @@
     moreButton('fd-mapsp-more', rows.length > state.mapspLimit || state.mapspLimit > MAPSP_ROWS, state.mapspLimit >= rows.length, function () {
       state.mapspLimit = state.mapspLimit >= rows.length ? MAPSP_ROWS : state.mapspLimit + 50; renderMapSpecies();
     });
+    mapSpeciesLoad(); // an open disclosure that just became unfiltered loads too (PR #80 review)
+  }
+  // The national list's data loads only for a visitor who has the disclosure open on the
+  // unfiltered view: on its toggle, or when a filter is reset while it stays open. Never at
+  // boot, and nothing while a load is in flight or has just failed (ensureSummary retries an
+  // absent summary after its TTL).
+  function mapSpeciesLoad() {
+    var box = $('fd-mapspecies');
+    var idle = names.status === 'idle', stale = names.status === 'absent' && Date.now() - names.at > SPECIES_TTL;
+    if (box && box.open && !state.month && state.kind === 'all' && (idle || stale)) {
+      ensureSummary().then(renderMapSpecies); // one request per state: a load in flight, a mismatch or a fresh failure never loops
+    }
   }
 
   // The header's totals are never filtered (TASK-013). Built fresh on every render: a filter
@@ -3299,9 +3314,7 @@
     // The national species-on-map list needs the species summary: it loads when the
     // disclosure is first opened on the unfiltered view, never at boot (PR #80 review)
     var mapsp = $('fd-mapspecies');
-    if (mapsp) mapsp.addEventListener('toggle', function () {
-      if (mapsp.open && !state.month && state.kind === 'all' && names.status !== 'ready') ensureSummary().then(renderMapSpecies);
-    });
+    if (mapsp) mapsp.addEventListener('toggle', mapSpeciesLoad);
     wireSearch();
     src = el.getAttribute('data-src');
     base = src.slice(0, src.lastIndexOf('/') + 1);

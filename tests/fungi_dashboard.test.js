@@ -1829,8 +1829,12 @@ describe('TASK-018: attribution, All-Japan label, mobile KPIs, species-on-map so
   it('picks the ranking source by filter state and summary availability', () => {
     assert.ok(src.includes("var unfiltered = !state.month && state.kind === 'all';") && src.includes("var national = unfiltered && names.status === 'ready';"),
       'the national ranking applies with no filter once the summary is in (PR #80 review: the box shows on a fresh page)');
-    assert.ok(/mapsp\.addEventListener\('toggle', function \(\) \{\s*if \(mapsp\.open && !state\.month && state\.kind === 'all' && names\.status !== 'ready'\) ensureSummary\(\)\.then\(renderMapSpecies\);/.test(src),
-      'opening the disclosure on the unfiltered view loads the summary, never at boot');
+    assert.ok(/mapsp\.addEventListener\('toggle', mapSpeciesLoad\);/.test(src) &&
+      /function mapSpeciesLoad\(\) \{[\s\S]*?var idle = names\.status === 'idle', stale = names\.status === 'absent' && Date\.now\(\) - names\.at > SPECIES_TTL;[\s\S]*?\(idle \|\| stale\)\) \{[\s\S]*?ensureSummary\(\)\.then\(renderMapSpecies\);/.test(src),
+      'opening the disclosure on the unfiltered view loads the summary, never at boot, never twice');
+    assert.ok(/moreButton\('fd-mapsp-more'[\s\S]*?\}\);\s*mapSpeciesLoad\(\);/.test(src), 'an open disclosure that becomes unfiltered loads too (PR #80 review)');
+    assert.ok(/var failed = names\.status === 'absent' \|\| names\.status === 'mismatch';/.test(src) && /unfiltered \? \(failed \? t\('namesUnavailable'\) : t\('namesLoading'\)\)/.test(src),
+      'a failed summary is reported as unavailable, not as an endless load (PR #80 review)');
     assert.ok(/function render\(d\) \{[\s\S]*?setupMap\(d\);\s*renderMapSpecies\(\);/.test(src), 'the disclosure is offered from the first paint (PR #80 review)');
     assert.ok(/var rows = national \? summarySpeciesRank\(names\.rows, state\.q \|\| ''\) : mapSpeciesRank\(loaded, state\.month, state\.q \|\| '', state\.kind\);/.test(src),
       'any filter, or a missing summary, falls back to the accumulator');
@@ -1840,7 +1844,7 @@ describe('TASK-018: attribution, All-Japan label, mobile KPIs, species-on-map so
   });
   it('the national footnote is paired EN/JA and replaces the session note on that path', () => {
     assert.ok(src.includes("mapspNational: ['All public species nationwide, ranked by number of areas with records.', '全国の公開種を、記録のある地域数の順に表示しています。']"));
-    assert.ok(/note\.textContent = national \? t\('mapspNational'\) : unfiltered \? \(names\.status === 'ready' \? t\('mapspNational'\) : t\('namesLoading'\)\) : \(loaded\.length \? t\('mapspNote'\) : t\('mapspEmpty'\)\);/.test(src),
+    assert.ok(/note\.textContent = national \? t\('mapspNational'\) : unfiltered \? \(failed \? t\('namesUnavailable'\) : t\('namesLoading'\)\) : \(loaded\.length \? t\('mapspNote'\) : t\('mapspEmpty'\)\);/.test(src),
       'unfiltered says the national footnote; filtered keeps the session one');
   });
 });
