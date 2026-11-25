@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Unit tests for name search, Phase 1 (TASK-014, filters-and-search-plan S1): scientific
- * names over every published species and genus, fed by species/summary.json.
+ * names over every published species and genus, fed by species/summary.json — and Phase 2
+ * (TASK-015, S2): 和名, family and synonyms from species/names.json, plus one-edit typo
+ * tolerance for Latin queries.
  * Pure helpers of assets/js/fungi-dashboard.js; the browser wiring is asserted at source
  * level in tests/fungi_dashboard.test.js.
  */
@@ -34,6 +36,30 @@ const ROWS = [
   ['Inocybe oidodes', null, '9', 8, 60, false, false]
 ];
 
+// TASK-015: names.json rows riding the summary — row i belongs to ROWS[i]:
+// [和名|null, genus_slug, family|null, [synonyms]]. Invented names only, like ROWS.
+const EXTRA = [
+  ['ハツダケ', 'lactarius', 'Russulaceae', []],
+  [null, 'lactarius', 'Russulaceae', []],
+  [null, 'lactarius', 'Russulaceae', []],
+  [null, 'lactarius', 'Russulaceae', []],
+  [null, 'russula', 'Russulaceae', []],
+  [null, 'russula', 'Russulaceae', []],
+  [null, 'myena', 'Mycenaceae', []],
+  ['ハツダケ・モドキ', 'mycena', 'Mycenaceae', []],
+  [null, 'mycenula', 'Mycenaceae', []],
+  [null, 'amanita', 'Amanitaceae', ['Agaricus muscarius']],
+  [null, 'amanita', 'Amanitaceae', []],
+  [null, 'amanita', 'Amanitaceae', []],
+  [null, 'amanita', 'Amanitaceae', []],
+  [null, 'inocybe', 'Inocybaceae', ['Inocybe eburnella']],
+  [null, 'inocybe', 'Inocybaceae', []]
+];
+
+const realFile = (name) => readFileSync(new URL('../assets/data/shroomhunt/species/' + name, import.meta.url));
+const realJson = (name) => JSON.parse(realFile(name));
+const sha256 = (buf) => require('node:crypto').createHash('sha256').update(buf).digest('hex');
+
 describe('name search (TASK-014): summary reader', () => {
   const good = { schema_version: 1, snapshot: SNAP, generated: '2026-11-24', species: ROWS };
   it('accepts the published shape and hands back the rows and the snapshot', () => {
@@ -64,7 +90,7 @@ describe('name search (TASK-014): summary reader', () => {
       assert.strictEqual(hits.species[0].rank, 0);
       assert.ok(hits.genera.every((g) => idx.files[fd.genusFileSlug(g.genus, idx.aliases)]), name + ': genus hits have files');
     }
-    assert.deepStrictEqual(fd.searchNames(rows, 'zzzz qqqq'), { species: [], genera: [] });
+    assert.deepStrictEqual(fd.searchNames(rows, 'zzzz qqqq'), { species: [], genera: [], families: [] });
   });
 });
 
@@ -93,11 +119,11 @@ describe('name search (TASK-014): searchNames', () => {
     assert.deepStrictEqual(names('hatsudake'), ['Lactarius hatsudake', 'Russula hatsudake', 'Lactarius hatsudake var. minor', 'Myena hatsudake']);
     assert.deepStrictEqual(fd.searchNames(ROWS, 'hatsudake').species.map((h) => h.rank), [0, 0, 0, 0]);
     assert.deepStrictEqual(names('hatu'), ['Lactarius hatusensis']); // epithet prefix
-    assert.deepStrictEqual(names('hatudake'), [], 'no fuzzy match: a miss is a miss');
+    assert.deepStrictEqual(names('hatudakz'), [], 'two edits away is a miss (TASK-015: one is tolerated)');
   });
   it('a one-word query ranks the genus word and the epithet alike, exact first', () => {
     assert.deepStrictEqual(fd.searchNames(ROWS, 'mycena').species.map((h) => [h.row[0], h.rank]),
-      [['Mycena haematopus', 0]]); // Mycena is no prefix of Mycenula, nor of Myena
+      [['Mycena haematopus', 0], ['Myena hatsudake', 3]]); // Mycena is no prefix of Mycenula; Myena is one edit away (TASK-015)
     assert.deepStrictEqual(fd.searchNames(ROWS, 'ycena').species.map((h) => [h.row[0], h.rank]), [['Mycena haematopus', 2]]);
   });
   it('three or more words match the full name by prefix (infraspecific names)', () => {
@@ -133,8 +159,185 @@ describe('name search (TASK-014): searchNames', () => {
     assert.strictEqual(fd.searchNames(many, 'genus').species.length, 8);
     assert.strictEqual(fd.searchNames(many, 'genus', 3).species.length, 3);
     assert.strictEqual(fd.searchNames(many, 'genus', 3).genera.length, 3);
-    assert.deepStrictEqual(fd.searchNames(ROWS, ''), { species: [], genera: [] });
-    assert.deepStrictEqual(fd.searchNames(null, 'amanita'), { species: [], genera: [] });
+    assert.deepStrictEqual(fd.searchNames(ROWS, ''), { species: [], genera: [], families: [] });
+    assert.deepStrictEqual(fd.searchNames(null, 'amanita'), { species: [], genera: [], families: [] });
+  });
+});
+
+describe('name search (TASK-015): foldName', () => {
+  it('folds hiragana to katakana, so a query typed either way matches one 和名', () => {
+    assert.strictEqual(fd.foldName('あかはつ'), 'アカハツ');
+    assert.strictEqual(fd.foldName('アカハツ'), 'アカハツ');
+    assert.strictEqual(fd.foldName('だ・ぐり'), 'ダグリ'); // dakuten included in the shift
+  });
+  it('NFKC-folds full-width Latin and half-width katakana', () => {
+    assert.strictEqual(fd.foldName('ＡＭＡＮＩＴＡ'), 'amanita');
+    assert.strictEqual(fd.foldName('ｱｶﾊﾂ'), 'アカハツ');
+  });
+  it('drops spaces (full-width too), the long-vowel mark and middle dots', () => {
+    assert.strictEqual(fd.foldName('ア カ　ハ ツ'), 'アカハツ');
+    assert.strictEqual(fd.foldName('マッシュルーム'), 'マッシュルム');
+    assert.strictEqual(fd.foldName('ボトリティス・シネレア'), 'ボトリティスシネレア');
+    assert.strictEqual(fd.foldName('ハツダケ・モドキ'), 'ハツダケモドキ');
+  });
+  it('keeps a disambiguation suffix as it is, and never throws on nothing', () => {
+    assert.strictEqual(fd.foldName('ツチグリ (菌類)'), 'ツチグリ(菌類)');
+    assert.strictEqual(fd.foldName(null), '');
+    assert.strictEqual(fd.foldName(undefined), '');
+  });
+});
+
+describe('name search (TASK-015): names.json reader and trust', () => {
+  const good = { schema_version: 1, snapshot: SNAP, generated: '2026-11-25', species: EXTRA };
+  it('accepts the published shape and hands back the rows and the snapshot', () => {
+    const r = fd.readSpeciesNames(good);
+    assert.deepStrictEqual([r.ok, r.snapshot, r.rows.length], [true, SNAP, EXTRA.length]);
+  });
+  it('rejects anything else', () => {
+    for (const bad of [null, {}, { schema_version: 1, snapshot: SNAP }, { schema_version: 0, snapshot: SNAP, species: [] },
+      { schema_version: 1, snapshot: 'nope', species: [] }, { schema_version: 1, snapshot: SNAP, species: 'x' },
+      { schema_version: 1, snapshot: SNAP, species: [['アカハツ']] },
+      { schema_version: 1, snapshot: SNAP, species: [[7, 'a', null, []]] },
+      { schema_version: 1, snapshot: SNAP, species: [['アカハツ', 'a', 'Fam', 'x']] },
+      { schema_version: 1, snapshot: SNAP, species: [['アカハツ', 'a', null, [7]]] }])
+      assert.strictEqual(fd.readSpeciesNames(bad).ok, false, JSON.stringify(bad));
+  });
+  it('the real published names.json: 12,022 rows, one snapshot with the summary', () => {
+    const nm = fd.readSpeciesNames(realJson('names.json'));
+    const sum = fd.readSpeciesSummary(realJson('summary.json'));
+    assert.strictEqual(nm.ok, true);
+    assert.strictEqual(nm.rows.length, 12022);
+    assert.strictEqual(nm.snapshot, sum.snapshot, 'names and summary are one bundle');
+  });
+});
+
+describe('name search (TASK-015): nameIndexTrusted', () => {
+  const nm = { ok: true, snapshot: SNAP, rows: EXTRA };
+  const summary = { status: 'ready', rows: ROWS, indexSnap: SNAP };
+  const index = { snapshot: SNAP, summary_sha256: 'f'.repeat(64), names_sha256: 'e'.repeat(64) };
+  it('accepts the bundle the index names alongside a ready summary', () => {
+    assert.strictEqual(fd.nameIndexTrusted(nm, 'e'.repeat(64), summary, index), true);
+    assert.strictEqual(fd.nameIndexTrusted(nm, null, summary, index), true, 'no WebCrypto: snapshot and length alone decide');
+    assert.strictEqual(fd.nameIndexTrusted(nm, 'e'.repeat(64), summary, { snapshot: SNAP, names_sha256: null }), true, 'an index without names_sha256 cannot be compared');
+  });
+  it('rejects another sha, another snapshot, a disagreeing row count, and no summary', () => {
+    assert.strictEqual(fd.nameIndexTrusted(nm, 'e'.repeat(63) + 'f', summary, index), false, 'another sha');
+    assert.strictEqual(fd.nameIndexTrusted(nm, 'e'.repeat(64), { status: 'ready', rows: ROWS, indexSnap: 'b'.repeat(64) }, index), false, 'another snapshot: not the summary\'s publication');
+    assert.strictEqual(fd.nameIndexTrusted({ ok: true, snapshot: SNAP, rows: EXTRA.slice(1) }, 'e'.repeat(64), summary, index), false, 'row i belongs to row i: a shorter bundle misaligns');
+    assert.strictEqual(fd.nameIndexTrusted(nm, 'e'.repeat(64), { status: 'absent', rows: null, indexSnap: null }, index), false, 'no summary to line up with');
+    assert.strictEqual(fd.nameIndexTrusted({ ok: false }, 'e'.repeat(64), summary, index), false);
+    assert.strictEqual(fd.nameIndexTrusted(null, null, null, null), false);
+  });
+  it('the real bundle: the sha256 of its bytes is the names_sha256 the species index names', () => {
+    const idx = fd.readSpeciesIndex(realJson('index.json'));
+    const sum = fd.readSpeciesSummary(realJson('summary.json'));
+    const nm = fd.readSpeciesNames(realJson('names.json'));
+    assert.strictEqual(fd.nameIndexTrusted(nm, sha256(realFile('names.json')), { status: 'ready', rows: sum.rows, indexSnap: sum.snapshot }, idx), true);
+  });
+});
+
+describe('name search (TASK-015): 和名, family and synonyms', () => {
+  const names = (q) => fd.searchNames(ROWS, q, 8, EXTRA).species.map((h) => h.row[0]);
+  it('a 和名 finds its species, from kana either way, exact above prefix above substring', () => {
+    const hits = fd.searchNames(ROWS, 'ハツダケ', 8, EXTRA).species;
+    assert.deepStrictEqual(hits.map((h) => [h.row[0], h.rank, h.ja]),
+      [['Lactarius hatsudake', 0, 'ハツダケ'], ['Mycena haematopus', 1, 'ハツダケ・モドキ']], 'exact above a prefix of another 和名');
+    assert.deepStrictEqual(names('はつだけ'), ['Lactarius hatsudake', 'Mycena haematopus'], 'hiragana folds to the same matches');
+    assert.deepStrictEqual(names('ハツダケモドキ'), ['Mycena haematopus'], 'the middle dot is no part of the match');
+    assert.deepStrictEqual(names('ダケモドキ'), ['Mycena haematopus'], 'a 和名 substring');
+    assert.deepStrictEqual(names('ハツ'), ['Lactarius hatsudake', 'Mycena haematopus'], 'a 和名 prefix');
+  });
+  it('a synonym reaches its species, and the hit carries that synonym for its 旧名 label', () => {
+    assert.deepStrictEqual(names('agaricus muscarius'), ['Amanita muscaria']);
+    const hits = fd.searchNames(ROWS, 'agaricus muscarius', 8, EXTRA).species;
+    assert.strictEqual(hits[0].syn, 'Agaricus muscarius');
+    const word = fd.searchNames(ROWS, 'muscarius', 8, EXTRA).species; // one word of an old combination
+    assert.deepStrictEqual(word.map((h) => [h.row[0], h.rank, h.syn]), [['Amanita muscaria', 0, 'Agaricus muscarius']]);
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'inocybe eburnella', 8, EXTRA).species.map((h) => [h.row[0], h.syn]),
+      [['Inocybe éburnea', 'Inocybe eburnella']]);
+    assert.strictEqual(fd.searchNames(ROWS, 'amanita muscaria', 8, EXTRA).species[0].syn, undefined, 'a hit the current name reached carries no 旧名');
+  });
+  it('a family query answers with its species and a family group carrying its size', () => {
+    const out = fd.searchNames(ROWS, 'russulaceae', 8, EXTRA);
+    assert.deepStrictEqual(out.species.map((h) => h.rank), [0, 0, 0, 0, 0, 0], 'a family hit ranks its species');
+    assert.deepStrictEqual(out.species.map((h) => h.row[0]),
+      ['Russula vesca', 'Lactarius hatsudake', 'Lactarius vividus', 'Russula hatsudake', 'Lactarius hatusensis', 'Lactarius hatsudake var. minor']);
+    assert.deepStrictEqual(out.families, [{ family: 'Russulaceae', rank: 0, n: 6 }]);
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'ycenace', 8, EXTRA).families, [{ family: 'Mycenaceae', rank: 2, n: 3 }], 'a substring family hit');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'amanitaceae', 8, EXTRA).families.map((f) => f.family), ['Amanitaceae']);
+    // PR #76 review: a binomial is word for word; its first word never becomes a family hit
+    const binomial = fd.searchNames(ROWS, 'Amanita muscaria', 8, EXTRA);
+    assert.deepStrictEqual(binomial.families, [], 'no family group for a binomial');
+    assert.deepStrictEqual(binomial.species.map((h) => h.row[0]).filter((n) => n !== 'Amanita muscaria'), [], 'no species ranked in through its family');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'russulaceae nothing', 8, EXTRA), { species: [], genera: [], families: [] }, 'an unmatched second word is a miss');
+  });
+  it('familyGenera lists the genera of a family with their species counts', () => {
+    assert.deepStrictEqual(fd.familyGenera(ROWS, EXTRA, 'Russulaceae'),
+      [{ genus: 'Lactarius', n: 4 }, { genus: 'Russula', n: 2 }]);
+    assert.deepStrictEqual(fd.familyGenera(ROWS, EXTRA, 'Amanitaceae'), [{ genus: 'Amanita', n: 4 }]);
+    assert.deepStrictEqual(fd.familyGenera(ROWS, EXTRA, 'nope'), []);
+    assert.deepStrictEqual(fd.familyGenera(ROWS, null, 'Russulaceae'), []);
+    assert.deepStrictEqual(fd.familyGenera(ROWS, EXTRA.slice(0, 10), 'Russulaceae'), [], 'a misaligned bundle lists nothing');
+  });
+  it('an invented 和名 matches nothing, and its miss is the generic one', () => {
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'モドキダケ', 8, EXTRA).species, []);
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'ハツダケモドキダケ', 8, EXTRA).species, []);
+    assert.strictEqual(fd.noMatchKind('モドキダケ'), 'plain');
+  });
+  it('a names bundle that disagrees with the summary rows is ignored, not half-applied', () => {
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'ハツダケ', 8, EXTRA.slice(1)).species, [], 'a shifted bundle matches no 和名');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'russulaceae', 8, EXTRA.slice(1)).families, []);
+    assert.deepStrictEqual(names('hatsudake'), fd.searchNames(ROWS, 'hatsudake', 8).species.map((h) => h.row[0]), 'Latin search is untouched');
+  });
+  it('the real bundle: a real 和名, an old combination and a family all resolve', () => {
+    const rows = fd.readSpeciesSummary(realJson('summary.json')).rows;
+    const extra = fd.readSpeciesNames(realJson('names.json')).rows;
+    const ja = fd.searchNames(rows, 'カワラタケ', 8, extra).species;
+    assert.deepStrictEqual(ja.map((h) => [h.row[0], h.rank, h.ja]),
+      [['Trametes versicolor', 0, 'カワラタケ'], ['Pallidohirschioporus biformis', 2, 'ハカワラタケ']], 'exact above substring');
+    const syn = fd.searchNames(rows, 'Bjerkandera versicolor', 8, extra).species;
+    assert.strictEqual(syn[0].row[0], 'Trametes versicolor');
+    assert.strictEqual(syn[0].syn, 'Bjerkandera versicolor');
+    const fam = fd.searchNames(rows, 'Polyporaceae', 8, extra).families;
+    assert.deepStrictEqual(fam[0], { family: 'Polyporaceae', rank: 0, n: 233 });
+    const idx = fd.readSpeciesIndex(realJson('index.json'));
+    for (const family of ['Amanitaceae', 'Polyporaceae'])
+      assert.ok(fd.familyGenera(rows, extra, family).every((g) => idx.files[fd.genusFileSlug(g.genus, idx.aliases)]),
+        family + ': every listed genus has a file');
+  });
+});
+
+describe('name search (TASK-015): one-edit typo tolerance', () => {
+  const names = (q) => fd.searchNames(ROWS, q, 8, EXTRA).species.map((h) => h.row[0]);
+  it('a Latin query 5+ letters finds a name one edit away: insert, delete, substitute', () => {
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'hatudake', 8, EXTRA).species.map((h) => [h.row[0], h.rank]),
+      [['Lactarius hatsudake', 3], ['Russula hatsudake', 3], ['Lactarius hatsudake var. minor', 3], ['Myena hatsudake', 3]], 'ranked like any hit, most areas first');
+    assert.deepStrictEqual(names('amanit'), ['Amanita muscaria', 'Amanita regalispora', 'Amanita neo-ovoidea', 'Amanita regalis'], 'a genus typo still finds its species');
+  });
+  it('an adjacent swap is one edit', () => {
+    assert.ok(names('hatusdake').includes('Lactarius hatsudake'));
+    assert.ok(names('amnaita').includes('Amanita muscaria'));
+  });
+  it('no fuzzy under 5 characters, and at most one edit', () => {
+    assert.deepStrictEqual(names('minr'), [], 'four letters: no fuzzy');
+    assert.deepStrictEqual(names('hatudakz'), [], 'two edits: a miss');
+    assert.deepStrictEqual(names('amanitxq'), [], 'two edits: a miss');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'zzz', 8, EXTRA).species, [], 'three letters: a miss');
+  });
+  it('fuzzy reaches families and genera too, always ranked below substring', () => {
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'amanitacae', 8, EXTRA).families, [{ family: 'Amanitaceae', rank: 3, n: 4 }]);
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'amaniat', 8, EXTRA).genera.map((g) => [g.genus, g.rank]), [['Amanita', 3]]);
+  });
+  it('a Japanese query never fuzzy-matches: the 和名 path has no typo tolerance', () => {
+    assert.deepStrictEqual(names('ハツダケダ'), [], 'one kana off is a miss');
+    assert.deepStrictEqual(fd.searchNames(ROWS, 'アマニタセエ', 8, EXTRA).species, []);
+  });
+  it('the real bundle: a misspelled genus finds its species under budget', () => {
+    const rows = fd.readSpeciesSummary(realJson('summary.json')).rows;
+    const extra = fd.readSpeciesNames(realJson('names.json')).rows;
+    assert.deepStrictEqual(fd.searchNames(rows, 'trametrs', 8, extra).species.slice(0, 2).map((h) => [h.row[0], h.rank]),
+      [['Trametes versicolor', 3], ['Trametes coccinea', 3]]);
+    assert.strictEqual(fd.searchNames(rows, 'polyporacae', 8, extra).families[0].family, 'Polyporaceae');
   });
 });
 
@@ -248,7 +451,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(/if \(bypass\) \{ species\.index = null; species\.genera = \{\}; \}[^\n]*\n    else names\.bypassed = false;[^\n]*\n    names\.pending = speciesFiles\(\)/.test(src), 'the retry refetches the index too and drops the genus files of the old publication (PR #75 review)');
     assert.ok(/species\.index = r;\s*species\.indexAt = Date\.now\(\);\s*species\.dead = false;/.test(src), 'a recovered index clears the dead flag (PR #75 review)');
     assert.ok(/names\.status = 'ready'; names\.rows = sum\.rows; names\.indexSnap = index\.snapshot;/.test(src), 'a ready summary remembers the index it was checked against');
-    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review)');
+    assert.ok(/if \(names\.status === 'ready' && names\.indexSnap !== r\.snapshot\) \{\s*names\.status = 'idle';\s*nameIndex\.status = 'idle';\s*nameIndex\.jaBy = null;\s*species\.genera = \{\};/.test(src), 'a refreshed index of another publication sends the summary back to idle and drops the genus files (PR #75 review; the names bundle with it, TASK-015)');
     assert.ok(/else names\.bypassed = false;/.test(src), 'each fresh summary load earns its own bypassed retry (PR #75 review)');
     const ensure = fn('ensureSummary');
     assert.ok(/names\.status === 'idle'/.test(ensure), 'only an idle (or long-dead) summary starts a fetch');
@@ -258,8 +461,9 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(!/fetch\(|loadSummary\(/.test(run), 'the input handler fetches nothing itself');
     assert.ok(/search\.live = false; \}/.test(fn('finish')) && /if \(search\.live && \(!results\.hidden \|\| doc\.activeElement === input\)\) run\(\);/.test(src),
       'a pick ends the query: a payload landing afterwards never reopens the popup');
-    assert.ok(/var latin = isLatinQuery\(q\);\s*if \(latin\) ensureSummary\(\);/.test(run), 'the first Latin query asks for the summary');
-    assert.ok(/names: latin && names\.status === 'ready' \? \{ rows: names\.rows \} : null/.test(run), 'names join the query from memory once loaded');
+    assert.ok(/var latin = isLatinQuery\(q\);\s*ensureNameSearch\(\);/.test(run), 'the first query, any script, asks for both name files (TASK-015)');
+    assert.ok(/names: names\.status === 'ready' \|\| nameIndex\.status === 'ready' \?/.test(run) &&
+      /extra: nameIndex\.status === 'ready' \? nameIndex\.rows : null/.test(run), 'names join the query from memory once loaded, extra rows when trusted');
     const start = src.slice(src.indexOf('function start() {'));
     assert.ok(!/summary\.json|loadSummary\(/.test(start), 'boot requests no summary');
   });
@@ -273,7 +477,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(src.includes("note(nn || t(noMatchKind(q) === 'names' ? 'noResultsNames' : 'noResults'))"), 'the miss picks per query type');
     // found in the browser: concatenating noResults + noResultsNames read 「該当なし。 該当なし。学名…」
     assert.ok(!/t\('noResults'\) \+ \(noMatchKind/.test(src), 'the Latin message is whole on its own: it already opens with 該当なし');
-    assert.ok(src.includes("t(names.status === 'loading' ? 'namesLoading' : 'namesUnavailable')"), 'and never answers for names not yet searched');
+    assert.ok(src.includes("t(names.status === 'loading' || nameIndex.status === 'loading' ? 'namesLoading' : 'namesUnavailable')"), 'and never answers for names not yet searched (either file, TASK-015)');
     assert.ok(!/t\('noResults'\) \+ \(researchReady\(\)/.test(src), 'the masking note no longer rides a miss');
     assert.ok(/geo\.status === 'loading' \? t\('geoLoading'\) : t\('masking'\)/.test(src), 'the caption shows whatever the payload did');
     for (const gone of ['genusScopeNote', 'genusLoad', 'genusUnavailable', 'genusResults', 'genusScope']) assert.ok(!src.includes(gone), gone + ' is gone');
@@ -354,7 +558,7 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
     assert.ok(/function selectArea\(id, source\) \{[\s\S]*?closeName\(\);/.test(src), 'selecting an area closes the panel');
     assert.ok(/function clearArea\(keepHash\) \{[\s\S]*?closeName\(\);/.test(src), 'the Japan crumb closes the panel');
-    assert.ok(/data-nm-area=/.test(src) && /closest\('\[data-nm-area\], \[data-nm-name\]'\)[\s\S]*?selectArea\(t\.getAttribute\('data-nm-area'\), 'toolbar'\)/.test(src), 'an outlined area in the secondary list selects through selectArea()');
+    assert.ok(/data-nm-area=/.test(src) && /closest\('\[data-nm-area\], \[data-nm-name\], \[data-nm-genus\]'\)[\s\S]*?selectArea\(t\.getAttribute\('data-nm-area'\), 'toolbar'\)/.test(src), 'an outlined area in the secondary list selects through selectArea()');
   });
   it('the camera moves once per panel: to the outline, or to Japan for a miss — never to Japan in between', () => {
     // Found in the browser: opening a panel over another one first moved the map to Japan,
@@ -383,9 +587,9 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     for (const id of ['fd-name-title', 'fd-name-meta', 'fd-name-body']) assert.ok(inc.includes(`id="${id}"`), id);
     assert.ok(inc.indexOf('id="fd-name"') > inc.indexOf('class="fd-card fd-inspector"') && inc.indexOf('id="fd-name"') < inc.indexOf('class="fd-national"'), 'the panel lives in the inspector');
     for (const s of ['種まで同定された記録のある地域', 'Areas with species-level records', 'fd-map__outline--dash', 'id="fd-legend-name"']) assert.ok(inc.includes(s), s);
-    assert.ok(inc.includes('島・地名・属名・種名で検索') && inc.includes('Search islands, places, genus or species names'), 'label and placeholder');
-    assert.strictEqual((inc.match(/Search islands, places, genus or species names/g) || []).length, 2, 'label and placeholder');
-    assert.ok(inc.includes('?v=2026-11-25-1'), 'CSS stamp bumped');
+    assert.ok(inc.includes('島・地名・学名・和名で検索') && inc.includes('Search islands, places, scientific or Japanese names'), 'label and placeholder');
+    assert.strictEqual((inc.match(/Search islands, places, scientific or Japanese names/g) || []).length, 2, 'label and placeholder');
+    assert.ok(inc.includes('?v=2026-11-25-2'), 'CSS stamp bumped');
     assert.ok(/\.fd-legend__name \{ display: none; \}/.test(css) && /\.fd-legend__name\.is-on \{ display: contents; \}/.test(css));
     assert.ok(/\.fd-legend i\.fd-map__outline \{[^}]*border: 2px solid var\(--fd-sel-core\)/.test(css) && !/--fd-name/.test(css), 'outline swatches reuse the selection tokens: no new colour token');
     assert.ok(/\.fd-name \.fd-seg button \{ min-height: 44px; \}/.test(css), '44 px targets in the secondary list');
@@ -396,5 +600,69 @@ describe('name search (TASK-014): page wiring (source level)', () => {
       assert.ok(m, k + ' must be a paired [EN, JA] string');
     }
     assert.ok(src.includes("sgGenera: ['Genera', '属']") && src.includes("sgSpecies: ['Species', '種']"));
+  });
+});
+
+// ---- TASK-015 page wiring (source level): the names bundle load, the combobox's new
+// groups and labels, the family panel, and the 和名 in the rendered rows.
+describe('name search (TASK-015): page wiring (source level)', () => {
+  const src = readFileSync(new URL('../assets/js/fungi-dashboard.js', import.meta.url), 'utf8');
+  const inc = readFileSync(new URL('../_includes/fungi_dashboard.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/fungi-dashboard.css', import.meta.url), 'utf8');
+  const fn = (name) => { const m = new RegExp('\\n( +)function ' + name + '\\([^)]*\\) \\{([\\s\\S]*?)\\n\\1\\}').exec(src); assert.ok(m, name + ' found'); return m[2]; };
+
+  it('loads names.json beside the summary on the first query, and trusts it by sha, snapshot and row count', () => {
+    assert.ok(src.includes("base + 'species/names.json'"), 'the names bundle is fetched');
+    assert.ok(/root\.fetch\(base \+ 'species\/names\.json', \{ cache: 'no-cache' \}\)/.test(src), 'no-cache, like the summary');
+    assert.ok(src.includes('nameIndexTrusted('), 'the pure check decides');
+    assert.ok(/Promise\.all\(\[sha256Hex\(buf\), ensureSummary\(\)\]\)/.test(src), 'the bytes and the summary settle together, in parallel');
+    assert.ok(/function loadNameIndex\(\)/.test(src) && /nameIndex\.pending = speciesFiles\(\)/.test(fn('loadNameIndex')), 'the index names the file to expect; the promise is shared');
+    const ensure = fn('ensureNameIndex');
+    assert.ok(/nameIndex\.status === 'loading' && nameIndex\.pending/.test(ensure), 'a load in flight is awaited');
+    assert.ok(/nameIndex\.status === 'idle' \|\| \(nameIndex\.status === 'absent' && Date\.now\(\) - nameIndex\.at > SPECIES_TTL\)/.test(ensure), 'an idle or long-dead bundle (re)loads');
+    assert.ok(/function ensureNameSearch\(\) \{\s*ensureSummary\(\);\s*return ensureNameIndex\(\);\s*\}/.test(src), 'one entry point for both files');
+    const start = src.slice(src.indexOf('function start() {'));
+    assert.ok(!/names\.json|loadNameIndex\(|ensureNameSearch\(/.test(start), 'boot requests no names bundle');
+  });
+  it('a refreshed index of another publication drops the names bundle with the summary', () => {
+    assert.ok(/nameIndex\.status = 'idle';\s*nameIndex\.jaBy = null;/.test(src), 'the names rows and their 和名 go with the summary');
+  });
+  it('the combobox renders the 和名, the old name and the family group; a family opens the family panel', () => {
+    const rg = /    function renderGroups\(groups\) \{([\s\S]*?)\n    \}\n    function run\(\) \{/.exec(src)[1];
+    assert.ok(/families: 'sgFamilies'/.test(src), 'the 科 group has a head');
+    assert.ok(/item\.family[\s\S]*?selectFamily\(item\.family, 'search'\)/.test(rg), 'a family option opens the family panel');
+    assert.ok(/item\.ja \? ' <span lang="ja" class="fd-ja">'/.test(rg), 'a species option shows its 和名');
+    assert.ok(/t\('formerly'\)\.replace\('\{name\}', item\.syn\)/.test(rg), 'a synonym hit shows the synonym it matched');
+    assert.ok(/function selectFamily\(family, source\) \{[\s\S]*?familyGenera\(names\.rows, nameIndex\.rows, family\)/.test(src), 'the panel lists the family\'s genera');
+    assert.ok(/n\.id === 'family' \? 'chipFamily' : 'chipSpecies'/.test(fn('nameChip')), 'the 表示中 line gains a 科 chip');
+    assert.ok(/data-nm-genus=/.test(fn('familyRowsHtml')) && /selectGenus\(t\.getAttribute\('data-nm-genus'\), 'toolbar'\)/.test(src), 'each genus opens the TASK-014 genus panel');
+  });
+  it('species rows show their 和名 next to the scientific name, including rows rendered before the bundle landed', () => {
+    assert.ok(/speciesNameCell\(s\.c, s\.lk, s\.n, species\.dead, lang, jaOf\(s\.n\)\)/.test(src), 'the Recorded table');
+    assert.ok(/speciesNameCell\(p\.c, p\.lk, p\.n, species\.dead, lang, jaOf\(p\.n\)\)/.test(src), 'the Could-be-found table');
+    assert.ok(/jaOf\(btn\.getAttribute\('data-sp-name'\)\)/.test(fn('degradeNameCell')), 'the degradation keeps it');
+    assert.ok(/function backfillJa\(\)/.test(src) && /backfillJa\(\)/.test(fn('loadNameIndex')), 'a late bundle backfills the rendered rows');
+    assert.ok(/\.fd-ja \{[^}]*color: var\(--muted\)/.test(css), 'the 和名 is styled with existing tokens');
+  });
+  it('the no-match text no longer promises 和名検索は準備中, and every new string is paired EN/JA', () => {
+    assert.ok(!src.includes('準備中') && !src.includes('Japanese-name search is coming'), 'the coming-soon sentences are gone');
+    assert.ok(src.includes("noResultsNames: ['No matches. Search by scientific name (genus or species).', '該当なし。学名（属名・種名）で検索できます。']"), 'the miss names what to search by');
+    for (const k of ['sgFamilies', 'formerly', 'chipFamily', 'genera']) {
+      const m = new RegExp("\\n    " + k + ": \\['[^']+', '[^']+'\\],?\\n").exec(src);
+      assert.ok(m, k + ' must be a paired [EN, JA] string');
+    }
+    assert.ok(src.includes("formerly: ['(formerly {name})', '（旧名：{name}）']"));
+    assert.ok(src.includes("chipFamily: ['Family: {name}', '科：{name}']"));
+    // a Japanese miss still gets only 該当なし: the note answers for what is still loading
+    assert.ok(/var nn = \(latin \? names\.status !== 'ready' : names\.status !== 'ready' \|\| nameIndex\.status !== 'ready'\)/.test(fn('run')),
+      'a non-Latin query needs both files before a miss may answer');
+  });
+  it('readSpeciesIndex carries names_sha256 alongside summary_sha256', () => {
+    assert.strictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {}, snapshot: SNAP, summary_sha256: 'f'.repeat(64), names_sha256: 'e'.repeat(64) }).names_sha256, 'e'.repeat(64));
+    assert.strictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {}, snapshot: SNAP, summary_sha256: 'f'.repeat(64) }).names_sha256, null);
+    assert.strictEqual(fd.readSpeciesIndex({ schema_version: 1, files: {}, snapshot: SNAP, summary_sha256: 'f'.repeat(64), names_sha256: 'nope' }).names_sha256, null);
+  });
+  it('the fold helpers and the panel builder are exported for these tests', () => {
+    for (const k of ['foldName', 'readSpeciesNames', 'nameIndexTrusted', 'familyGenera', 'editWithin1']) assert.ok(fd[k], k + ' exported');
   });
 });

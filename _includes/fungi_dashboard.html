@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-1">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-2">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -26,8 +26,8 @@
         Focus with an empty query shows the former dropdown's contents as suggestions;
         APG combobox pattern (aria-activedescendant over the listbox). {%- endcomment -%}
       <div class="fd-search" id="fd-search" hidden>
-        <label class="fd-sr" for="fd-search-input">{% if ja %}島・地名・属名・種名で検索{% else %}Search islands, places, genus or species names{% endif %}</label>
-        <input type="search" id="fd-search-input" role="combobox" aria-controls="fd-search-results" aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{% if ja %}島・地名・属名・種名で検索{% else %}Search islands, places, genus or species names{% endif %}">
+        <label class="fd-sr" for="fd-search-input">{% if ja %}島・地名・学名・和名で検索{% else %}Search islands, places, scientific or Japanese names{% endif %}</label>
+        <input type="search" id="fd-search-input" role="combobox" aria-controls="fd-search-results" aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{% if ja %}島・地名・学名・和名で検索{% else %}Search islands, places, scientific or Japanese names{% endif %}">
         <ul class="fd-search__results" id="fd-search-results" role="listbox" aria-label="{% if ja %}検索結果{% else %}Search results{% endif %}" hidden></ul>
         <p class="fd-note fd-search__note" id="fd-search-note" hidden></p>
       </div>

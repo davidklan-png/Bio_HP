@@ -906,12 +906,12 @@ describe('TASK-008: unified search markup', () => {
     for (const attr of ['role="combobox"', 'aria-controls="fd-search-results"', 'aria-expanded="false"', 'aria-autocomplete="list"'])
       assert.ok(input[0].includes(attr), 'input carries ' + attr);
     assert.ok(/id="fd-search-results"[^>]*role="listbox"/.test(inc), 'results are a listbox');
-    assert.ok(inc.includes('Search islands, places, genus or species names') && inc.includes('島・地名・属名・種名で検索'), 'placeholder EN/JA (TASK-014)');
+    assert.ok(inc.includes('Search islands, places, scientific or Japanese names') && inc.includes('島・地名・学名・和名で検索'), 'placeholder EN/JA (TASK-014, reworded TASK-015)');
   });
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-25-1'), 'CSS stamp bumped (TASK-014)');
+    assert.ok(inc.includes('?v=2026-11-25-2'), 'CSS stamp bumped (TASK-015)');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
