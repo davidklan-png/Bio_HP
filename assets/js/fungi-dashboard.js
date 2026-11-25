@@ -105,9 +105,11 @@
     // aliases (PR #65 review): COL renames keep the old genus token in the display
     // name while the file lives under the accepted genus — token -> real slug
     var al = isObj(d.aliases) ? d.aliases : {};
-    // snapshot and summary_sha256 (TASK-014): what species/summary.json must match
+    // snapshot, summary_sha256 and names_sha256 (TASK-014/015): what species/summary.json
+    // and species/names.json must match
     return { ok: true, files: d.files, aliases: al, snapshot: isSnap(d.snapshot) ? d.snapshot : null,
-      summary_sha256: isSnap(d.summary_sha256) ? d.summary_sha256 : null };
+      summary_sha256: isSnap(d.summary_sha256) ? d.summary_sha256 : null,
+      names_sha256: isSnap(d.names_sha256) ? d.names_sha256 : null };
   }
   function readSpeciesGenus(d) {
     if (!isObj(d) || d.schema_version !== 1 || !Array.isArray(d.species) ||
@@ -190,10 +192,12 @@
   // The name cell in the Recorded / Could-be-found tables: a toggle button wrapping
   // the italic name with the GBIF ↗ as a sibling link. plain=true is the degradation
   // path once the bundles are known to be unavailable: today's linked-name rendering.
-  function speciesNameCell(colKey, legacyKey, name, plain, lang) {
+  // ja is the 和名 (TASK-015), shown next to the name when the names bundle holds one.
+  function speciesNameCell(colKey, legacyKey, name, plain, lang, ja) {
     var url = gbifTaxonUrl(colKey || undefined, legacyKey || undefined, name);
-    if (plain) return '<a class="fd-plainname" href="' + url + '" target="_blank" rel="noopener"><i>' + esc(name) + '</i></a>';
-    return '<button type="button" class="fd-name-toggle" aria-expanded="false" data-sp-col="' + esc(colKey || '') + '" data-sp-legacy="' + esc(legacyKey || '') + '" data-sp-name="' + esc(name) + '"><i>' + esc(name) + '</i></button>' +
+    var after = ja ? ' <span lang="ja" class="fd-ja">' + esc(ja) + '</span>' : '';
+    if (plain) return '<a class="fd-plainname" href="' + url + '" target="_blank" rel="noopener"><i>' + esc(name) + '</i>' + after + '</a>';
+    return '<button type="button" class="fd-name-toggle" aria-expanded="false" data-sp-col="' + esc(colKey || '') + '" data-sp-legacy="' + esc(legacyKey || '') + '" data-sp-name="' + esc(name) + '"><i>' + esc(name) + '</i></button>' + after +
       '<a class="fd-gbif" href="' + url + '" target="_blank" rel="noopener" aria-label="' + esc(st('gbifAria', lang)) + '">↗</a>';
   }
   // Deep links are #species-<key>; COL XR keys are alphanumeric and legacy keys numeric.
@@ -560,9 +564,44 @@
     if (!(sum && sum.ok && index) || sum.snapshot !== index.snapshot) return false;
     return !fileSha || !index.summary_sha256 || fileSha === index.summary_sha256;
   }
+  // species/names.json (TASK-015): row i rides summary row i — [和名|null, genus_slug,
+  // family|null, [synonyms]]. It carries no scientific names; the display name comes from
+  // the summary row a hit belongs to.
+  function readSpeciesNames(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isSnap(d.snapshot) || !Array.isArray(d.species)) return { ok: false };
+    var rowsOk = d.species.every(function (r) {
+      return Array.isArray(r) && r.length >= 4 && (r[0] == null || typeof r[0] === 'string') &&
+        typeof r[1] === 'string' && (r[2] == null || typeof r[2] === 'string') &&
+        Array.isArray(r[3]) && r[3].every(function (s) { return typeof s === 'string'; });
+    });
+    return rowsOk ? { ok: true, snapshot: d.snapshot, rows: d.species } : { ok: false };
+  }
+  // The names bundle may be searched only when it parses, it is one publication with the
+  // loaded summary (its snapshot is the one the summary was checked against, its rows line
+  // up one-for-one with the summary's), and — where the browser could compute one — its
+  // sha256 is the species index's names_sha256. `summary` is the summary state
+  // {status, rows, indexSnap}.
+  function nameIndexTrusted(nm, fileSha, summary, index) {
+    if (!(nm && nm.ok && summary && summary.status === 'ready' && Array.isArray(summary.rows))) return false;
+    if (nm.rows.length !== summary.rows.length) return false;
+    if (nm.snapshot !== summary.indexSnap) return false;
+    return !fileSha || !index || !index.names_sha256 || fileSha === index.names_sha256;
+  }
   // A name, or a query, as matched: foldQuery, then the hyphen and the rank dot that published
   // names carry (neo-ovoidea, var.) dropped on both sides — they are parts of a word.
   function nameFold(s) { return foldQuery(s).replace(/[-.]/g, ''); }
+  // A 和名, or a Japanese query, as matched (TASK-015): NFKC (full-width Latin and
+  // half-width katakana fold, compatibility forms compose), hiragana to katakana,
+  // lowercase, then the marks that carry no distinction dropped — spaces, the
+  // long-vowel mark ー and middle dots. Latin names keep nameFold; disambiguation
+  // suffixes ("… (菌類)") stay as they are.
+  function foldName(s) {
+    return String(s == null ? '' : s).normalize('NFKC')
+      .replace(/[ぁ-ゖ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); }) // ぁ–ゖ → ァ–ヶ
+      .replace(/[・·ー]/g, '') // ・ · ー
+      .replace(/\s+/g, '')
+      .toLowerCase();
+  }
   // Latin letters, spaces, hyphens and dots, at least 2 letters: a binomial is a Latin query too.
   function isLatinQuery(q) {
     var f = nameFold(q);
@@ -570,6 +609,31 @@
   }
   // How a query word meets a name word: 0 exact, 1 prefix, 2 substring, 3 no match.
   function wordRank(word, q) { return word === q ? 0 : word.indexOf(q) === 0 ? 1 : word.indexOf(q) >= 0 ? 2 : 3; }
+  // One edit — insert, delete, substitute or an adjacent swap — between two folded words:
+  // the typo tolerance for Latin queries of 5+ letters (TASK-015). Checked only after
+  // exact, prefix and substring failed; the length gate rejects most pairs before any
+  // character is compared, so 12k rows stay a ~2 ms scan.
+  function editWithin1(a, b) {
+    var n = a.length, m = b.length;
+    if (Math.abs(n - m) > 1) return false;
+    var i = 0;
+    while (i < Math.min(n, m) && a.charAt(i) === b.charAt(i)) i++;
+    if (i === Math.min(n, m)) return n !== m;      // one is the other plus a trailing char
+    if (n === m) {
+      if (a.charAt(i + 1) === b.charAt(i + 1)) return a.slice(i + 1) === b.slice(i + 1);            // one substitute
+      if (a.charAt(i) === b.charAt(i + 1) && a.charAt(i + 1) === b.charAt(i)) return a.slice(i + 2) === b.slice(i + 2); // one swap
+      return false;
+    }
+    var long = n > m ? a : b, short = n > m ? b : a;
+    return long.slice(i + 1) === short.slice(i);   // one insertion at i
+  }
+  // How a Latin query word meets a name word: 0 exact, 1 prefix, 2 substring, 3 one edit
+  // away, 4 no match.
+  function queryRank(word, q) {
+    var r = wordRank(word, q);
+    if (r < 3) return r;
+    return q.length >= 5 && editWithin1(word, q) ? 3 : 4;
+  }
   // Folded words per summary row, folded once per rows array (12k names × every keystroke otherwise).
   var FOLDED = new WeakMap();
   function nameWords(rows) {
@@ -577,36 +641,100 @@
     if (!hit) { hit = rows.map(function (r) { return nameFold(r[0]).split(' '); }); FOLDED.set(rows, hit); }
     return hit;
   }
-  // Pure search over summary rows → { species: [{row, rank}], genera: [{genus, rank}] },
-  // each capped at `limit` (8). A one-word query meets any word of a name (genus or
-  // epithet); two or more words meet word for word, so "lactarius hats" means genus
-  // prefix AND epithet prefix, and three words take an infraspecific name by prefix.
-  // Rank exact > prefix > substring, then area_count desc, then name: an exact binomial
-  // with one area outranks a prefix match with fifty. Genus groups come from the first
-  // word, most species first.
-  function searchNames(rows, query, limit) {
-    var out = { species: [], genera: [] };
+  // Folded extra fields per names.json row (the 和名, the family, each synonym's words),
+  // folded once per rows array — the same WeakMap pattern as nameWords.
+  var EXFOLDED = new WeakMap();
+  function extraWords(extra) {
+    var hit = EXFOLDED.get(extra);
+    if (!hit) {
+      hit = extra.map(function (r) {
+        return { ja: r[0] ? foldName(r[0]) : '', jaRaw: r[0] || null,
+          fam: r[2] ? nameFold(r[2]) : '', famRaw: r[2] || null,
+          syn: (r[3] || []).map(function (s) { return nameFold(s).split(' '); }), synRaw: r[3] || [] };
+      });
+      EXFOLDED.set(extra, hit);
+    }
+    return hit;
+  }
+  // Pure search over summary rows → { species: [{row, rank, syn?, ja?}], genera:
+  // [{genus, rank}], families: [{family, rank, n}] }, each capped at `limit` (8).
+  // A one-word query meets any word of a name (genus or epithet); two or more words
+  // meet word for word, so "lactarius hats" means genus prefix AND epithet prefix,
+  // and three words take an infraspecific name by prefix. With the names.json rows
+  // riding the summary (extra, TASK-015) the same match runs over the 和名 (foldName,
+  // exact/prefix/substring — never fuzzy), each synonym and the family; the best rank
+  // wins, and a hit only a synonym reached carries that synonym for its 旧名 label.
+  // Rank exact > prefix > substring > one edit, then area_count desc, then name. Genus
+  // groups come from the first word, most species first; family groups from the names
+  // rows, largest first.
+  function searchNames(rows, query, limit, extra) {
+    var out = { species: [], genera: [], families: [] };
     var qw = nameFold(query).split(' ');
+    var jq = foldName(query);
     var cap = limit == null ? 8 : limit;
     if (!qw[0] || !rows) return out;
-    var all = nameWords(rows), byName = {};
+    var ex = extra && extra.length === rows.length ? extraWords(extra) : null; // row i belongs to row i: nothing else aligns
+    var all = nameWords(rows), byName = {}, byFamily = {};
+    var one = qw.length === 1;
+    // The rank of a word list (a name, or a synonym) against the query words.
+    function wordsRank(w) {
+      var j, x;
+      if (one) { var best = 4; for (j = 0; j < w.length; j++) { x = queryRank(w[j], qw[0]); if (x < best) best = x; } return best; }
+      if (w.length < qw.length) return 4; // fewer words than the query: no word-for-word match
+      var worst = 0;
+      for (j = 0; j < qw.length; j++) { x = queryRank(w[j], qw[j]); if (x > worst) worst = x; }
+      return worst === 0 && w.length > qw.length ? 1 : worst; // fewer query words than the name: a prefix, never exact
+    }
     rows.forEach(function (row, i) {
-      var w = all[i], rank;
-      if (qw.length === 1) rank = Math.min.apply(null, w.map(function (x) { return wordRank(x, qw[0]); }));
-      else rank = w.length < qw.length ? 3 : Math.max.apply(null, qw.map(function (q, j) { return wordRank(w[j], q); })) || (w.length > qw.length ? 1 : 0); // fewer words than the name: a prefix, never exact
-      if (rank < 3) out.species.push({ row: row, rank: rank, key: w.join(' ') });
+      var w = all[i];
+      var rank = wordsRank(w);
+      var syn = null;
+      var e = ex ? ex[i] : null;
+      if (e) {
+        if (e.ja && jq) { // the 和名: one folded token, ranked like a place name
+          var jr = e.ja === jq ? 0 : e.ja.indexOf(jq) === 0 ? 1 : e.ja.indexOf(jq) >= 0 ? 2 : 4;
+          if (jr < rank) rank = jr;
+        }
+        for (var s = 0; s < e.syn.length; s++) { // an old combination reaches its species too
+          var sr = wordsRank(e.syn[s]);
+          if (sr < rank) { rank = sr; syn = e.synRaw[s]; }
+        }
+        if (e.fam) { // the family ranks the species, and feeds the 科 group
+          var fr = queryRank(e.fam, qw[0]);
+          if (fr < rank) rank = fr;
+          var fb = byFamily[e.fam];
+          if (fb === undefined) byFamily[e.fam] = { family: e.famRaw, key: e.fam, rank: fr, n: 0 };
+          byFamily[e.fam].n += 1;
+        }
+      }
+      if (rank < 4) {
+        var hit = { row: row, rank: rank, key: w.join(' ') };
+        if (syn) hit.syn = syn;
+        if (e && e.jaRaw) hit.ja = e.jaRaw;
+        out.species.push(hit);
+      }
       var g = byName[w[0]];
-      if (g === undefined) byName[w[0]] = { genus: row[0].split(/\s+/)[0], key: w[0], rank: wordRank(w[0], qw[0]), n: 0 };
+      if (g === undefined) byName[w[0]] = { genus: row[0].split(/\s+/)[0], key: w[0], rank: queryRank(w[0], qw[0]), n: 0 };
       byName[w[0]].n += 1;
     });
     var byRank = function (a, b) { return a.rank - b.rank; };
     var byFold = function (a, b) { return a.key < b.key ? -1 : a.key > b.key ? 1 : 0; };
     out.species.sort(function (a, b) { return byRank(a, b) || b.row[3] - a.row[3] || byFold(a, b); });
-    out.species = out.species.slice(0, cap).map(function (h) { return { row: h.row, rank: h.rank }; });
+    out.species = out.species.slice(0, cap).map(function (h) {
+      var o = { row: h.row, rank: h.rank };
+      if (h.syn) o.syn = h.syn;
+      if (h.ja) o.ja = h.ja;
+      return o;
+    });
     out.genera = Object.keys(byName).map(function (k) { return byName[k]; })
-      .filter(function (g) { return g.rank < 3; })
+      .filter(function (g) { return g.rank < 4; })
       .sort(function (a, b) { return byRank(a, b) || b.n - a.n || byFold(a, b); })
       .map(function (g) { return { genus: g.genus, rank: g.rank }; })
+      .slice(0, cap);
+    out.families = Object.keys(byFamily).map(function (k) { return byFamily[k]; })
+      .filter(function (f) { return f.rank < 4; })
+      .sort(function (a, b) { return byRank(a, b) || b.n - a.n || byFold(a, b); })
+      .map(function (f) { return { family: f.family, rank: f.rank, n: f.n }; })
       .slice(0, cap);
     return out;
   }
@@ -623,6 +751,22 @@
     if (!k || !rows) return null;
     var hit = rows.filter(function (r) { return r[1] != null && String(r[1]) === k; })[0];
     return hit || rows.filter(function (r) { return r[2] != null && String(r[2]) === k; })[0] || null;
+  }
+  // The genera of a family, for the family panel (TASK-015): the summary rows whose
+  // names row carries it, grouped by their display genus token, most species first.
+  // Each opens the TASK-014 genus panel, which resolves the token to its file.
+  function familyGenera(rows, extra, family) {
+    var want = nameFold(family), by = {};
+    if (!rows || !extra || extra.length !== rows.length) return [];
+    rows.forEach(function (row, i) {
+      var e = extra[i];
+      if (!e || !e[2] || nameFold(e[2]) !== want) return;
+      var token = String(row[0]).split(/\s+/)[0];
+      var g = by[token] || (by[token] = { genus: token, n: 0 });
+      g.n += 1;
+    });
+    return Object.keys(by).map(function (k) { return by[k]; })
+      .sort(function (a, b) { return b.n - a.n || (a.genus < b.genus ? -1 : a.genus > b.genus ? 1 : 0); });
   }
   // A miss says what to search by: a Latin query gets the scientific-name line, a place
   // or Japanese query only 該当なし (the 波照間 bug: no masking note on a place miss).
@@ -714,9 +858,10 @@
     return out;
   }
   // One query, four sources: {areas: index rows|null, places: geography|null,
-  // names: searchNames() output|null} → [{group: 'areas'|'places'|'species'|'genera', items, more}],
-  // in that order, each capped at `limit` (8) with the overflow counted in `more`.
-  // Items: {area} | {place, rank} | {row, rank} | {genus, rank}.
+  // names: {rows, extra?}|null} → [{group: 'areas'|'places'|'species'|'genera'|'families',
+  // items, more}], in that order (the 科 group after 属 and 種, TASK-015), each capped at
+  // `limit` (8) with the overflow counted in `more`.
+  // Items: {area} | {place, rank} | {row, rank, syn?, ja?} | {genus, rank} | {family, rank, n}.
   function searchAll(query, src, limit) {
     var cap = limit == null ? 8 : limit;
     src = src || {};
@@ -728,7 +873,7 @@
     if (areas.length) groups.push(cut('areas', areas));
     var places = searchPlaces(src.places, query, Infinity);
     if (places.length) groups.push(cut('places', places));
-    var names = src.names ? searchNames(src.names.rows, query, Infinity) : null;
+    var names = src.names ? searchNames(src.names.rows, query, Infinity, src.names.extra) : null;
     if (names) {
       // A one-word query that is a genus name wants the genus: its panel goes first, above
       // the eight species that would otherwise fill the popup. Every other query keeps the
@@ -737,6 +882,7 @@
       (genusFirst ? ['genera', 'species'] : ['species', 'genera']).forEach(function (g) {
         if (names[g].length) groups.push(cut(g, names[g]));
       });
+      if (names.families.length) groups.push(cut('families', names.families));
     }
     return groups;
   }
@@ -913,6 +1059,8 @@
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
     foldQuery: foldQuery, searchPlaces: searchPlaces, readMapReference: readMapReference,
     readSpeciesSummary: readSpeciesSummary, summaryTrusted: summaryTrusted, searchNames: searchNames, genusFileSlug: genusFileSlug,
+    readSpeciesNames: readSpeciesNames, nameIndexTrusted: nameIndexTrusted, foldName: foldName, editWithin1: editWithin1,
+    familyGenera: familyGenera,
     speciesByKey: speciesByKey, noMatchKind: noMatchKind,
     nameOutline: nameOutline, genusAreaIds: genusAreaIds, areaOutline: areaOutline, outlineBox: outlineBox,
     isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
@@ -977,15 +1125,19 @@
     sgPlaces: ['Places', '地名'],
     sgSpecies: ['Species', '種'],
     sgGenera: ['Genera', '属'],
+    sgFamilies: ['Families', '科'],
+    genera: ['genera', '属'],
     sgGroups: ['Island groups', '島しょ群'],
     sgIslands: ['Islands', '島'],
     moreCount: ['+{n} more', '他{n}件'],
     noResults: ['No matches.', '該当なし。'],
-    noResultsNames: ['No matches. Search by scientific name (genus or species). Japanese-name search is coming.', '該当なし。学名（属名・種名）で検索できます。和名検索は準備中です。'],
+    noResultsNames: ['No matches. Search by scientific name (genus or species).', '該当なし。学名（属名・種名）で検索できます。'],
     namesLoading: ['Loading species names…', '学名データを読み込み中…'],
     namesUnavailable: ['Species-name search is unavailable right now; islands and places still work.', '学名検索は現在利用できません。島・地名は検索できます。'],
     chipSpecies: ['Species: {name}', '種：{name}'],
     chipGenus: ['Genus: {name}', '属：{name}'],
+    chipFamily: ['Family: {name}', '科：{name}'],
+    formerly: ['(formerly {name})', '（旧名：{name}）'],
     genusSquares: ['Squares with many genus-only records', '属止まりの記録が多い区画'],
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
     geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
@@ -1030,7 +1182,7 @@
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // month + kind: all / m / l / o, both drive the map (TASK-013)
     cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     q: '', mapspLimit: MAPSP_ROWS,
-    name: null, nout: null, // the open 種／属 panel {id, label, …} and its outline sets (TASK-014)
+    name: null, nout: null, // the open 種／属／科 panel {id, label, …} and its outline sets (TASK-014/015)
     locCell: null, snaps: { dashboard: null, index: null },
     bootBypassed: false, dDone: false, iDone: false, routed: false };
   var areaRequests = latestOnly();
@@ -1102,28 +1254,83 @@
     return Promise.resolve(names.status);
   }
 
+  /* ---- species/names.json (TASK-015): the 和名, family and synonyms that ride the summary
+     rows, one row per summary row. Fetched beside the summary on the first search
+     keystroke, whatever the script — the two fetches run in parallel — and used only when
+     it is the file the species index names (sha256), one publication with the loaded
+     summary (snapshot, row count: row i belongs to row i). Any miss leaves search at its
+     TASK-014 behaviour: Latin names, no promise broken. */
+  var nameIndex = { status: 'idle', rows: null, jaBy: null, at: 0, pending: null }; // idle | loading | ready | absent
+  function loadNameIndex() {
+    nameIndex.status = 'loading';                 // synchronously: the next keystroke adds no request
+    if (search.refresh) search.refresh();
+    nameIndex.pending = speciesFiles().then(function () { // the index names the file to expect; the promise is shared
+      if (!species.index) throw new Error('no species index');
+      return root.fetch(base + 'species/names.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(function (buf) {
+          return Promise.all([sha256Hex(buf), ensureSummary()]).then(function (xs) {
+            var nm = readSpeciesNames(JSON.parse(new TextDecoder().decode(buf)));
+            // checked against the states as they settled: a summary that bypass-retried
+            // refetched the index too, so this compares with the publication that survived
+            if (!nameIndexTrusted(nm, xs[0], names, species.index)) { nameIndex.status = 'absent'; nameIndex.at = Date.now(); return; }
+            nameIndex.status = 'ready';
+            nameIndex.rows = nm.rows;
+            nameIndex.jaBy = {};                   // the rendered rows look their 和名 up by raw name
+            nm.rows.forEach(function (r, i) { if (r[0]) nameIndex.jaBy[names.rows[i][0]] = r[0]; });
+            extraWords(nm.rows);                   // the fold cost lands with the load, not a keystroke
+            backfillJa();
+          });
+        });
+    })
+      .catch(function () { nameIndex.status = 'absent'; nameIndex.at = Date.now(); })
+      .then(function () { if (search.refresh) search.refresh(); return nameIndex.status; })
+      .then(function (st) { nameIndex.pending = null; return st; });
+    return nameIndex.pending;
+  }
+  // The same shape as ensureSummary: an idle bundle loads, a long-dead one retries, a load
+  // in flight is awaited. The keystroke entry point is ensureNameSearch (both files).
+  function ensureNameIndex() {
+    if (nameIndex.status === 'loading' && nameIndex.pending) return nameIndex.pending;
+    if (nameIndex.status === 'idle' || (nameIndex.status === 'absent' && Date.now() - nameIndex.at > SPECIES_TTL)) return loadNameIndex();
+    return Promise.resolve(nameIndex.status);
+  }
+  // Both name files on the first query, whatever its script: the summary answers Latin
+  // queries alone (TASK-014); names.json adds the 和名, families and synonyms.
+  function ensureNameSearch() {
+    ensureSummary();
+    return ensureNameIndex();
+  }
+
   function speciesFiles() {
     if (species.index && Date.now() - species.indexAt < SPECIES_TTL) return Promise.resolve(species.index.files);
-    return fetchJson(base + 'species/index.json', { cache: 'no-cache' })
-      .then(readSpeciesIndex)
-      .then(function (r) {
-        if (!r.ok) throw new Error('invalid species index');
-        species.index = r;
-        species.indexAt = Date.now();
-        species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
-        // A page left open across a deployment: the refreshed index names another summary, so the
-        // next query reloads it instead of searching the previous publication (PR #75 review)
-        if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
-          names.status = 'idle';
-          species.genera = {}; // genus files belong to a publication too
-        }
-        return r.files;
-      })
-      .catch(function () {
-        species.dead = true; // index gone: every name degrades to a plain link
-        species.deadAt = Date.now();
-        return null;
-      });
+    if (!speciesFiles.pending) { // the summary and names loads share one index fetch (TASK-015)
+      speciesFiles.pending = fetchJson(base + 'species/index.json', { cache: 'no-cache' })
+        .then(readSpeciesIndex)
+        .then(function (r) {
+          if (!r.ok) throw new Error('invalid species index');
+          species.index = r;
+          species.indexAt = Date.now();
+          species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
+          // A page left open across a deployment: the refreshed index names another summary, so
+          // the next query reloads it instead of searching the previous publication (PR #75
+          // review). The names rows and their 和名 ride the summary's publication too (TASK-015).
+          if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
+            names.status = 'idle';
+            nameIndex.status = 'idle';
+            nameIndex.jaBy = null;
+            species.genera = {}; // genus files belong to a publication too
+          }
+          return r.files;
+        })
+        .catch(function () {
+          species.dead = true; // index gone: every name degrades to a plain link
+          species.deadAt = Date.now();
+          return null;
+        })
+        .then(function (files) { speciesFiles.pending = null; return files; });
+    }
+    return speciesFiles.pending;
   }
   // One genus file, fetched once and cached ~60 s. display is the token rows are keyed by.
   function speciesGenusFile(slug, display) {
@@ -1180,10 +1387,32 @@
   // pure builder keeps one source of markup truth).
   function degradeNameCell(btn) {
     if (!btn.isConnected) return;
+    var old = btn.nextElementSibling;             // a backfilled 和名 would double next to the plain name
+    if (old && old.classList.contains('fd-ja')) old.remove();
     var tmp = doc.createElement('span');
     tmp.innerHTML = speciesNameCell(btn.getAttribute('data-sp-col') || undefined,
-      btn.getAttribute('data-sp-legacy') || undefined, btn.getAttribute('data-sp-name'), true, lang);
+      btn.getAttribute('data-sp-legacy') || undefined, btn.getAttribute('data-sp-name'), true, lang,
+      jaOf(btn.getAttribute('data-sp-name')));
     btn.parentNode.replaceChild(tmp.firstChild, btn);
+  }
+  // The 和名 of a rendered scientific name, when the names bundle holds one (TASK-015).
+  function jaOf(name) { return (nameIndex.jaBy && nameIndex.jaBy[name]) || null; }
+  // Once the names bundle is in, rows rendered before it gain their 和名 — the same DOM
+  // backfill the genus files' markers use, so an area opened before the first search
+  // keystroke catches up without a re-render closing its open detail row.
+  function backfillJa() {
+    if (!nameIndex.jaBy) return;
+    doc.querySelectorAll('.fd-name-toggle[data-sp-name]').forEach(function (b) {
+      var nx = b.nextElementSibling;
+      if (nx && nx.classList.contains('fd-ja')) return;
+      var ja = nameIndex.jaBy[b.getAttribute('data-sp-name')];
+      if (ja) b.insertAdjacentHTML('afterend', '<span lang="ja" class="fd-ja">' + esc(ja) + '</span>');
+    });
+    doc.querySelectorAll('a.fd-plainname').forEach(function (a) {
+      if (a.querySelector('.fd-ja')) return;
+      var i = a.querySelector('i'), ja = i && nameIndex.jaBy[i.textContent];
+      if (ja) i.insertAdjacentHTML('afterend', ' <span lang="ja" class="fd-ja">' + esc(ja) + '</span>');
+    });
   }
   function closeSpeciesDetail() {
     if (!openDetail) return;
@@ -1223,7 +1452,7 @@
      overview and any open area step aside — and never goes through selectArea(). */
   function nameChip() {
     var n = state.name;
-    return n && !n.miss ? [{ id: n.id, label: t(n.id === 'genus' ? 'chipGenus' : 'chipSpecies').replace('{name}', n.label), removable: true }] : [];
+    return n && !n.miss ? [{ id: n.id, label: t(n.id === 'genus' ? 'chipGenus' : n.id === 'family' ? 'chipFamily' : 'chipSpecies').replace('{name}', n.label), removable: true }] : [];
   }
   // The outline sets both renderers read: a species' recorded areas (solid) and the areas
   // it could be found in (dashed); a genus' union over the rows its chips leave (solid).
@@ -1340,7 +1569,8 @@
     });
   }
   // The inspector panel: a species' details (the same body the inline row uses, the month
-  // chip highlighting its strip) or a genus' species list with the research signal under it.
+  // chip highlighting its strip), a genus' species list with the research signal under it,
+  // or a family's genera (TASK-015).
   function renderNamePanel() {
     var n = state.name, body = $('fd-name-body');
     if (!n || !body) return;
@@ -1355,6 +1585,14 @@
       body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
         e ? '<div class="fd-detail__wrap">' + speciesDetailsHtml(e, lang, state.month) + '</div>' :
         n.failed ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : nameMissHtml();
+      return;
+    }
+    if (n.id === 'family') {
+      title.textContent = n.label;
+      meta.textContent = !n.settled ? t('loadingArea') : !n.genera ? '' :
+        fmtInt(n.genera.length) + ' ' + t('genera') + ' · ' + fmtInt(n.genera.reduce(function (s, g) { return s + g.n; }, 0)) + ' ' + t('species');
+      body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
+        !n.genera ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : familyRowsHtml(n);
       return;
     }
     // Rows follow the chips by the same rule as the area tables; the outline follows the rows.
@@ -1377,6 +1615,14 @@
           '<td class="num">' + fmtInt((tiers.s || 0) + (tiers.d || 0) + (tiers.o || 0)) + '</td><td>' + monthStrip(e.fruiting_months || [], state.month, lang) + '</td></tr>';
       }).join('') : '<tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr>') + '</tbody></table></div>';
   }
+  // A family's genera (TASK-015): the same pill buttons the genus panel's squares use,
+  // each carrying its species count and opening the genus panel.
+  function familyRowsHtml(n) {
+    return '<h3 class="fd-area__h">' + esc(t('sgGenera')) + '</h3><div class="fd-scroll"><div class="fd-seg">' + n.genera.map(function (g) {
+      return '<button type="button" data-nm-genus="' + esc(g.genus) + '">' + esc(g.genus) +
+        ' <span class="fd-search__alt">' + fmtInt(g.n) + ' ' + esc(t('species')) + '</span></button>';
+    }).join('') + '</div></div>';
+  }
   // Today's genus signal, kept: the squares mesh-research.json lists for this genus. Each
   // is an area and opens through selectArea(), like any other.
   function genusSquaresHtml(n) {
@@ -1386,6 +1632,23 @@
     return ids.length ? '<h3 class="fd-area__h">' + esc(t('genusSquares')) + '</h3><div class="fd-seg">' + ids.map(function (id) {
       return '<button type="button" data-nm-area="' + esc(id) + '">' + esc(areaName(findArea(id))) + '</button>';
     }).join('') + '</div>' : '';
+  }
+  // Pick a family (TASK-015): its genera fill the panel, each opening the TASK-014 genus
+  // panel. Nothing outlines — a family runs the length of the country — so the camera
+  // settles on the Japan view, like a miss.
+  function selectFamily(family, source) {
+    var n = { id: 'family', key: nameFold(family), label: family, genera: null, settled: false };
+    openNameShell(n);
+    filterChanged();
+    announce(family);
+    if (historyAction(source) && root.location.hash) pushUrl(root.location.pathname);
+    ensureNameSearch().then(function () {
+      if (state.name !== n) return;
+      n.settled = true;
+      n.genera = names.status === 'ready' && nameIndex.status === 'ready' ? familyGenera(names.rows, nameIndex.rows, family) : null;
+      renderNamePanel();
+      nameOutlined();
+    });
   }
   function pickNameRow(btn) {
     var name = btn.getAttribute('data-nm-name'), n = state.name;
@@ -2125,7 +2388,7 @@
         if (ev) sub.push(esc(ev));
         if (a.kind === 'group')
           sub.push(esc((s.i || []).map(function (id) { return names[id] ? names[id][lang === 'ja' ? 1 : 0] : id; }).join(', ')));
-        return '<tr><td class="fd-cell">' + speciesNameCell(s.c, s.lk, s.n, species.dead, lang) + '<span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
+        return '<tr><td class="fd-cell">' + speciesNameCell(s.c, s.lk, s.n, species.dead, lang, jaOf(s.n)) + '<span class="fd-cell__sub">' + sub.join(' · ') + '</span></td>' +
           '<td class="num">' + fmtInt(s.r) + '</td><td>' + monthStrip(s.m, state.month, lang) + '</td>' +
           (showWhere ? '<td class="fd-where">' + esc(whereText(s, lang)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody>' : '<tbody><tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr></tbody>';
@@ -2139,7 +2402,7 @@
     var phead = [t('sp'), t('likelihood'), t('months')];
     $('fd-area-possible').innerHTML = poss.length ? '<thead><tr>' + phead.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       pView.rows.map(function (p) {
-        return '<tr><td class="fd-cell">' + speciesNameCell(p.c, p.lk, p.n, species.dead, lang) + '<span class="fd-cell__sub">' + esc(familyLabel(p.f, lang)) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
+        return '<tr><td class="fd-cell">' + speciesNameCell(p.c, p.lk, p.n, species.dead, lang, jaOf(p.n)) + '<span class="fd-cell__sub">' + esc(familyLabel(p.f, lang)) + ' · ' + fmtInt(p.d) + ' ' + t('km') + ' · ' +
           esc(lang === 'ja' ? p.wj : p.w) + '</span></td>' +
           '<td><span class="fd-like" title="' + p.s + '/100"><span style="width:' + p.s + '%"></span></span></td>' +
           '<td>' + monthStrip(p.m, state.month, lang) + '</td></tr>';
@@ -2462,7 +2725,7 @@
       input.setAttribute('aria-activedescendant', options[i].el.id);
       options[i].el.scrollIntoView({ block: 'nearest' });
     }
-    var HEADS = { groups: 'sgGroups', islands: 'sgIslands', areas: 'sgAreas', places: 'sgPlaces', species: 'sgSpecies', genera: 'sgGenera' };
+    var HEADS = { groups: 'sgGroups', islands: 'sgIslands', areas: 'sgAreas', places: 'sgPlaces', species: 'sgSpecies', genera: 'sgGenera', families: 'sgFamilies' };
     function renderGroups(groups) {
       var count = 0;
       groups.forEach(function (g) {
@@ -2480,11 +2743,17 @@
                 else centreOn(p);
                 finish(lang === 'ja' ? p.ja : p.en);
               });
-          } else if (item.row) { // a species: its name, ⚠/固有 markers and how many areas record it
+          } else if (item.row) { // a species: its name, its 和名, ⚠/固有 markers, the old name a
+            // synonym query reached it by, and how many areas record it (TASK-015 adds the 和名 and 旧名)
             var sp = item.row;
-            addOption(li, '<i>' + esc(sp[0]) + '</i>' + markersHtml({ toxic: !!sp[5], endemic: !!sp[6] }, lang) +
+            addOption(li, '<i>' + esc(sp[0]) + '</i>' + (item.ja ? ' <span lang="ja" class="fd-ja">' + esc(item.ja) + '</span>' : '') +
+              markersHtml({ toxic: !!sp[5], endemic: !!sp[6] }, lang) +
+              (item.syn ? ' <span class="fd-search__alt">' + esc(t('formerly').replace('{name}', item.syn)) + '</span>' : '') +
               ' <span class="fd-search__alt">' + esc(st('areas', lang).replace('{n}', fmtInt(sp[3]))) + '</span>',
               function () { showSpecies({ row: sp }, 'search'); finish(sp[0]); });
+          } else if (item.family) { // a family: how many species its rows count (TASK-015)
+            addOption(li, esc(item.family) + ' <span class="fd-search__alt">' + fmtInt(item.n) + ' ' + esc(t('species')) + '</span>',
+              function () { selectFamily(item.family, 'search'); finish(item.family); });
           } else { // a genus: how many species its file holds (an aliased genus: the rows it lists)
             var token = foldQuery(item.genus), slug = genusFileSlug(item.genus, species.index && species.index.aliases);
             var file = species.index && species.index.files[slug];
@@ -2510,19 +2779,23 @@
         if (state.index && !input.disabled) { open(); announceCount(renderGroups(suggestGroups(state.index.areas))); }
         return;
       }
-      // A Latin query searches the names too: the summary loads on the first one (once; its
-      // search.refresh re-runs the query when it lands) and reads from memory after that.
+      // Both name files load on the first query, whatever its script (once; their
+      // search.refresh re-runs the query when they land), and the query reads them from
+      // memory after that. A Latin query searches the summary alone until names.json
+      // lands; anything else waits for both.
       var latin = isLatinQuery(q);
-      if (latin) ensureSummary();
+      ensureNameSearch();
       var groups = searchAll(input.value, {
         areas: state.index ? state.index.areas : null,
         places: geo.status === 'ready' ? geo.places : null,
-        names: latin && names.status === 'ready' ? { rows: names.rows } : null
+        names: names.status === 'ready' || nameIndex.status === 'ready' ? { rows: names.rows, extra: nameIndex.status === 'ready' ? nameIndex.rows : null } : null
       });
       renderGroups(groups);
-      // While the summary loads — or when it could not be trusted — the groups above stand
-      // and a muted note says so; a "No matches" must never answer for names not yet searched.
-      var nn = latin && names.status !== 'ready' ? t(names.status === 'loading' ? 'namesLoading' : 'namesUnavailable') : '';
+      // While a name file loads — or when it could not be trusted — the groups above stand
+      // and a muted note says so; a "No matches" must never answer for names not yet
+      // searched. A Latin query needs only the summary; anything else needs both files.
+      var nn = (latin ? names.status !== 'ready' : names.status !== 'ready' || nameIndex.status !== 'ready') ?
+        t(names.status === 'loading' || nameIndex.status === 'loading' ? 'namesLoading' : 'namesUnavailable') : '';
       if (!results.children.length) {
         note(nn || t(noMatchKind(q) === 'names' ? 'noResultsNames' : 'noResults')); // by context, never a masking note
         return;
@@ -2714,9 +2987,10 @@
     // a square of the genus secondary list is an area and opens through selectArea().
     var nbody = $('fd-name-body');
     if (nbody) nbody.addEventListener('click', function (e) {
-      var t = e.target && e.target.closest ? e.target.closest('[data-nm-area], [data-nm-name]') : null;
+      var t = e.target && e.target.closest ? e.target.closest('[data-nm-area], [data-nm-name], [data-nm-genus]') : null;
       if (!t) return;
       if (t.hasAttribute('data-nm-area')) selectArea(t.getAttribute('data-nm-area'), 'toolbar');
+      else if (t.hasAttribute('data-nm-genus')) selectGenus(t.getAttribute('data-nm-genus'), 'toolbar'); // a family panel row (TASK-015)
       else pickNameRow(t);
     });
     wireLocate();

@@ -281,6 +281,8 @@ html[lang="ja"] .fd-inspector__title { font-family: "Noto Sans JP", var(--sans) 
 .fd-cell .fd-gbif { display: inline-flex; } /* beats .fd-cell a { display: block } so ↗ sits beside the name */
 .fd-gbif:hover, .fd-gbif:focus-visible { text-decoration: underline; }
 .fd-mark { font-size: 14px; margin-left: 5px; cursor: help; }
+/* The 和名 beside a scientific name (TASK-015): muted and smaller, wrapping like the name. */
+.fd-ja { margin-left: 6px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 .fd-mark--toxic { color: var(--amber); }
 .fd-mark--endemic { color: var(--brand); font-family: "Noto Sans JP", var(--sans); }
 html[lang="ja"] .fd-mark { font-family: "Noto Sans JP", var(--sans); }
