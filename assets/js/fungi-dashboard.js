@@ -105,7 +105,9 @@
     // aliases (PR #65 review): COL renames keep the old genus token in the display
     // name while the file lives under the accepted genus — token -> real slug
     var al = isObj(d.aliases) ? d.aliases : {};
-    return { ok: true, files: d.files, aliases: al };
+    // snapshot and summary_sha256 (TASK-014): what species/summary.json must match
+    return { ok: true, files: d.files, aliases: al, snapshot: isSnap(d.snapshot) ? d.snapshot : null,
+      summary_sha256: isSnap(d.summary_sha256) ? d.summary_sha256 : null };
   }
   function readSpeciesGenus(d) {
     if (!isObj(d) || d.schema_version !== 1 || !Array.isArray(d.species) ||
@@ -247,6 +249,10 @@
   // Union silhouette of mesh cells: interior edges cancel (each is traversed once per
   // direction by its two cells), leaving closed boundary rings. A selection then reads
   // as one region outline instead of a grid of stroked squares (PR #47 review).
+  // The walk tracks directed EDGES, never vertices: where two cells touch at a corner a
+  // ring passes the pinch vertex twice, and a vertex-based trail broke the chain there
+  // (found in the browser as a diagonal across tile t5339, TASK-014). Every vertex keeps
+  // as many unused ways out as ways in, so a walk can only end where it started.
   function boundaryRings(keys, edgesOf) {
     var dir = new Map(); // "start|end" -> [start, end] with points as "lat,lon" keys
     keys.forEach(function (k) {
@@ -262,23 +268,26 @@
       }
     });
     var outgoing = {}; // startKey -> [end]
-    dir.forEach(function (ed) { var s = ed[0][0] + ',' + ed[0][1]; (outgoing[s] = outgoing[s] || []).push(ed[1]); });
-    var used = {};
+    var key = function (p) { return p[0] + ',' + p[1]; };
+    dir.forEach(function (ed) { (outgoing[key(ed[0])] = outgoing[key(ed[0])] || []).push(ed[1]); });
+    var used = {}; // "start|end" of the directed edges already walked
     var rings = [];
     dir.forEach(function (ed) {
-      var startKey = ed[0][0] + ',' + ed[0][1];
-      if (used[startKey]) return;
+      var startKey = key(ed[0]);
+      var cur = ed[1], guard = 0, curKey = key(cur);
+      if (used[startKey + '|' + curKey]) return;
+      used[startKey + '|' + curKey] = true;
       var ring = [ed[0]];
-      var cur = ed[1], guard = 0, curKey = cur[0] + ',' + cur[1];
-      used[startKey] = used[curKey] = true;
       while (curKey !== startKey && guard++ < 100000) {
         ring.push(cur);
         var nexts = outgoing[curKey] || [], advanced = false;
         for (var j = 0; j < nexts.length; j++) {
-          var nKey = nexts[j][0] + ',' + nexts[j][1];
-          if (!used[nKey]) { cur = nexts[j]; curKey = nKey; used[nKey] = true; advanced = true; break; }
+          if (!used[curKey + '|' + key(nexts[j])]) {
+            used[curKey + '|' + key(nexts[j])] = true;
+            cur = nexts[j]; curKey = key(cur); advanced = true; break;
+          }
         }
-        if (!advanced) break; // defensive: open chain (cannot happen with whole-cell inputs)
+        if (!advanced) break; // defensive: cannot happen while every vertex balances ways in and out
       }
       if (ring.length >= 4) rings.push(ring); // closed, non-degenerate
     });
@@ -534,43 +543,141 @@
   }
   // Reviewed genera → coarse links. Only known leaf areas (island/tile) survive; unknown
   // ids and groups drop, and a genus left with no areas drops entirely.
-  // Name search: Latin genus plus common names/aliases in EN and JA. Payload rows are
-  // [genus, areas] or [genus, areas, [label_en, label_ja, alias, ...]] (additive, v1).
-  function genusResults(genera, q, index, limit) {
-    var needle = foldQuery(q);
-    if (!needle) return [];
-    var leaves = {};
-    ((index && index.areas) || []).forEach(function (a) {
-      if (a.kind === 'island' || a.kind === 'tile') leaves[a.id] = a;
+  /* ---- name search, Phase 1 (TASK-014, filters-and-search-plan S1). Every published
+     species and genus, from species/summary.json: rows are [name, col_key|null,
+     legacy_key|null, area_count, record_count, mhlw, endemic], one per display name.
+     Masked species have no row anywhere, so a miss never says whether a name exists. */
+  function readSpeciesSummary(d) {
+    if (!isObj(d) || d.schema_version !== 1 || !isSnap(d.snapshot) || !Array.isArray(d.species)) return { ok: false };
+    var rowsOk = d.species.every(function (r) {
+      return Array.isArray(r) && r.length >= 7 && typeof r[0] === 'string'; // 7 fields; later ones may be additive
     });
+    return rowsOk ? { ok: true, snapshot: d.snapshot, rows: d.species } : { ok: false };
+  }
+  // A summary may be searched only when it parses, its snapshot is the species index's, and
+  // — where the browser could compute one — its sha256 is the index's summary_sha256.
+  function summaryTrusted(sum, fileSha, index) {
+    if (!(sum && sum.ok && index) || sum.snapshot !== index.snapshot) return false;
+    return !fileSha || !index.summary_sha256 || fileSha === index.summary_sha256;
+  }
+  // A name, or a query, as matched: foldQuery, then the hyphen and the rank dot that published
+  // names carry (neo-ovoidea, var.) dropped on both sides — they are parts of a word.
+  function nameFold(s) { return foldQuery(s).replace(/[-.]/g, ''); }
+  // Latin letters, spaces, hyphens and dots, at least 2 letters: a binomial is a Latin query too.
+  function isLatinQuery(q) {
+    var f = nameFold(q);
+    return /^[a-z ]+$/.test(f) && f.replace(/ /g, '').length >= 2;
+  }
+  // How a query word meets a name word: 0 exact, 1 prefix, 2 substring, 3 no match.
+  function wordRank(word, q) { return word === q ? 0 : word.indexOf(q) === 0 ? 1 : word.indexOf(q) >= 0 ? 2 : 3; }
+  // Folded words per summary row, folded once per rows array (12k names × every keystroke otherwise).
+  var FOLDED = new WeakMap();
+  function nameWords(rows) {
+    var hit = FOLDED.get(rows);
+    if (!hit) { hit = rows.map(function (r) { return nameFold(r[0]).split(' '); }); FOLDED.set(rows, hit); }
+    return hit;
+  }
+  // Pure search over summary rows → { species: [{row, rank}], genera: [{genus, rank}] },
+  // each capped at `limit` (8). A one-word query meets any word of a name (genus or
+  // epithet); two or more words meet word for word, so "lactarius hats" means genus
+  // prefix AND epithet prefix, and three words take an infraspecific name by prefix.
+  // Rank exact > prefix > substring, then area_count desc, then name: an exact binomial
+  // with one area outranks a prefix match with fifty. Genus groups come from the first
+  // word, most species first.
+  function searchNames(rows, query, limit) {
+    var out = { species: [], genera: [] };
+    var qw = nameFold(query).split(' ');
     var cap = limit == null ? 8 : limit;
-    return (genera || []).map(function (g) {
-      var names = [g[0]].concat(g[2] || []);
-      var hit = null;
-      for (var i = 0; i < names.length; i++) {
-        if (foldQuery(names[i]).indexOf(needle) === 0) { hit = names[i]; break; }
-      }
-      if (hit === null) return null;
-      var areas = (g[1] || []).filter(function (id) { return !!leaves[id]; });
-      return areas.length ? { genus: g[0], label: g[2] && g[2][1] ? g[0] + ' · ' + g[2][1] : g[0], matched: hit, areas: areas } : null;
-    }).filter(Boolean).slice(0, cap);
+    if (!qw[0] || !rows) return out;
+    var all = nameWords(rows), byName = {};
+    rows.forEach(function (row, i) {
+      var w = all[i], rank;
+      if (qw.length === 1) rank = Math.min.apply(null, w.map(function (x) { return wordRank(x, qw[0]); }));
+      else rank = w.length < qw.length ? 3 : Math.max.apply(null, qw.map(function (q, j) { return wordRank(w[j], q); })) || (w.length > qw.length ? 1 : 0); // fewer words than the name: a prefix, never exact
+      if (rank < 3) out.species.push({ row: row, rank: rank, key: w.join(' ') });
+      var g = byName[w[0]];
+      if (g === undefined) byName[w[0]] = { genus: row[0].split(/\s+/)[0], key: w[0], rank: wordRank(w[0], qw[0]), n: 0 };
+      byName[w[0]].n += 1;
+    });
+    var byRank = function (a, b) { return a.rank - b.rank; };
+    var byFold = function (a, b) { return a.key < b.key ? -1 : a.key > b.key ? 1 : 0; };
+    out.species.sort(function (a, b) { return byRank(a, b) || b.row[3] - a.row[3] || byFold(a, b); });
+    out.species = out.species.slice(0, cap).map(function (h) { return { row: h.row, rank: h.rank }; });
+    out.genera = Object.keys(byName).map(function (k) { return byName[k]; })
+      .filter(function (g) { return g.rank < 3; })
+      .sort(function (a, b) { return byRank(a, b) || b.n - a.n || byFold(a, b); })
+      .map(function (g) { return { genus: g.genus, rank: g.rank }; })
+      .slice(0, cap);
+    return out;
+  }
+  // The genus file for a genus or a name: its first token, lowercased, through the alias
+  // map (COL renames keep the old token in the display name; the file lives under the
+  // accepted genus).
+  function genusFileSlug(name, aliases) {
+    var token = speciesSlugFor(name);
+    return token ? ((aliases || {})[token] || token) : null;
+  }
+  // A #species-<key> deep link against the summary: COL key first, then legacy key.
+  function speciesByKey(rows, key) {
+    var k = String(key == null ? '' : key);
+    if (!k || !rows) return null;
+    var hit = rows.filter(function (r) { return r[1] != null && String(r[1]) === k; })[0];
+    return hit || rows.filter(function (r) { return r[2] != null && String(r[2]) === k; })[0] || null;
+  }
+  // A miss says what to search by: a Latin query gets the scientific-name line, a place
+  // or Japanese query only 該当なし (the 波照間 bug: no masking note on a place miss).
+  function noMatchKind(q) { return isLatinQuery(q) ? 'names' : 'plain'; }
+  /* ---- outlines for a picked genus or species (TASK-014). Areas → map pieces: islands by
+     their index bbox, tiles through index.cells. Solid = recorded areas, dashed = could be
+     found. Both renderers read the same sets. */
+  function nameOutline(entry) {
+    var e = entry || {};
+    var solid = Array.isArray(e.area_ids) ? e.area_ids : [];
+    return { solid: solid, dashed: (Array.isArray(e.could_be_found_area_ids) ? e.could_be_found_area_ids : []).filter(function (id) { return solid.indexOf(id) < 0; }) };
+  }
+  function genusAreaIds(entries) {
+    var out = [], seen = {};
+    (entries || []).forEach(function (e) { ((e && e.area_ids) || []).forEach(function (id) { if (!seen[id]) { seen[id] = true; out.push(id); } }); });
+    return out;
+  }
+  function areaOutline(ids, index) {
+    var out = { islands: [], keys: [] };
+    var want = {}, tiles = {};
+    (ids || []).forEach(function (id) { want[id] = true; });
+    if (!index) return out;
+    (index.areas || []).forEach(function (a) { // unknown ids and groups drop
+      if (!want[a.id]) return;
+      if (a.kind === 'island') out.islands.push(a);
+      else if (a.kind === 'tile') tiles[a.id] = true;
+    });
+    Object.keys(index.cells || {}).forEach(function (k) { if (tiles[index.cells[k]]) out.keys.push(k); });
+    return out;
+  }
+  // The camera for an outline: zoomBox over its bboxes (tile cells by their exact edges),
+  // clamped to Japan so a nationwide genus never shrinks the country.
+  function outlineBox(outline) {
+    var bs = (outline && outline.islands || []).map(function (a) { return a.bbox; });
+    (outline && outline.keys || []).forEach(function (k) {
+      var m = /^(\d+):(\d+)$/.exec(String(k));
+      if (m) bs.push(cellEdges(+m[1], +m[2]));
+    });
+    if (!bs.length) return null;
+    var lo = Infinity, hi = -Infinity, we = Infinity, ea = -Infinity;
+    bs.forEach(function (b) { lo = Math.min(lo, b[0]); hi = Math.max(hi, b[1]); we = Math.min(we, b[2]); ea = Math.max(ea, b[3]); });
+    var z = zoomBox([lo, hi, we, ea]);
+    z.latMin = Math.max(z.latMin, JAPAN_BOX.latMin); z.latMax = Math.min(z.latMax, JAPAN_BOX.latMax);
+    z.lonMin = Math.max(z.lonMin, JAPAN_BOX.lonMin); z.lonMax = Math.min(z.lonMax, JAPAN_BOX.lonMax);
+    z.refLat = (z.latMin + z.latMax) / 2;
+    return z;
   }
   // ---- unified search (TASK-008): one combobox over index areas, reference-geography
-  // places and reviewed genera. Areas match on name_en/name_ja through foldQuery
-  // (case- and diacritic-insensitive, JA included); rank exact > prefix > substring,
-  // picker order (groups, islands, tiles — each south-to-north) within a rank.
-  function isLatinQuery(q) { return /^[a-z]{3,}$/.test(foldQuery(q)); }
+  // places and, from TASK-014, species and genus names. Areas match on name_en/name_ja
+  // through foldQuery (case- and diacritic-insensitive, JA included); rank exact >
+  // prefix > substring, picker order (groups, islands, tiles — each south-to-north) within a rank.
   // An island with zero records (Hateruma, Iki in the 2026-11 snapshot) is a dead end in
   // search; rows without the field (older indexes, fixtures) keep surfacing. Deep links
   // still resolve through findArea, which this does not touch.
   function hasRecords(a) { return !(a && a.records === 0); }
-  // Name search covers the reviewed research genera only; a Latin query that finds none
-  // says so (sorted, unique) instead of implying the genus was masked.
-  function genusScope(genera) {
-    var seen = {};
-    (genera || []).forEach(function (g) { if (g && typeof g[0] === 'string') seen[g[0]] = true; });
-    return Object.keys(seen).sort();
-  }
   function areaMatches(areas, q) {
     var needle = foldQuery(q);
     if (!needle || !areas) return [];
@@ -606,10 +713,10 @@
     if (islands.length) out.push({ group: 'islands', items: wrap(islands), more: 0 });
     return out;
   }
-  // One query, three sources: {areas: index rows|null, places: geography|null,
-  // genera: research rows|null} → [{group: 'areas'|'places'|'genera', items, more}],
+  // One query, four sources: {areas: index rows|null, places: geography|null,
+  // names: searchNames() output|null} → [{group: 'areas'|'places'|'species'|'genera', items, more}],
   // in that order, each capped at `limit` (8) with the overflow counted in `more`.
-  // Items: {area} | {place, rank} | {genus, label, areaId} — one option per genus × area.
+  // Items: {area} | {place, rank} | {row, rank} | {genus, rank}.
   function searchAll(query, src, limit) {
     var cap = limit == null ? 8 : limit;
     src = src || {};
@@ -621,11 +728,16 @@
     if (areas.length) groups.push(cut('areas', areas));
     var places = searchPlaces(src.places, query, Infinity);
     if (places.length) groups.push(cut('places', places));
-    var genera = [];
-    genusResults(src.genera, query, { areas: src.areas }, Infinity).forEach(function (g) {
-      g.areas.forEach(function (id) { genera.push({ genus: g.genus, label: g.label, areaId: id }); });
-    });
-    if (genera.length) groups.push(cut('genera', genera));
+    var names = src.names ? searchNames(src.names.rows, query, Infinity) : null;
+    if (names) {
+      // A one-word query that is a genus name wants the genus: its panel goes first, above
+      // the eight species that would otherwise fill the popup. Every other query keeps the
+      // species first.
+      var genusFirst = names.genera.length && names.genera[0].rank === 0 && nameFold(query).indexOf(' ') < 0;
+      (genusFirst ? ['genera', 'species'] : ['species', 'genera']).forEach(function (g) {
+        if (names[g].length) groups.push(cut(g, names[g]));
+      });
+    }
     return groups;
   }
   // ---- "Species on the map" disclosure (TASK-011, spec item 9). No per-species national
@@ -799,11 +911,14 @@
     mapMode: mapMode, unpublishedCells: unpublishedCells,
     activeFilters: activeFilters, kindLabel: kindLabel, ft: ft, FILTER_T: FILTER_T, KIND_T: KIND_T,
     COUNT_BANDS: COUNT_BANDS, SHARE_BANDS: SHARE_BANDS, countBandLabel: countBandLabel, shareBandLabel: shareBandLabel,
-    foldQuery: foldQuery, searchPlaces: searchPlaces, genusResults: genusResults, readMapReference: readMapReference,
+    foldQuery: foldQuery, searchPlaces: searchPlaces, readMapReference: readMapReference,
+    readSpeciesSummary: readSpeciesSummary, summaryTrusted: summaryTrusted, searchNames: searchNames, genusFileSlug: genusFileSlug,
+    speciesByKey: speciesByKey, noMatchKind: noMatchKind,
+    nameOutline: nameOutline, genusAreaIds: genusAreaIds, areaOutline: areaOutline, outlineBox: outlineBox,
     isLatinQuery: isLatinQuery, suggestGroups: suggestGroups, searchAll: searchAll, mapSpeciesRank: mapSpeciesRank,
     tapTransition: tapTransition, tapGuard: tapGuard,
     areaEvidenceMix: areaEvidenceMix, topFamilies: topFamilies, topRecorded: topRecorded, familyLabel: familyLabel,
-    hasRecords: hasRecords, genusScope: genusScope, nextTab: nextTab, historyAction: historyAction,
+    hasRecords: hasRecords, nextTab: nextTab, historyAction: historyAction,
     monthStrip: monthStrip, st: st,
     readSpeciesIndex: readSpeciesIndex, readSpeciesGenus: readSpeciesGenus, speciesSlugFor: speciesSlugFor,
     findSpeciesEntry: findSpeciesEntry, speciesMarkers: speciesMarkers, markersHtml: markersHtml,
@@ -856,20 +971,25 @@
     allTimeScope: ['All of Japan, all time', '日本全体・全期間'],
     matching: ['Matching species: {n}', '条件に合う種：{n}'],
     searchCount: ['results', '件の結果'],
-    searchUnavailable: ['Search is unavailable: neither the area list nor the place names could be loaded.', '地域一覧も地名データも読み込めないため、検索は利用できません。'],
+    nameFailed: ['The details could not be loaded. Try again in a moment.', '詳細を読み込めませんでした。しばらくしてからもう一度お試しください。'],
+    geoDead: ['Area and place search are unavailable: their data could not be loaded. Scientific names can still be searched.', '地域一覧も地名データも読み込めないため、地域・地名の検索は利用できません。学名は検索できます。'],
     sgAreas: ['Areas', '地域'],
     sgPlaces: ['Places', '地名'],
-    sgGenera: ['Genera', '属名'],
+    sgSpecies: ['Species', '種'],
+    sgGenera: ['Genera', '属'],
     sgGroups: ['Island groups', '島しょ群'],
     sgIslands: ['Islands', '島'],
-    genusLoad: ['Search genus names (loads research data)', '属名を検索する（リサーチデータを読み込む）'],
     moreCount: ['+{n} more', '他{n}件'],
     noResults: ['No matches.', '該当なし。'],
+    noResultsNames: ['No matches. Search by scientific name (genus or species). Japanese-name search is coming.', '該当なし。学名（属名・種名）で検索できます。和名検索は準備中です。'],
+    namesLoading: ['Loading species names…', '学名データを読み込み中…'],
+    namesUnavailable: ['Species-name search is unavailable right now; islands and places still work.', '学名検索は現在利用できません。島・地名は検索できます。'],
+    chipSpecies: ['Species: {name}', '種：{name}'],
+    chipGenus: ['Genus: {name}', '属：{name}'],
+    genusSquares: ['Squares with many genus-only records', '属止まりの記録が多い区画'],
     geoLoading: ['Loading place names…', '地名データを読み込み中…'],
     geoAbsent: ['Place search is unavailable: the reference geography could not be loaded.', '参照地理データを読み込めないため、地名検索は利用できません。'],
-    genusUnavailable: ['Genus search needs the research data, which is unavailable.', 'リサーチデータが利用できないため、属名検索は利用できません。'],
     masking: ['To prevent over-collection, Red List and commercially collected species are left out of search and maps at species level; their genera stay searchable.', '乱獲防止のため、レッドリスト掲載種と商用採集の対象種は、種レベルの記録を検索や地図から除いています（属は検索できます）。'],
-    genusScopeNote: ['Genus search currently covers {n} genera: {list}.', '属名検索の対象は現在{n}属です：{list}。'],
     searchCentred: ['Map centred on', '表示位置を移動：'],
     noSpecies: ['No species match these filters.', '条件に合う種はありません。'],
     noPossible: ['No nearby candidates of this kind.', 'この種類の候補はありません。'],
@@ -910,18 +1030,21 @@
   var state = { d: null, index: null, sel: null, kind: 'all', month: 0, box: JAPAN_BOX, // month + kind: all / m / l / o, both drive the map (TASK-013)
     cache: {}, cacheSnap: undefined, tab: 'overview', spLimit: AREA_ROWS, possLimit: AREA_ROWS, joins: true, detailJoin: true,
     q: '', mapspLimit: MAPSP_ROWS,
+    name: null, nout: null, // the open 種／属 panel {id, label, …} and its outline sets (TASK-014)
     locCell: null, snaps: { dashboard: null, index: null },
     bootBypassed: false, dDone: false, iDone: false, routed: false };
   var areaRequests = latestOnly();
   var tapState = null; // { cell: meshKey|null, areaId: id|null } once a square is previewed
   var meshCells = {};  // meshKey -> mesh row [lat, lon, records, species]
   var street = { on: false, loading: false }; // street-mode session state
-  // mesh-research.json (Phase 3B, TASK-013): probed at boot for genus search and fetched on the
-  // first non-default filter; a payload that fails validation or joins no loaded snapshot
-  // leaves the map on all-time records and says so.
-  var research = { fetched: false, bypassed: false, loading: false, res: null, lastNote: '' };
+  // mesh-research.json (Phase 3B, TASK-013): fetched on the first non-default filter and on the
+  // first genus pick (TASK-014), never at boot; a payload that fails validation or joins no
+  // loaded snapshot leaves the map on all-time records and says so.
+  var research = { fetched: false, bypassed: false, loading: false, pending: null, res: null, lastNote: '' };
   var geo = { status: 'idle', places: null, ref: null }; // reference geography: coast + labels + place search
-  var search = { refresh: null }; // refresh re-applies availability + re-runs the query
+  var search = { refresh: null, live: false }; // refresh re-applies availability + re-runs the query;
+  // live: the visitor is at the input (focused or typing). A picked option ends that, so data
+  // arriving afterwards (mesh-research.json on a genus pick) never reopens the popup.
 
   /* ---- species details (TASK-010, spec item 8). The bundles load lazily behind the
      first toggle (index.json once, then the one genus file) and cache in memory for
@@ -932,6 +1055,53 @@
   var openDetail = null;      // { btn, row } — one details row open at a time
   var speciesTriedKey = null; // the last #species-<key> the router attempted
 
+  /* ---- species/summary.json (TASK-014): every published name for search. Fetched once, on
+     the first Latin query or #species-<key> that needs it — never per keystroke — and used
+     only when it is the file the species index describes (summaryTrusted). A mismatch gets
+     the standard treatment: one cache-bypassed refetch, then name search stays off, noted. */
+  var names = { status: 'idle', rows: null, bypassed: false, at: 0 }; // idle | loading | ready | absent | mismatch
+  function sha256Hex(buf) {
+    var subtle = root.crypto && root.crypto.subtle; // secure contexts only
+    if (!subtle) return Promise.resolve(null);      // elsewhere the snapshot comparison alone decides
+    return subtle.digest('SHA-256', buf).then(function (h) {
+      return Array.prototype.map.call(new Uint8Array(h), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    });
+  }
+  function loadSummary(bypass) {
+    names.status = 'loading';                      // synchronously: the next keystroke adds no request
+    if (search.refresh) search.refresh();
+    // A deployment between the two files leaves the cached index naming the old summary:
+    // the bypassed retry must compare against a refetched index, or it fails the same way (PR #75 review)
+    if (bypass) { species.index = null; species.genera = {}; } // and the genus files of the old publication
+    else names.bypassed = false;                    // each fresh load earns its own bypassed retry
+    names.pending = speciesFiles().then(function () { // the index names the file to expect; the promise is shared (PR #75 review)
+      if (!species.index) throw new Error('no species index'); // nothing to check a summary against
+      var index = species.index;
+      return root.fetch(base + 'species/summary.json', { cache: bypass ? 'reload' : 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(function (buf) {
+          return sha256Hex(buf).then(function (sha) {
+            var sum = readSpeciesSummary(JSON.parse(new TextDecoder().decode(buf)));
+            if (summaryTrusted(sum, sha, index)) { names.status = 'ready'; names.rows = sum.rows; names.indexSnap = index.snapshot; return; }
+            if (!names.bypassed) { names.bypassed = true; return loadSummary(true); }
+            names.status = 'mismatch';
+          });
+        });
+    })
+      .catch(function () { names.status = 'absent'; names.at = Date.now(); })
+      .then(function () { if (search.refresh) search.refresh(); return names.status; })
+      .then(function (st) { names.pending = null; return st; });
+    return names.pending;
+  }
+  // The one entry point: an idle summary loads, a long-dead one retries (SPECIES_TTL, like
+  // the genus index), a load in flight is awaited, anything else answers at once. Called on
+  // every Latin keystroke and by a species deep link.
+  function ensureSummary() {
+    if (names.status === 'loading' && names.pending) return names.pending; // one route must not call another's load "unavailable"
+    if (names.status === 'idle' || (names.status === 'absent' && Date.now() - names.at > SPECIES_TTL)) return loadSummary(false);
+    return Promise.resolve(names.status);
+  }
+
   function speciesFiles() {
     if (species.index && Date.now() - species.indexAt < SPECIES_TTL) return Promise.resolve(species.index.files);
     return fetchJson(base + 'species/index.json', { cache: 'no-cache' })
@@ -940,6 +1110,13 @@
         if (!r.ok) throw new Error('invalid species index');
         species.index = r;
         species.indexAt = Date.now();
+        species.dead = false; // recovered (PR #75 review): a summary retry can be what refetched it
+        // A page left open across a deployment: the refreshed index names another summary, so the
+        // next query reloads it instead of searching the previous publication (PR #75 review)
+        if (names.status === 'ready' && names.indexSnap !== r.snapshot) {
+          names.status = 'idle';
+          species.genera = {}; // genus files belong to a publication too
+        }
         return r.files;
       })
       .catch(function () {
@@ -948,30 +1125,41 @@
         return null;
       });
   }
+  // One genus file, fetched once and cached ~60 s. display is the token rows are keyed by.
+  function speciesGenusFile(slug, display) {
+    var cached = species.genera[slug];
+    if (cached && Date.now() - cached.at < SPECIES_TTL) return Promise.resolve(cached.entries);
+    return fetchJson(base + 'species/' + encodeURIComponent(slug) + '.json', { cache: 'no-cache' })
+      .then(readSpeciesGenus)
+      .then(function (r) {
+        if (!r.ok) return null;
+        species.genera[slug] = { at: Date.now(), entries: r.entries };
+        backfillMarkers(slug, r.entries, display);   // PR #66 review: match rows by their token
+        return r.entries;
+      })
+      .catch(function () { return null; });
+  }
+  // A whole genus by name (TASK-014): its file's entries, the slug resolved through aliases.
+  function speciesGenus(name) {
+    return speciesFiles().then(function (files) {
+      var slug = genusFileSlug(name, species.index && species.index.aliases);
+      return slug && files && files[slug] ? speciesGenusFile(slug, speciesSlugFor(name)) : null;
+    });
+  }
   function speciesEntry(colKey, legacyKey, name) {
     if (species.dead && Date.now() - species.deadAt < SPECIES_TTL) return Promise.resolve(null);
     var display = speciesSlugFor(name);           // the token rows and markers are keyed by
     if (!display) return Promise.resolve(null);
-    var resolve = function () {                   // PR #66 review: the alias map loads WITH
-      return (species.index && species.index.aliases              // the index, so resolution has
-        && species.index.aliases[display]) || display;            // to happen after it, not before
-    };
-    var slug = resolve();
-    var cached = species.genera[slug];
-    if (cached && Date.now() - cached.at < SPECIES_TTL)
-      return Promise.resolve(findSpeciesEntry(cached.entries, colKey, legacyKey, name));
     return speciesFiles().then(function (files) {
-      slug = resolve();                           // index is warm now; re-resolve
+      var resolve = function () {                 // PR #66 review: the alias map loads WITH
+        return (species.index && species.index.aliases            // the index, so resolution has
+          && species.index.aliases[display]) || display;          // to happen after it, not before
+      };
+      var slug = resolve();
       if (!files || !files[slug]) return null;
-      return fetchJson(base + 'species/' + encodeURIComponent(slug) + '.json', { cache: 'no-cache' })
-        .then(readSpeciesGenus)
-        .then(function (r) {
-          if (!r.ok) return null;
-          species.genera[slug] = { at: Date.now(), entries: r.entries };
-          backfillMarkers(slug, r.entries, display);   // PR #66 review: match rows by their token
-          return findSpeciesEntry(r.entries, colKey, legacyKey, name);
-        })
-        .catch(function () { return null; });
+      return speciesGenusFile(slug, display).then(function (entries) {
+        return entries && findSpeciesEntry(entries, colKey, legacyKey, name);
+      });
     });
   }
   // Once a genus file is in, every rendered row of that genus gains its markers —
@@ -1006,7 +1194,6 @@
   function toggleSpecies(btn) {
     if (openDetail && openDetail.btn === btn) return closeSpeciesDetail(); // second click closes
     closeSpeciesDetail(); // one row open at a time
-    hideSpeciesCard();
     var row = btn.closest('tr');
     if (!row) return;
     btn.setAttribute('aria-expanded', 'true');
@@ -1030,63 +1217,226 @@
       });
   }
 
-  /* ---- #species-<key> deep links: open the row when the taxon is on the page (its
-     table window grows first if needed), else show the same details as a compact card
-     when the taxon is in the loaded data (an open area or the leads), else the no-page
-     line — without saying why. */
-  function speciesBtnFor(key) {
-    return doc.querySelector('.fd-name-toggle[data-sp-col="' + key + '"], .fd-name-toggle[data-sp-legacy="' + key + '"]');
+  /* ---- 種／属 panels (TASK-014). One surface: a species picked from search, from a genus
+     panel or from a #species-<key> deep link opens the same inspector panel, and its areas
+     are outlined on the map. The panel takes the inspector the way an area does — the Japan
+     overview and any open area step aside — and never goes through selectArea(). */
+  function nameChip() {
+    var n = state.name;
+    return n && !n.miss ? [{ id: n.id, label: t(n.id === 'genus' ? 'chipGenus' : 'chipSpecies').replace('{name}', n.label), removable: true }] : [];
   }
+  // The outline sets both renderers read: a species' recorded areas (solid) and the areas
+  // it could be found in (dashed); a genus' union over the rows its chips leave (solid).
+  function applyNameOutline() {
+    var n = state.name, o = { solid: [], dashed: [] };
+    if (n && n.id === 'species' && n.entry) o = nameOutline(n.entry);
+    else if (n && n.id === 'genus') o.solid = genusAreaIds(n.shown);
+    state.nout = n && (o.solid.length || o.dashed.length) ? {
+      solid: areaOutline(o.solid, state.index), dashed: areaOutline(o.dashed, state.index) } : null;
+  }
+  // Outline from the panel's data, then the camera — once per pick; the chips re-filter a
+  // genus without moving it. The camera fits what was recorded: could-be-found areas can run
+  // the length of the country and would leave a one-area species a speck (seen in the browser).
+  function nameOutlined() {
+    applyNameOutline();
+    var o = state.nout, fit = null;
+    if (o) fit = o.solid.islands.length + o.solid.keys.length ? o.solid : o.dashed;
+    state.box = outlineBox(fit) || JAPAN_BOX;
+    drawViews();
+  }
+  // Open a panel: whatever the inspector showed steps aside (state only — history is the
+  // caller's), the crumb reads 日本全体 › the name, and the 表示中 line gains its chip. The
+  // camera is left where it is: nameOutlined() moves it once, to the outline (showNameMiss,
+  // to Japan). A stop at Japan in between is a second move inside the street map's zoom
+  // animation, which Leaflet runs last (found in the browser: genus → species showed Japan).
+  function openNameShell(n) {
+    closeName();
+    closeSpeciesDetail(); // the area's inline row leaves with the area: Escape must reach the panel (PR #75 review)
+    areaRequests.start(null);
+    state.sel = null;
+    state.detailJoin = true;
+    state.name = n;
+    state.nout = null;
+    $('fd-area').hidden = true;
+    var jp = $('fd-japan');
+    if (jp) jp.hidden = true;
+    $('fd-name').hidden = false;
+    setCrumb(null, n.label);
+    showRetry(false);
+    areaMsg(null);
+    clearPreview();
+  }
+  // Close the panel: the Japan overview (or the area about to be selected) returns. A
+  // visitor's close of a deep-linked species pushes the bare path, so Back returns to it.
+  // The camera follows only on that close (the chip, Escape): the internal callers —
+  // openNameShell, selectArea, clearArea — set it themselves, and a move in between races
+  // theirs on the street map.
+  function closeName(push) {
+    if (!state.name) return;
+    state.name = null;
+    state.nout = null;
+    speciesTriedKey = null; // a later Forward onto the same #species-<key> re-opens it
+    $('fd-name').hidden = true;
+    var jp = $('fd-japan');
+    if (jp && !state.sel) jp.hidden = false;
+    if (!state.sel) clearCrumb();
+    renderActiveFilters();
+    if (push) { state.box = JAPAN_BOX; drawViews(); if (root.location.hash) pushUrl(root.location.pathname); }
+  }
+  // The generic miss takes no key and names nothing: a key that is nowhere published, and
+  // a masked one, read exactly the same. A note (data unavailable) replaces the line, never
+  // the rule.
+  function nameMissHtml() {
+    return '<p class="fd-empty">' + esc(st('noPage', lang)) + '</p>';
+  }
+  function showNameMiss(note) {
+    openNameShell({ id: 'species', key: '', label: '', miss: true, note: note || '' });
+    renderNamePanel();
+    // Nothing to outline: the Japan view, as when a panel closes.
+    state.box = JAPAN_BOX; drawViews();
+    announce(note || st('noPage', lang));
+  }
+  // A species from search (its summary row) or from a genus panel (its entry): one panel.
+  // Without its entry the body loads it, and the outline waits for it.
+  function showSpecies(spec, source) {
+    var e = spec.entry || null;
+    var key = String(spec.key || (spec.row && (spec.row[1] || spec.row[2])) || (e && (e.key || e.legacy_key)) || '');
+    var n = { id: 'species', key: key, label: spec.row ? spec.row[0] : e.name, entry: e, settled: !!e };
+    speciesTriedKey = key; // shown: the router must not show it twice, but must after a close
+    openNameShell(n);
+    filterChanged();
+    announce(n.label);
+    if (historyAction(source)) pushUrl('#species-' + key);
+    if (n.settled) return nameOutlined();
+    speciesEntry(spec.row[1], spec.row[2], spec.row[0]).then(function (entry) {
+      if (state.name !== n) return; // superseded or closed meanwhile
+      n.entry = entry || null;
+      n.failed = !entry;            // the summary lists this species: no entry is a load failure, never an absence
+      n.settled = true;
+      renderNamePanel();
+      nameOutlined();
+    });
+  }
+  // Pick a genus: its file's species fill the panel (an aliased genus only the rows named
+  // under it) and their areas outline the map. mesh-research.json, still unfetched, loads
+  // here for the secondary list.
+  function selectGenus(genus, source) {
+    var token = foldQuery(genus);
+    var n = { id: 'genus', key: token, label: genus, rows: null, shown: [], settled: false };
+    openNameShell(n);
+    filterChanged();
+    announce(genus);
+    if (historyAction(source) && root.location.hash) pushUrl(root.location.pathname);
+    if (!researchReady()) (research.loading && research.pending ? research.pending : loadResearch(false))
+      .then(function () { if (state.name === n) renderNamePanel(); });
+    speciesGenus(genus).then(function (entries) {
+      if (state.name !== n) return;
+      var slug = genusFileSlug(genus, species.index && species.index.aliases);
+      n.settled = true;
+      n.failed = !entries; // the summary listed this genus: no file is a load failure, never an empty genus
+      n.rows = (entries || []).filter(function (x) { return slug === token || speciesSlugFor(x.name) === token; });
+      renderNamePanel();
+      nameOutlined();
+    });
+  }
+  // The inspector panel: a species' details (the same body the inline row uses, the month
+  // chip highlighting its strip) or a genus' species list with the research signal under it.
+  function renderNamePanel() {
+    var n = state.name, body = $('fd-name-body');
+    if (!n || !body) return;
+    var title = $('fd-name-title'), meta = $('fd-name-meta');
+    if (n.miss) { title.hidden = true; meta.textContent = ''; body.innerHTML = n.note ? '<p class="fd-empty">' + esc(n.note) + '</p>' : nameMissHtml(); return; }
+    title.hidden = false;
+    if (n.id === 'species') {
+      var e = n.entry;
+      title.innerHTML = '<i>' + esc(n.label) + '</i>' + (e && e.name_ja ? ' <span lang="ja">' + esc(e.name_ja) + '</span>' : '') +
+        (e ? markersHtml(speciesMarkers(e), lang) : '');
+      meta.textContent = '';
+      body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
+        e ? '<div class="fd-detail__wrap">' + speciesDetailsHtml(e, lang, state.month) + '</div>' :
+        n.failed ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : nameMissHtml();
+      return;
+    }
+    // Rows follow the chips by the same rule as the area tables; the outline follows the rows.
+    n.shown = filterSpecies((n.rows || []).map(function (x) { return { x: x, k: x.kind, m: x.fruiting_months }; }), state.kind, state.month)
+      .map(function (v) { return v.x; });
+    title.textContent = n.label;
+    meta.textContent = !n.settled ? t('loadingArea') : n.failed ? '' : fmtInt(n.rows.length) + ' ' + t('species') +
+      (n.shown.length !== n.rows.length ? ' · ' + t('matching').replace('{n}', fmtInt(n.shown.length)) : '');
+    body.innerHTML = !n.settled ? '<p class="fd-empty">' + esc(t('loadingArea')) + '</p>' :
+      n.failed ? '<p class="fd-empty">' + esc(t('nameFailed')) + '</p>' : genusRowsHtml(n.shown) + genusSquaresHtml(n);
+  }
+  function genusRowsHtml(rows) {
+    var head = [t('sp'), t('rec'), t('months')];
+    return '<div class="fd-scroll"><table class="fd-table"><thead><tr>' + head.map(function (h, i) { return '<th' + (i === 1 ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') +
+      '</tr></thead><tbody>' + (rows.length ? rows.map(function (e) {
+        var tiers = e.records_by_tier || {};
+        var sub = [e.name_ja ? esc(e.name_ja) : '', esc(st('areas', lang).replace('{n}', fmtInt((e.area_ids || []).length)))].filter(Boolean).join(' · ');
+        return '<tr><td class="fd-cell"><button type="button" class="fd-name-toggle" data-nm-col="' + esc(e.key || '') + '" data-nm-legacy="' + esc(e.legacy_key || '') + '" data-nm-name="' + esc(e.name) + '"><i>' + esc(e.name) + '</i></button>' +
+          markersHtml(speciesMarkers(e), lang) + '<span class="fd-cell__sub">' + sub + '</span></td>' +
+          '<td class="num">' + fmtInt((tiers.s || 0) + (tiers.d || 0) + (tiers.o || 0)) + '</td><td>' + monthStrip(e.fruiting_months || [], state.month, lang) + '</td></tr>';
+      }).join('') : '<tr><td class="fd-empty">' + esc(t('noSpecies')) + '</td></tr>') + '</tbody></table></div>';
+  }
+  // Today's genus signal, kept: the squares mesh-research.json lists for this genus. Each
+  // is an area and opens through selectArea(), like any other.
+  function genusSquaresHtml(n) {
+    if (!researchReady()) return '';
+    var row = research.res.data.genera.filter(function (g) { return foldQuery(g[0]) === n.key; })[0];
+    var ids = ((row && row[1]) || []).filter(function (id) { var a = findArea(id); return a && a.kind !== 'group'; });
+    return ids.length ? '<h3 class="fd-area__h">' + esc(t('genusSquares')) + '</h3><div class="fd-seg">' + ids.map(function (id) {
+      return '<button type="button" data-nm-area="' + esc(id) + '">' + esc(areaName(findArea(id))) + '</button>';
+    }).join('') + '</div>' : '';
+  }
+  function pickNameRow(btn) {
+    var name = btn.getAttribute('data-nm-name'), n = state.name;
+    // The open panel already holds the row's entry: use it, with no request that could fail
+    // or land after the visitor moved on (PR #75 review)
+    var e = n && (n.rows || []).filter(function (x) { return x.name === name; })[0];
+    if (e) return showSpecies({ entry: e }, 'search');
+    speciesEntry(btn.getAttribute('data-nm-col') || null, btn.getAttribute('data-nm-legacy') || null, name)
+      .then(function (entry) { if (entry && state.name === n) showSpecies({ entry: entry }, 'search'); });
+  }
+  // The name of a #species-<key> the page already holds: a row of the open area, or a lead.
   function speciesInLoaded(key) {
-    function scan(rows, limitKey) {
-      for (var j = 0; j < rows.length; j++) {
-        var r = rows[j] || {};
-        if (String(r.c || '') === key || String(r.lk || '') === key) return { name: r.n, limitKey: limitKey, idx: j };
-      }
-      return null;
-    }
     var det = state.sel && state.sel.detail;
-    var hit = det ? (scan(det.species || [], 'spLimit') || scan(det.possible || [], 'possLimit')) : null;
-    if (hit) return hit;
+    var rows = det ? (det.species || []).concat(det.possible || []) : [];
+    for (var j = 0; j < rows.length; j++) if (String(rows[j].c || '') === key || String(rows[j].lk || '') === key) return { name: rows[j].n };
     var leads = (state.d && state.d.leads) || [];
-    for (var i = 0; i < leads.length; i++) {
-      var l = leads[i];
-      if (String(l[5] || '') === key || String(l[6] || '') === key) return { name: l[0] };
-    }
+    for (var i = 0; i < leads.length; i++) if (String(leads[i][5] || '') === key || String(leads[i][6] || '') === key) return { name: leads[i][0] };
     return null;
   }
-  function showSpeciesCard(entry, key) {
-    var card = $('fd-species-card');
-    if (!card) return;
-    if (!entry) {
-      card.innerHTML = '<p class="fd-empty">' + esc(st('noPage', lang)) + '</p>';
-      announce(st('noPage', lang));
-    } else {
-      card.innerHTML = '<p class="fd-species-card__name"><i>' + esc(entry.name) + '</i>' +
-        (entry.name_ja ? ' <span lang="ja">' + esc(entry.name_ja) + '</span>' : '') +
-        markersHtml(speciesMarkers(entry), lang) + '</p>' +
-        '<div class="fd-detail__wrap">' + speciesDetailsHtml(entry, lang, 0) + '</div>';
-      announce(entry.name);
-    }
-    card.hidden = false;
-    card.scrollIntoView({ block: 'center' });
-  }
-  function hideSpeciesCard() { var c = $('fd-species-card'); if (c) c.hidden = true; }
+  /* ---- #species-<key> deep links open the same panel. A row of the open area or a lead
+     resolves from data the page already holds; every other published species resolves
+     through the summary (by key) and its genus file, so all of them survive a reload.
+     Anything else is the generic miss: no key printed, nothing confirmed or denied. */
   function trySpeciesHash() {
     var key = parseSpeciesHash(root.location.hash);
     if (!key || key === speciesTriedKey) return;
     speciesTriedKey = key;
-    var btn = speciesBtnFor(key);
-    var loc = speciesInLoaded(key);
-    if (!btn && loc && loc.limitKey) { // present in the loaded area, below the visible window
-      if (state[loc.limitKey] <= loc.idx) { state[loc.limitKey] = loc.idx + AREA_ROWS; renderArea(); }
-      btn = speciesBtnFor(key);
+    openSpeciesByKey(key);
+  }
+  function openSpeciesByKey(key) {
+    function settle(x) { // a summary row, a genus-file entry, {miss: text}, or nothing
+      if (parseSpeciesHash(root.location.hash) !== key) { // the visitor moved on: never
+        speciesTriedKey = null;                            // replace what they chose, and let Back try again
+        return;
+      }
+      if (Array.isArray(x)) showSpecies({ row: x }, 'popstate');
+      else if (x && x.miss) showNameMiss(x.miss);
+      else if (x) showSpecies({ entry: x }, 'popstate');
+      else showNameMiss();
+      $('fd-name').scrollIntoView({ block: 'center' });
     }
-    if (btn) { toggleSpecies(btn); btn.scrollIntoView({ block: 'center' }); return; }
-    if (!loc) return showSpeciesCard(null, key);
-    speciesEntry(key, key, loc.name).then(function (entry) {
-      if (parseSpeciesHash(root.location.hash) !== key) return; // the visitor moved on
-      showSpeciesCard(entry, key);
+    var loc = speciesInLoaded(key);
+    if (loc) return speciesEntry(key, key, loc.name).then(function (x) {
+      // The loaded row is public: no entry is a load failure, so fall back to the summary
+      // (PR #75 review); still nothing is the failure line, never an absence
+      return x || ensureSummary().then(function () { return names.status === 'ready' ? speciesByKey(names.rows, key) : null; });
+    }).then(function (x) { return x || { miss: t('nameFailed') }; }).then(settle);
+    return ensureSummary().then(function () {
+      // A summary that never arrived has looked nothing up: say so, never "no page".
+      if (names.status !== 'ready') return settle({ miss: t('namesUnavailable') });
+      settle(speciesByKey(names.rows, key));
     });
   }
 
@@ -1100,9 +1450,21 @@
     if (el) { el.hidden = !msg; el.textContent = msg || ''; }
   }
   function showRetry(on) { var b = $('fd-area-retry'); if (b) b.hidden = !on; }
+  // The name-outline legend entries sit inside whichever legend is showing, and only while
+  // a panel outlines something; the dashed entry only for a species with such areas.
+  function nameLegend() {
+    var el = $('fd-legend-name');
+    if (!el) return;
+    var est = $('fd-legend-estimate'), host = (state.rview && est) ? est : $('fd-legend-all');
+    if (el.parentNode !== host) host.appendChild(el);
+    el.classList.toggle('is-on', !!state.nout);
+    var d = state.nout && state.nout.dashed;
+    el.querySelector('.fd-legend__dash').hidden = !(d && d.islands.length + d.keys.length);
+  }
   // Redraw every live renderer: the SVG always, the street map only while it is open.
   // The street redraw is forced so a research-mode recolour reaches it immediately.
   function drawViews() {
+    nameLegend(); // the legend follows the map mode on every redraw
     if (map.draw) map.draw();
     if (street.on && root.FungiFieldMap && root.FungiFieldMap.isActive()) root.FungiFieldMap.redraw(true);
   }
@@ -1223,16 +1585,34 @@
       });
       // Selection as one dissolved region outline per boundary loop — interior
       // cell edges cancel, so an area reads as a region, not a grid of squares.
-      if (selKeys.length) {
-        boundaryRings(selKeys, cellEdges).forEach(function (ring) {
-          var dd = '';
+      // Dissolved cells → one SVG path (shared by the area selection and the name outline).
+      var ringPath = function (keys) {
+        var dd = '';
+        boundaryRings(keys, cellEdges).forEach(function (ring) {
           ring.forEach(function (pt, i) {
             var p = project(pt[0], pt[1], size.width, size.height, box); // [lat, lon]
             dd += (i ? 'L' : 'M') + (p.x + ox).toFixed(1) + ' ' + (p.y + oy).toFixed(1);
           });
-          sel += dd + 'Z';
+          dd += 'Z';
         });
-      }
+        return dd;
+      };
+      if (selKeys.length) sel = ringPath(selKeys);
+      // A 種／属 panel's outline (TASK-014): islands by their index bbox, tiles as dissolved
+      // cells, in the selection's two-tone stroke; could-be-found areas dash.
+      var nameOut = '';
+      if (state.nout) ['solid', 'dashed'].forEach(function (part, i) {
+        var o = state.nout[part], mod = i ? ' is-dash' : '', boxes = '';
+        var dd = ringPath(o.keys);
+        o.islands.forEach(function (ar) {
+          var bb = ar.bbox, p1 = project(bb[1], bb[2], size.width, size.height, box), q1 = project(bb[0], bb[3], size.width, size.height, box);
+          ['fd-map__sel-halo', 'fd-map__sel'].forEach(function (cls) {
+            boxes += '<rect class="' + cls + mod + '" x="' + (p1.x + ox).toFixed(1) + '" y="' + (p1.y + oy).toFixed(1) +
+              '" width="' + (q1.x - p1.x).toFixed(1) + '" height="' + (q1.y - p1.y).toFixed(1) + '"></rect>';
+          });
+        });
+        nameOut += (dd ? '<path class="fd-map__sel-halo' + mod + '" d="' + dd + '"/><path class="fd-map__sel' + mod + '" d="' + dd + '"/>' : '') + boxes;
+      });
       // Reference geography under the cells: Natural Earth coast (0E) + curated labels.
       // With a coast present the always-on dashed island boxes go away — selected
       // islands keep their outline as the selection affordance (plan §5 row 0E).
@@ -1290,6 +1670,7 @@
         paths.map(function (p, i) { return '<path class="' + band + i + '" d="' + p + '"/>'; }).join('') +
         (nx ? '<path class="fd-map__nx" d="' + nx + '"/>' : '') +
         (sel ? '<path class="fd-map__sel-halo" d="' + sel + '"/><path class="fd-map__sel" d="' + sel + '"/>' : '') +
+        nameOut +
         loc + labels;
     }
     function pointer(e) {
@@ -1368,15 +1749,18 @@
     doc.querySelectorAll('[data-fd-month]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-fd-month') === state.month)); });
     doc.querySelectorAll('[data-fd-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-fd-kind') === state.kind)); });
   }
-  // Any month/kind change: the map, the area tables, the Overview, the species-on-map list
-  // and the 表示中 line all follow, and the live region says the new line once.
+  // Any month/kind change: the map, the area tables, the Overview, a 種／属 panel and its
+  // outline, the species-on-map list and the 表示中 line all follow, and the live region
+  // says the new line once.
   function filterChanged() {
     state.spLimit = state.possLimit = AREA_ROWS;
     state.mapspLimit = MAPSP_ROWS;
     syncFilters();
-    // Lazy: mesh-research.json is fetched the first time a filter needs it (a failed boot
-    // probe retries here). Only a user change may start a fetch, so a failure cannot loop.
+    // Lazy: mesh-research.json is fetched the first time a filter needs it (a failed fetch
+    // retries here). Only a user change may start a fetch, so a failure cannot loop.
     if (mapMode(state.month, state.kind) === 'estimate' && !research.fetched && !research.loading) loadResearch(false);
+    renderNamePanel();
+    applyNameOutline(); // the panel's rows and their outline follow the chips (TASK-014)
     applyResearch(true); // quiet: the single announcement for this change is assembled below
     renderArea();
     renderMapSpecies(); // the disclosure's N follows the chips like the map's tables
@@ -1385,12 +1769,12 @@
   }
   // The 表示中 line: the label, then one chip per active filter plus the measure the map
   // shows — all in one wrapping row, so the label packs with the chips on narrow screens.
-  // Removable chips are buttons (a ✕ inside a 44 px target); TASK-014 passes its 種／属 chips
-  // in as extras and clears them from clearFilter. Returns the line as text for the live region.
+  // Removable chips are buttons (a ✕ inside a 44 px target); the 種／属 chip (TASK-014) comes
+  // in as the extra and clearFilter clears it. Returns the line as text for the live region.
   function renderActiveFilters() {
     var el = $('fd-active-chips');
     if (!el) return '';
-    var chips = activeFilters(state, lang);
+    var chips = activeFilters(state, lang, nameChip());
     var any = chips.some(function (c) { return c.removable; });
     el.innerHTML = '<span class="fd-active__label">' + esc(ft('showing', lang)) + '</span>' + chips.map(function (c) {
       if (!c.removable) return '<span class="fd-chip">' + esc(c.label) + '</span>';
@@ -1402,6 +1786,7 @@
   function clearFilter(id) {
     if (id === '*' || id === 'month') state.month = 0;
     if (id === '*' || id === 'kind') state.kind = 'all';
+    if (id === '*' || (state.name && id === state.name.id)) closeName(true); // the 種／属 chip
     filterChanged();
   }
 
@@ -1438,6 +1823,7 @@
     if (!state.index) return;
     var row = findArea(id);
     if (!row) return clearArea(true); // unknown id (bad deep link): Japan view, no history rewrite
+    closeName(); // an area takes the inspector back from a 種／属 panel
     var token = areaRequests.start(id);
     state.sel = { row: row, detail: null, failed: false };
     state.spLimit = state.possLimit = AREA_ROWS;
@@ -1451,23 +1837,24 @@
     drawViews();
     renderSelection();
     var act = historyAction(source);
-    if (act) { try { root.history[act + 'State'](null, '', '#area-' + row.id); } catch (e) { /* ignore */ } }
+    if (act) pushUrl('#area-' + row.id, act + 'State');
     loadDetail(row, token, false);
   }
 
   // Breadcrumb + context line: the selected area's name and headline counts are
-  // page-level context, not text buried inside the dropdown (UI review).
-  function setCrumb(row) {
+  // page-level context, not text buried inside the dropdown (UI review). A 種／属 panel
+  // (TASK-014) passes its own label and no row: the name alone, no counts.
+  function setCrumb(row, label) {
+    var name = label || (row ? areaName(row) : '');
     $('fd-area-back').hidden = false;
-    $('fd-crumb-sep').hidden = false;
-    $('fd-crumb-area').hidden = false;
-    $('fd-crumb-area').textContent = areaName(row);
+    $('fd-crumb-sep').hidden = $('fd-crumb-area').hidden = !name; // a miss names nothing: 日本全体 alone
+    $('fd-crumb-area').textContent = name;
     var ctx = $('fd-context');
     if (ctx) {
-      ctx.hidden = false;
-      // the breadcrumb already names the area; this line carries only its counts
-      ctx.innerHTML = '<small>' + fmtInt(row.species) + ' ' + t('species') +
-        ' · ' + fmtInt(row.records) + ' ' + t('records') + '</small>';
+      ctx.hidden = !row;
+      if (row) // the breadcrumb already names the area; this line carries only its counts
+        ctx.innerHTML = '<small>' + fmtInt(row.species) + ' ' + t('species') +
+          ' · ' + fmtInt(row.records) + ' ' + t('records') + '</small>';
     }
   }
   function clearCrumb() {
@@ -1534,6 +1921,7 @@
   }
 
   function clearArea(keepHash) {
+    closeName(); // the Japan crumb closes a 種／属 panel too
     areaRequests.start(null);
     state.sel = null;
     state.detailJoin = true;
@@ -1548,7 +1936,7 @@
     announce(t('returnedAll'));
     // A user clear (crumb, picker, Escape) pushes the bare path so Back returns to the
     // area; a popstate reroute keeps the entry it already landed on.
-    if (!keepHash) { try { root.history.pushState(null, '', root.location.pathname); } catch (e) { /* ignore */ } }
+    if (!keepHash) pushUrl(root.location.pathname);
     drawViews();
   }
 
@@ -1886,6 +2274,7 @@
       box: function () { return state.box; },
       mesh: function () { return state.d ? state.d.mesh : []; },
       tapAt: tapAt, selectedKeys: selectedKeys,
+      nameOutlines: function () { return state.nout; }, // a 種／属 panel's solid and dashed sets (TASK-014)
       locCell: function () { return state.locCell; },
       researchView: function () { return state.rview; }, // street cells recolour with research
       onEvent: streetEvent
@@ -1915,8 +2304,8 @@
   }
   /* ---- end street */
 
-  /* ---- estimates + place/genus search (Phase 3B, one map rule TASK-013). mesh-research.json
-     is probed at boot for genus search and loaded on the first non-default filter;
+  /* ---- estimates + place/name search (Phase 3B, one map rule TASK-013). mesh-research.json
+     loads on the first non-default filter and the first genus pick (TASK-014);
      japan-outline.json is requested at boot (coast + labels). Invalid or absent research
      data degrades to a status on the 表示中 line; the overview, search that does not need
      the payload and tables all stay up. */
@@ -1953,10 +2342,15 @@
     if (search.refresh) search.refresh(); // genus-mode availability may have changed
     drawViews();
   }
+  // The payload may be used only when it validates and joins the loaded snapshots.
+  function researchReady() {
+    return !!(research.res && research.res.ok && researchJoins(state.snaps.dashboard, state.snaps.index, research.res.snapshot));
+  }
+  // Resolves when this attempt (and any bypassed refetch) has settled.
   function loadResearch(bypass) {
     research.fetched = true;
     research.loading = true;
-    fetchJson(base + 'mesh-research.json', { cache: bypass ? 'reload' : 'no-cache' })
+    return research.pending = fetchJson(base + 'mesh-research.json', { cache: bypass ? 'reload' : 'no-cache' })
       .then(readResearch)
       .then(function (res) {
         research.res = res;
@@ -2016,17 +2410,14 @@
       active = -1;
       options = [];
     }
-    function researchReady() {
-      return !!(research.res && research.res.ok &&
-        researchJoins(state.snaps.dashboard, state.snaps.index, research.res.snapshot));
-    }
-    // Disabled only when nothing searchable remains: no index AND no geography. Research
-    // failure never blocks the others — it degrades to a note inside the results.
+    // Never disabled (PR #75 review): without the area index and the geography the box still
+    // searches scientific names, which load on the first Latin query and need neither. A
+    // failed source degrades to a muted note. The masking caption shows whatever
+    // mesh-research.json did (TASK-014).
     function avail() {
       var dead = !state.index && geo.status === 'absent';
-      input.disabled = dead;
-      note(dead ? t('searchUnavailable') : geo.status === 'absent' ? t('geoAbsent') :
-        geo.status === 'loading' ? t('geoLoading') : (researchReady() ? t('masking') : ''));
+      note(dead ? t('geoDead') : geo.status === 'absent' ? t('geoAbsent') :
+        geo.status === 'loading' ? t('geoLoading') : t('masking'));
     }
     function open() { results.hidden = false; input.setAttribute('aria-expanded', 'true'); }
     function announceCount(n) { // debounced: one line per settled result set, never per keystroke
@@ -2040,7 +2431,7 @@
       announce(t('searchCentred') + ' ' + (lang === 'ja' ? p.ja : p.en));
     }
     // A picked option navigates; it is not a filter, so the disclosure resets.
-    function finish(label) { input.value = label; clearPopup(); avail(); state.q = ''; renderMapSpecies(); }
+    function finish(label) { input.value = label; clearPopup(); avail(); state.q = ''; renderMapSpecies(); search.live = false; }
     function groupEl(title) {
       var li = doc.createElement('li');
       li.setAttribute('role', 'group');
@@ -2071,7 +2462,7 @@
       input.setAttribute('aria-activedescendant', options[i].el.id);
       options[i].el.scrollIntoView({ block: 'nearest' });
     }
-    var HEADS = { groups: 'sgGroups', islands: 'sgIslands', areas: 'sgAreas', places: 'sgPlaces', genera: 'sgGenera' };
+    var HEADS = { groups: 'sgGroups', islands: 'sgIslands', areas: 'sgAreas', places: 'sgPlaces', species: 'sgSpecies', genera: 'sgGenera' };
     function renderGroups(groups) {
       var count = 0;
       groups.forEach(function (g) {
@@ -2089,9 +2480,18 @@
                 else centreOn(p);
                 finish(lang === 'ja' ? p.ja : p.en);
               });
-          } else {
-            addOption(li, '<i>' + esc(item.label) + '</i> <span class="fd-search__alt">' + esc(areaName(findArea(item.areaId))) + '</span>',
-              function () { selectArea(item.areaId, 'search'); finish(areaName(findArea(item.areaId))); });
+          } else if (item.row) { // a species: its name, ⚠/固有 markers and how many areas record it
+            var sp = item.row;
+            addOption(li, '<i>' + esc(sp[0]) + '</i>' + markersHtml({ toxic: !!sp[5], endemic: !!sp[6] }, lang) +
+              ' <span class="fd-search__alt">' + esc(st('areas', lang).replace('{n}', fmtInt(sp[3]))) + '</span>',
+              function () { showSpecies({ row: sp }, 'search'); finish(sp[0]); });
+          } else { // a genus: how many species its file holds (an aliased genus: the rows it lists)
+            var token = foldQuery(item.genus), slug = genusFileSlug(item.genus, species.index && species.index.aliases);
+            var file = species.index && species.index.files[slug];
+            var n = file ? file.species : 0; // not `count`: a var here is the outer result counter (PR #75 review)
+            if (file && slug !== token) n = names.rows.filter(function (r) { return speciesSlugFor(r[0]) === token; }).length;
+            addOption(li, '<i>' + esc(item.genus) + '</i> <span class="fd-search__alt">' + fmtInt(n) + ' ' + esc(t('species')) + '</span>',
+              function () { selectGenus(item.genus, 'search'); finish(item.genus); });
           }
           count++;
         });
@@ -2110,41 +2510,32 @@
         if (state.index && !input.disabled) { open(); announceCount(renderGroups(suggestGroups(state.index.areas))); }
         return;
       }
+      // A Latin query searches the names too: the summary loads on the first one (once; its
+      // search.refresh re-runs the query when it lands) and reads from memory after that.
+      var latin = isLatinQuery(q);
+      if (latin) ensureSummary();
       var groups = searchAll(input.value, {
         areas: state.index ? state.index.areas : null,
         places: geo.status === 'ready' ? geo.places : null,
-        genera: researchReady() ? research.res.data.genera : null
+        names: latin && names.status === 'ready' ? { rows: names.rows } : null
       });
       renderGroups(groups);
-      if (!researchReady() && isLatinQuery(q)) {
-        var li = groupEl(t('sgGenera'));
-        if (research.res && !research.res.ok) {
-          li.appendChild(textLi(t('genusUnavailable'))); // muted note, never blocks the groups above
-        } else {
-          addOption(li, esc(t('genusLoad')), function () { // lazy: the load's search.refresh re-runs the query
-            if (!research.fetched && !research.loading) loadResearch(false);
-            note(t('researchLoading'));
-          });
-        }
-        results.appendChild(li);
-      }
+      // While the summary loads — or when it could not be trusted — the groups above stand
+      // and a muted note says so; a "No matches" must never answer for names not yet searched.
+      var nn = latin && names.status !== 'ready' ? t(names.status === 'loading' ? 'namesLoading' : 'namesUnavailable') : '';
       if (!results.children.length) {
-        var scope = researchReady() ? genusScope(research.res.data.genera) : [];
-        if (scope.length && isLatinQuery(q)) {
-          note(t('noResults') + ' ' + t('genusScopeNote').replace('{n}', fmtInt(scope.length)).replace('{list}', scope.join(', ')));
-        } else {
-          note(t('noResults') + (researchReady() ? ' ' + t('masking') : ''));
-        }
+        note(nn || t(noMatchKind(q) === 'names' ? 'noResultsNames' : 'noResults')); // by context, never a masking note
         return;
       }
+      if (nn) note(nn);
       open();
       announceCount(options.length);
     }
     // PR #61 review: a focused empty input re-runs too, so suggestions appear as soon
     // as the async area index lands instead of waiting for a keystroke
-    search.refresh = function () { avail(); if (!results.hidden || doc.activeElement === input) run(); };
-    input.addEventListener('focus', function () { if (input.disabled || !results.hidden) return; run(); });
-    input.addEventListener('input', run);
+    search.refresh = function () { avail(); if (search.live && (!results.hidden || doc.activeElement === input)) run(); };
+    input.addEventListener('focus', function () { search.live = true; if (input.disabled || !results.hidden) return; run(); });
+    input.addEventListener('input', function () { search.live = true; run(); });
     input.addEventListener('blur', function () { clearPopup(); }); // Tab leaves: the popup goes with the focus
     input.addEventListener('keydown', function (e) {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -2185,7 +2576,6 @@
       state.d = res.data;
       state.snaps.dashboard = res.snapshot;
       render(res.data);
-      trySpeciesHash(); // a cold #species-<key> may match a lead, rendered just now
     } else if (!state.d) {
       $('fd-status').hidden = false;
       $('fd-status').textContent = t('loadError');
@@ -2201,7 +2591,7 @@
       state.snaps.index = res.snapshot;
       if (state.cacheSnap !== res.snapshot) { state.cache = {}; state.cacheSnap = res.snapshot; }
       renderJapan(); // the island-group suggestions need the validated index
-      drawViews();
+      if (state.name) nameOutlined(); else drawViews(); // a deep link that resolved first now gets its outline
       if (!state.routed) { // early route: the camera fits from the validated index alone
         state.routed = true;
         var id = parseAreaHash(root.location.hash);
@@ -2232,6 +2622,10 @@
       announce(t('snapMismatch'));
       drawViews();
     }
+    // A cold #species-<key> routes here, once both boot files have settled and whatever
+    // either did: its panel needs the area index for its outline, never dashboard.json
+    // (PR #75 review). Idempotent while one key is pending or shown.
+    if (parseSpeciesHash(root.location.hash)) trySpeciesHash();
   }
 
   function loadBoot(bypass) {
@@ -2244,8 +2638,15 @@
 
   // Back/Forward (and a hand-edited #area-<id> or #species-<key>): re-select or clear
   // without pushing another entry. Unrelated in-page anchors (#fd-leads) are left
-  // alone — jumping to the leads card must not deselect an open area.
+  // alone — jumping to the leads card must not deselect an open area or name panel.
   var lastRoute = null;
+  // Every history write the page makes (an area, the crumb clear, a 種／属 panel). pushState
+  // fires no popstate or hashchange, so the router's guard against the duplicate event (below)
+  // must hear of each one here — otherwise a visitor who closes a panel or area and goes Back
+  // onto the href it had is ignored (found in the browser, TASK-014).
+  function pushUrl(url, how) {
+    try { root.history[how || 'pushState'](null, '', url); lastRoute = root.location.href; } catch (e) { /* ignore */ }
+  }
   function routeFromLocation() {
     // PR #60 review: Back/Forward between same-document entries fires popstate AND
     // hashchange; route once — the second event sees the same location
@@ -2253,11 +2654,10 @@
     lastRoute = root.location.href;
     var h = root.location.hash;
     if (parseSpeciesHash(h)) { trySpeciesHash(); return; }
-    hideSpeciesCard(); // navigating away from a species hash closes its card…
-    speciesTriedKey = null; // …and a later return to the same hash re-attempts it
+    speciesTriedKey = null; // a later return to the same species hash re-attempts it
     if (h && h !== '#' && !parseAreaHash(h)) return;
     var id = parseAreaHash(h);
-    if (id) selectArea(id, 'popstate');
+    if (id) selectArea(id, 'popstate'); // both close an open 種／属 panel (TASK-014)
     else clearArea(true);
   }
 
@@ -2296,8 +2696,7 @@
     doc.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (openDetail) { closeSpeciesDetail(); return; }
-      var card = $('fd-species-card');
-      if (card && !card.hidden) { hideSpeciesCard(); return; }
+      if (state.name) { closeName(true); return; } // a 種／属 panel, before the preview and the area
       var pv = $('fd-preview');
       if (pv && !pv.hidden) { clearPreview(); return; }
       if (state.sel) clearArea();
@@ -2311,6 +2710,15 @@
         if (b) toggleSpecies(b);
       });
     });
+    // The 種／属 panel rebuilds the same way (TASK-014): a species row opens that species;
+    // a square of the genus secondary list is an area and opens through selectArea().
+    var nbody = $('fd-name-body');
+    if (nbody) nbody.addEventListener('click', function (e) {
+      var t = e.target && e.target.closest ? e.target.closest('[data-nm-area], [data-nm-name]') : null;
+      if (!t) return;
+      if (t.hasAttribute('data-nm-area')) selectArea(t.getAttribute('data-nm-area'), 'toolbar');
+      else pickNameRow(t);
+    });
     wireLocate();
     setupToolbar();
     wireSearch();
@@ -2318,7 +2726,8 @@
     base = src.slice(0, src.lastIndexOf('/') + 1);
     loadBoot(false);
     ensureGeo(); // coast + place labels are part of the default view (31 KB gzip, §8 budget)
-    loadResearch(false); // availability probe: genus search and the first filter share this payload
+    // mesh-research.json is not requested at boot (TASK-014): the first non-default filter
+    // and the first genus pick load it.
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start); else start();
 })(typeof window !== 'undefined' ? window : this);

@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-24-1">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-1">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -21,12 +21,13 @@
     "All of Japan, all time", so nothing there reads as area-specific. {%- endcomment -%}
   <div class="fd-workspace">
     <div class="fd-toolbar">
-      {%- comment -%} One combobox (TASK-008): index areas, reference-geography places and
-        reviewed genera. Focus with an empty query shows the former dropdown's contents
-        as suggestions; APG combobox pattern (aria-activedescendant over the listbox). {%- endcomment -%}
+      {%- comment -%} One combobox (TASK-008): index areas, reference-geography places and,
+        since TASK-014, every published species and genus name (species/summary.json).
+        Focus with an empty query shows the former dropdown's contents as suggestions;
+        APG combobox pattern (aria-activedescendant over the listbox). {%- endcomment -%}
       <div class="fd-search" id="fd-search" hidden>
-        <label class="fd-sr" for="fd-search-input">{% if ja %}島・地名・属名で検索{% else %}Search islands, places or genus names{% endif %}</label>
-        <input type="search" id="fd-search-input" role="combobox" aria-controls="fd-search-results" aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{% if ja %}島・地名・属名で検索{% else %}Search islands, places or genus names{% endif %}">
+        <label class="fd-sr" for="fd-search-input">{% if ja %}島・地名・属名・種名で検索{% else %}Search islands, places, genus or species names{% endif %}</label>
+        <input type="search" id="fd-search-input" role="combobox" aria-controls="fd-search-results" aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{% if ja %}島・地名・属名・種名で検索{% else %}Search islands, places, genus or species names{% endif %}">
         <ul class="fd-search__results" id="fd-search-results" role="listbox" aria-label="{% if ja %}検索結果{% else %}Search results{% endif %}" hidden></ul>
         <p class="fd-note fd-search__note" id="fd-search-note" hidden></p>
       </div>
@@ -81,6 +82,14 @@
             <span class="fd-legend__item"><i class="fd-map__b2" aria-hidden="true"></i>100–999</span>
             <span class="fd-legend__item"><i class="fd-map__b3" aria-hidden="true"></i>1k–9k</span>
             <span class="fd-legend__item"><i class="fd-map__b4" aria-hidden="true"></i>10k+</span>
+            {%- comment -%} Name outlines (TASK-014): a picked genus or species outlines its
+              areas. The script moves this block into whichever legend is showing and reveals
+              it only while a panel is open; the dashed entry only for a species that has
+              could-be-found areas. {%- endcomment -%}
+            <span class="fd-legend__name" id="fd-legend-name">
+              <span class="fd-legend__item fd-legend__item--wrap"><i class="fd-map__outline" aria-hidden="true"></i>{% if ja %}種まで同定された記録のある地域{% else %}Areas with species-level records{% endif %}</span>
+              <span class="fd-legend__item fd-legend__item--wrap fd-legend__dash"><i class="fd-map__outline fd-map__outline--dash" aria-hidden="true"></i>{% if ja %}近隣で記録があり見つかる可能性のある地域{% else %}Could be found here (recorded nearby){% endif %}</span>
+            </span>
           </div>
           {%- comment -%} The estimate legend has its own ramp (--fd-e0..4, amber mixed from
             tokens): the all-time ramp's colours must not mean one thing here and another
@@ -167,13 +176,20 @@
           <button type="button" class="fd-btn fd-more" id="fd-poss-more" aria-label="{% if ja %}さらに表示{% else %}Show more{% endif %}" hidden></button>
         </div>
       </section>
+      {%- comment -%} 種／属 panel (TASK-014, name search Phase 1): a genus or species picked
+        from search, or a #species-<key> deep link, takes the inspector the way an area does,
+        and the map outlines its areas. Filled by fungi-dashboard.js. {%- endcomment -%}
+      <section class="fd-name" id="fd-name" hidden>
+        <header class="fd-area__head">
+          <div>
+            <h2 class="fd-area__title" id="fd-name-title"></h2>
+            <p class="fd-area__meta" id="fd-name-meta"></p>
+          </div>
+        </header>
+        <div id="fd-name-body"></div>
+      </section>
     </aside>
   </div>
-
-  {%- comment -%} Species deep-link card (TASK-010, spec item 8): #species-<key> opens the
-    same details as a compact card when the taxon is on the page; unknown or masked keys
-    get the no-page line, without saying why. Filled by fungi-dashboard.js. {%- endcomment -%}
-  <div class="fd-species-card" id="fd-species-card" hidden></div>
 
   <section class="fd-national">
     <h2 class="fd-national__title">{% if ja %}日本全体・全期間{% else %}All of Japan, all time{% endif %}</h2>

@@ -115,9 +115,10 @@
   }
 
   // ctx: { container, shared (dashboard api), latestOnly, box(), mesh(), tapAt(lat,lon),
-  //        selectedKeys(), locCell(), researchView(), onEvent(kind) } with kind
+  //        selectedKeys(), locCell(), nameOutlines(), researchView(), onEvent(kind) } with kind
   // 'ready'|'fail'|'exit'. researchView(), when non-null, is the estimate view: the mesh
   // takes the estimate ramp by slice band, and squares with no estimate are hatched.
+  //        nameOutlines() → { solid, dashed } of { islands, keys }, or null (TASK-014).
   api.enter = function (ctx) {
     if (active) return false;
     var L = root.L, shared = ctx.shared;
@@ -134,7 +135,7 @@
     // map now, so it takes standard map gestures inside its own container.
     var view = L.map(el, { trackResize: true, fadeAnimation: !reduced, zoomAnimation: !reduced,
       scrollWheelZoom: true, zoomControl: false });
-    L.control.zoom({ position: 'bottomright' }).addTo(view); // away from the on-map legend
+    L.control.zoom({ position: 'topright' }).addTo(view); // the on-map legend owns the bottom edge at every width
     view.setView([(box.latMin + box.latMax) / 2, (box.lonMin + box.lonMax) / 2],
       fitZoom(box, el.clientWidth || 320, el.clientHeight || 320));
     var renderer = L.canvas();
@@ -174,10 +175,18 @@
         fillLayers.push(multipoly(nx, { stroke: true, color: pal.nx, weight: 1, opacity: .6,
           fill: true, fillColor: hatchPattern(pal.nx), fillOpacity: .8 }).addTo(view));
     }
-    var selLayer = null, locLayer = null;
+    var selLayer = null, locLayer = null, nameLayer = null;
+    // A 種／属 outline (TASK-014): islands as their index bbox, tile cells dissolved through
+    // the shared boundaryRings — the same sets the simple map draws.
+    function outlineLayers(o, color, weight, dash) {
+      var opts = { renderer: renderer, interactive: false, fill: false, stroke: true, color: color, weight: weight, dashArray: dash || null };
+      return o.islands.map(function (a) { return L.rectangle([[a.bbox[0], a.bbox[2]], [a.bbox[1], a.bbox[3]]], opts); })
+        .concat([multipoly(shared.boundaryRings(o.keys, shared.cellEdges), opts)]);
+    }
     function drawOverlays() {
       if (selLayer) { view.removeLayer(selLayer); selLayer = null; }
       if (locLayer) { view.removeLayer(locLayer); locLayer = null; }
+      if (nameLayer) { view.removeLayer(nameLayer); nameLayer = null; }
       var keys = ctx.selectedKeys();
       if (keys.length) {
         // One dissolved region outline per boundary loop (interior cell edges cancel),
@@ -193,6 +202,11 @@
         var ring = cellRing(lc.key, shared.cellEdges);
         if (ring) locLayer = multipoly([ring], { stroke: true, color: pal.loc, weight: 2.5, fill: false }).addTo(view);
       }
+      // The selection's two-tone stroke; the could-be-found set dashes.
+      var nm = ctx.nameOutlines ? ctx.nameOutlines() : null;
+      if (nm) nameLayer = L.layerGroup([].concat(
+        outlineLayers(nm.solid, pal.halo, 4), outlineLayers(nm.solid, pal.core, 2),
+        outlineLayers(nm.dashed, pal.halo, 4, '8 4'), outlineLayers(nm.dashed, pal.core, 2, '8 4'))).addTo(view);
     }
 
     buildFills();
