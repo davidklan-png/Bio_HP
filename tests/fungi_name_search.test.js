@@ -345,6 +345,11 @@ describe('name search (TASK-014): page wiring (source level)', () => {
       'a missing entry for a loaded row falls back to the summary, then to the failure line');
     assert.ok(/function openNameShell\(n\) \{\s*closeName\(\);\s*closeSpeciesDetail\(\);/.test(src), 'opening a panel closes the area inline detail, so Escape reaches the panel');
   });
+  it('the result counter is never shadowed inside the group renderer (PR #75 review)', () => {
+    const rg = /    function renderGroups\(groups\) \{([\s\S]*?)\n    \}\n    function run\(\) \{/.exec(src)[1];
+    assert.strictEqual((rg.match(/\bvar count\b/g) || []).length, 1, 'one `var count`: the outer counter');
+    assert.strictEqual((rg.match(/\bcount\+\+/g) || []).length, 1, 'one increment, per option');
+  });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
     assert.ok(/function selectArea\(id, source\) \{[\s\S]*?closeName\(\);/.test(src), 'selecting an area closes the panel');

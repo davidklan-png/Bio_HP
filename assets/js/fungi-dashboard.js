@@ -2488,9 +2488,9 @@
           } else { // a genus: how many species its file holds (an aliased genus: the rows it lists)
             var token = foldQuery(item.genus), slug = genusFileSlug(item.genus, species.index && species.index.aliases);
             var file = species.index && species.index.files[slug];
-            var count = file ? file.species : 0;
-            if (file && slug !== token) count = names.rows.filter(function (r) { return speciesSlugFor(r[0]) === token; }).length;
-            addOption(li, '<i>' + esc(item.genus) + '</i> <span class="fd-search__alt">' + fmtInt(count) + ' ' + esc(t('species')) + '</span>',
+            var n = file ? file.species : 0; // not `count`: a var here is the outer result counter (PR #75 review)
+            if (file && slug !== token) n = names.rows.filter(function (r) { return speciesSlugFor(r[0]) === token; }).length;
+            addOption(li, '<i>' + esc(item.genus) + '</i> <span class="fd-search__alt">' + fmtInt(n) + ' ' + esc(t('species')) + '</span>',
               function () { selectGenus(item.genus, 'search'); finish(item.genus); });
           }
           count++;
