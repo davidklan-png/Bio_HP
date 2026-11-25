@@ -971,7 +971,7 @@
     allTimeScope: ['All of Japan, all time', '日本全体・全期間'],
     matching: ['Matching species: {n}', '条件に合う種：{n}'],
     searchCount: ['results', '件の結果'],
-    searchUnavailable: ['Search is unavailable: neither the area list nor the place names could be loaded.', '地域一覧も地名データも読み込めないため、検索は利用できません。'],
+    geoDead: ['Area and place search are unavailable: their data could not be loaded. Scientific names can still be searched.', '地域一覧も地名データも読み込めないため、地域・地名の検索は利用できません。学名は検索できます。'],
     sgAreas: ['Areas', '地域'],
     sgPlaces: ['Places', '地名'],
     sgSpecies: ['Species', '種'],
@@ -1390,9 +1390,13 @@
     openSpeciesByKey(key);
   }
   function openSpeciesByKey(key) {
-    function settle(x) { // a summary row, a genus-file entry, or nothing
-      if (parseSpeciesHash(root.location.hash) !== key) return; // the visitor moved on
+    function settle(x) { // a summary row, a genus-file entry, {miss: text}, or nothing
+      if (parseSpeciesHash(root.location.hash) !== key) { // the visitor moved on: never
+        speciesTriedKey = null;                            // replace what they chose, and let Back try again
+        return;
+      }
       if (Array.isArray(x)) showSpecies({ row: x }, 'popstate');
+      else if (x && x.miss) showNameMiss(x.miss);
       else if (x) showSpecies({ entry: x }, 'popstate');
       else showNameMiss();
       $('fd-name').scrollIntoView({ block: 'center' });
@@ -1401,7 +1405,7 @@
     if (loc) return speciesEntry(key, key, loc.name).then(settle);
     return ensureSummary().then(function () {
       // A summary that never arrived has looked nothing up: say so, never "no page".
-      if (names.status !== 'ready') return showNameMiss(t('namesUnavailable'));
+      if (names.status !== 'ready') return settle({ miss: t('namesUnavailable') });
       settle(speciesByKey(names.rows, key));
     });
   }
@@ -2376,13 +2380,13 @@
       active = -1;
       options = [];
     }
-    // Disabled only when nothing searchable remains: no index AND no geography. A failed
-    // summary or research payload never blocks the others — it degrades to a muted note.
-    // The masking caption shows whatever mesh-research.json did (TASK-014).
+    // Never disabled (PR #75 review): without the area index and the geography the box still
+    // searches scientific names, which load on the first Latin query and need neither. A
+    // failed source degrades to a muted note. The masking caption shows whatever
+    // mesh-research.json did (TASK-014).
     function avail() {
       var dead = !state.index && geo.status === 'absent';
-      input.disabled = dead;
-      note(dead ? t('searchUnavailable') : geo.status === 'absent' ? t('geoAbsent') :
+      note(dead ? t('geoDead') : geo.status === 'absent' ? t('geoAbsent') :
         geo.status === 'loading' ? t('geoLoading') : t('masking'));
     }
     function open() { results.hidden = false; input.setAttribute('aria-expanded', 'true'); }

@@ -291,9 +291,29 @@ describe('name search (TASK-014): page wiring (source level)', () => {
     assert.ok(!/key|mask|label/.test(miss), 'the miss builder takes no key and names nothing');
     assert.ok(miss.includes("st('noPage', lang)"));
     assert.ok(/showNameMiss\(\)/.test(fn('openSpeciesByKey')), 'the deep-link path ends in it');
-    assert.ok(/names\.status !== 'ready'\) return showNameMiss\(t\('namesUnavailable'\)\)/.test(fn('openSpeciesByKey')), 'a summary that never loaded is not a denial');
+    assert.ok(/names\.status !== 'ready'\) return settle\(\{ miss: t\('namesUnavailable'\) \}\);/.test(fn('openSpeciesByKey')), 'a summary that never loaded is not a denial');
     // found in the browser: the crumb read 「日本全体 › 」 — a separator with nothing after it
     assert.ok(/\$\('fd-crumb-sep'\)\.hidden = \$\('fd-crumb-area'\)\.hidden = !name;/.test(fn('setCrumb')), 'a miss has no name: the crumb shows 日本全体 alone');
+  });
+  it('a deep-link lookup that lands after the visitor moved on changes nothing, and lets Back try again (PR #75 review)', () => {
+    const open = fn('openSpeciesByKey');
+    // every outcome goes through settle(), whose first act is the route check: a failure that
+    // lands after an area was picked must not replace that area with the miss panel
+    assert.ok(!/showNameMiss\(/.test(open.replace(/function settle\(x\) \{[\s\S]*?\n    \}/, '')), 'no outcome bypasses settle()');
+    const settle = /function settle\(x\) \{([\s\S]*?)\n    \}/.exec(open)[1];
+    assert.ok(/^\s*\/\/ a summary row[\s\S]*?if \(parseSpeciesHash\(root\.location\.hash\) !== key\) \{/.test(settle), 'the route is checked before anything shows');
+    assert.ok(/parseSpeciesHash\(root\.location\.hash\) !== key\) \{[\s\S]*?speciesTriedKey = null;[\s\S]*?return;/.test(settle), 'a superseded lookup releases the guard, so Back re-attempts the key');
+    assert.ok(/else if \(x && x\.miss\) showNameMiss\(x\.miss\);/.test(settle), 'an unavailable summary is one of the settled outcomes');
+    const tried = fn('trySpeciesHash');
+    assert.ok(/if \(!key \|\| key === speciesTriedKey\) return;\s*speciesTriedKey = key;/.test(tried), 'the guard still stops a second show of the same key');
+  });
+  it('dead geography never disables the box: scientific names load on their own (PR #75 review)', () => {
+    const avail = /function avail\(\) \{([\s\S]*?)\n    \}/.exec(src)[1];
+    assert.ok(!/input\.disabled/.test(avail), 'the input stays enabled');
+    assert.ok(/dead \? t\('geoDead'\)/.test(avail), 'the note says what is unavailable and what still works');
+    const m = /\n    geoDead: \['([^']+)', '([^']+)'\]/.exec(src);
+    assert.ok(m && /Scientific names/.test(m[1]) && /学名/.test(m[2]), 'geoDead is paired and names the working search');
+    assert.ok(!/\bsearchUnavailable/.test(src), 'the old all-search-unavailable text is gone (researchUnavailable is another key)');
   });
   it('panels never go through selectArea(); the crumb and an outlined area do', () => {
     for (const f of ['selectGenus', 'showSpecies', 'closeName', 'openNameShell']) assert.ok(!/selectArea\(/.test(fn(f)), f + ' never selects an area');
