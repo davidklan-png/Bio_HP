@@ -1,6 +1,6 @@
 ---
 layout: default
-title: 概要 / 連絡先 | LLMプロジェクトポートフォリオ
+title: 概要 / 連絡先
 permalink: /ja/about/
 lang: ja
 ---

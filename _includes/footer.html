@@ -1,22 +1,12 @@
-{% assign current_url = page.url | default: "/" %}
-{% assign current_slice = current_url | slice: 0, 4 %}
-{% assign footer_is_ja = false %}
-{% if page.lang == 'ja' or current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
-  {% assign footer_is_ja = true %}
-{% endif %}
+{%- comment -%} Footer for every page. Language context: _includes/lang.html. {%- endcomment -%}
 <footer class="footer">
   <div class="container footer__inner">
-    {% if footer_is_ja %}
-      <span>© 2026 {{ site.data.site.owner_name }} · kinokoholic.com</span>
-      <span>Build in Public · 最終更新 2026.05.05 20:00 JST</span>
-    {% else %}
-      <span>© 2026 {{ site.data.site.owner_name }} · kinokoholic.com</span>
-      <span>built in public · last orchestrator run 2026.05.05 20:00 JST</span>
-    {% endif %}
+    <span>© 2026 {{ site.data.site.owner_name }} · kinokoholic.com</span>
+    <span>{% if is_ja %}選抜プロダクト · 根拠重視のシステム{% else %}selected products · evidence-first systems{% endif %}</span>
     <div class="footer__links">
       <a href="{{ site.data.site.contacts.github }}" target="_blank" rel="noreferrer">GitHub</a>
       <a href="{{ site.data.site.contacts.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>
-      <a href="mailto:{{ site.data.site.contacts.email }}">{% if footer_is_ja %}メール{% else %}Email{% endif %}</a>
+      <a href="mailto:{{ site.data.site.contacts.email }}">{% if is_ja %}メール{% else %}Email{% endif %}</a>
     </div>
   </div>
 </footer>

@@ -1,90 +1,50 @@
-{% assign current_url = page.url | default: "/" %}
-{% assign current_slice = current_url | slice: 0, 4 %}
-{% assign is_ja_path = false %}
-{% if current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
-  {% assign is_ja_path = true %}
-{% endif %}
-{% assign is_ja = false %}
-{% if page.lang == 'ja' or is_ja_path %}
-  {% assign is_ja = true %}
-{% endif %}
-
-{% assign en_switch = current_url %}
-{% assign ja_switch = current_url %}
-{% if is_ja_path %}
-  {% if current_url == '/ja' or current_url == '/ja/' %}
-    {% assign en_switch = '/' %}
-  {% else %}
-    {% assign en_switch = current_url | remove_first: '/ja' %}
-  {% endif %}
-  {% assign ja_switch = current_url %}
-{% else %}
-  {% assign en_switch = current_url %}
-  {% if current_url == '/' %}
-    {% assign ja_switch = '/ja/' %}
-  {% else %}
-    {% assign ja_switch = '/ja' | append: current_url %}
-  {% endif %}
-{% endif %}
-{% if en_switch == '' %}
-  {% assign en_switch = '/' %}
-{% endif %}
-{% if page.collection == 'articles' %}
-  {% assign ja_switch = '/ja/articles/' %}
-{% endif %}
-
-{% if is_ja %}
-  {% assign home_href = '/ja/' %}
-  {% assign about_href = '/ja/about/' %}
-  {% assign kk_href = '/ja/kinokomon/' %}
-  {% assign label_home = 'ホーム' %}
-  {% assign label_about = '概要' %}
-  {% assign label_kk = 'きのこモン' %}
-  {% assign label_projects = 'プロジェクト' %}
-  {% assign articles_href = '/ja/articles/' %}
-  {% assign label_articles = '記事' %}
-{% else %}
-  {% assign home_href = '/' %}
-  {% assign about_href = '/about/' %}
-  {% assign kk_href = '/kinokomon/' %}
-  {% assign label_home = '/home' %}
-  {% assign label_about = '/about' %}
-  {% assign label_kk = '/kinokomon' %}
-  {% assign label_projects = '/projects' %}
-  {% assign label_chat = '/chat' %}
-  {% assign articles_href = '/articles/' %}
-  {% assign label_articles = '/writing' %}
-{% endif %}
-
+{%- comment -%}
+  Primary header for every page. Items: _data/nav.yml. Language context:
+  _includes/lang.html (must be included first by the layout).
+{%- endcomment -%}
 <header class="nav">
   <div class="container nav__inner">
-    <a class="nav__brand" href="{{ home_href | relative_url }}">
+    <a class="nav__brand" href="{{ lang_home | relative_url }}">
       <span class="nav__brand-mark">き</span>
       <span>kinokoholic<span class="nav__brand-host">.com</span></span>
     </a>
-    <nav class="nav__links" aria-label="Primary">
-      <a class="nav__link {% if current_url == home_href %}is-active{% endif %}" href="{{ home_href | relative_url }}">{{ label_home }}</a>
-      <a class="nav__link {% if current_url contains '/projects/' %}is-active{% endif %}" href="{{ home_href | relative_url }}#projects">{{ label_projects }}</a>
-      <a class="nav__link {% if current_url == kk_href %}is-active{% endif %}" href="{{ kk_href | relative_url }}">{{ label_kk }}</a>
-      <a class="nav__link {% if current_url contains '/articles/' %}is-active{% endif %}" href="{{ articles_href | relative_url }}">{{ label_articles }}</a>
-      <a class="nav__link {% if current_url == about_href %}is-active{% endif %}" href="{{ about_href | relative_url }}">{{ label_about }}</a>
-      {% unless is_ja %}
-        <a class="nav__link {% if current_url == '/chat/' %}is-active{% endif %}" href="{{ '/chat/' | relative_url }}">{{ label_chat }}</a>
-      {% endunless %}
+    <nav class="nav__links" aria-label="{% if is_ja %}メインナビゲーション{% else %}Primary{% endif %}">
+      {%- for item in site.data.nav.items -%}
+        {%- if is_ja -%}
+          {%- assign label = item.ja -%}
+          {%- if item.href == '/' -%}
+            {%- assign href = '/ja/' -%}
+          {%- else -%}
+            {%- assign href = '/ja' | append: item.href -%}
+          {%- endif -%}
+        {%- else -%}
+          {%- assign label = item.en -%}
+          {%- assign href = item.href -%}
+        {%- endif -%}
+        {%- assign active = false -%}
+        {%- if item.exact and en_url == item.exact -%}{%- assign active = true -%}{%- endif -%}
+        {%- if item.prefix -%}
+          {%- assign prefix_len = item.prefix | size -%}
+          {%- assign url_start = en_url | slice: 0, prefix_len -%}
+          {%- if url_start == item.prefix -%}{%- assign active = true -%}{%- endif -%}
+        {%- endif -%}
+        {%- if item.except contains en_url -%}{%- assign active = false -%}{%- endif %}
+      <a class="nav__link{% if active %} is-active{% endif %}" href="{{ href | relative_url }}" data-nav="{{ item.key }}"{% if active %} aria-current="page"{% endif %}>{{ label }}</a>
+      {%- endfor %}
     </nav>
     <div class="nav__util">
-      <div class="nav__lang lang-toggle" role="group" aria-label="Language">
-        {% if is_ja %}
-          <a class="nav__lang-btn" href="{{ en_switch | relative_url }}" data-lang-switch="en" aria-pressed="false">EN</a>
-          <span aria-hidden="true">·</span>
-          <span class="nav__lang-btn current" aria-pressed="true">JA</span>
-        {% else %}
-          <span class="nav__lang-btn current" aria-pressed="true">EN</span>
-          <span aria-hidden="true">·</span>
-          <a class="nav__lang-btn" href="{{ ja_switch | relative_url }}" data-lang-switch="ja" aria-pressed="false">JA</a>
-        {% endif %}
+      <div class="nav__lang" role="group" aria-label="{% if is_ja %}言語{% else %}Language{% endif %}">
+        {%- if is_ja %}
+        <a class="nav__lang-btn" href="{{ en_switch | relative_url }}" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+        <span aria-hidden="true">·</span>
+        <span class="nav__lang-btn is-current" aria-current="true">JA</span>
+        {%- else %}
+        <span class="nav__lang-btn is-current" aria-current="true">EN</span>
+        <span aria-hidden="true">·</span>
+        <a class="nav__lang-btn" href="{{ ja_switch | relative_url }}" hreflang="ja" lang="ja" data-lang-switch="ja">JA</a>
+        {%- endif %}
       </div>
-      <button class="nav__theme" data-theme-toggle aria-label="Toggle theme"></button>
+      <button class="nav__theme" data-theme-toggle aria-label="{% if is_ja %}テーマ切り替え{% else %}Toggle theme{% endif %}"></button>
     </div>
   </div>
 </header>

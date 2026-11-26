@@ -1,0 +1,22 @@
+name: Homepage JA mirror
+
+# /ja/ (ja/index.html) is generated from index.html + i18n/strings.ja.json by
+# scripts/build_ja_home.py. Fail when it is stale or when the English home page
+# uses a data-i18n key with no Japanese string.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ja-home:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fail if ja/index.html is stale vs index.html + strings.ja.json
+        run: python3 scripts/build_ja_home.py --check
+      - name: Run generator unit tests
+        run: python3 tests/test_build_ja_home.py

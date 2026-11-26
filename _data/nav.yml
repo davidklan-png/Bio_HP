@@ -1,0 +1,55 @@
+# Primary navigation — the single source of truth for every page header,
+# English and Japanese. Rendered by _includes/nav.html.
+#
+#   href    the English path. The Japanese link is "/ja" + href.
+#   active  how the current page is matched to an item (page URL with any /ja
+#           prefix removed):
+#             exact:  <path>   the page URL equals <path>
+#             prefix: <path>   the page URL starts with <path>
+#           `except` lists URLs that never activate the item.
+#
+# Naming (decided 2026-11-26): "Shroom Hunter" is the Japan fungi dashboard and
+# keeps its historical URL /kinokomon/. "Kinokomon" is the agent, which lives
+# under /kinokomon/agent/ and belongs to the -mon family.
+items:
+  - key: home
+    en: /home
+    ja: ホーム
+    href: /
+    exact: /
+  - key: products
+    en: /products
+    ja: プロダクト
+    href: /#projects
+    prefix: /projects/
+  - key: shroom-hunter
+    en: /shroom-hunter
+    ja: シュルームハンター
+    href: /kinokomon/
+    exact: /kinokomon/
+  - key: family
+    en: /-mon family
+    ja: -MONファミリー
+    href: /#family
+    prefix: /kinokomon/
+    except: [/kinokomon/]
+  - key: writing
+    en: /writing
+    ja: 記事
+    href: /articles/
+    prefix: /articles/
+  - key: career
+    en: /career
+    ja: 経歴
+    href: /work-history/
+    exact: /work-history/
+  - key: about
+    en: /about
+    ja: 概要
+    href: /about/
+    exact: /about/
+  - key: chat
+    en: /chat
+    ja: チャット
+    href: /chat/
+    exact: /chat/

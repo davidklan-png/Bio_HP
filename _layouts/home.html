@@ -1,0 +1,20 @@
+<!doctype html>
+{%- comment -%}
+  Home page layout (/ and /ja/). Same head, nav and footer as every other page;
+  the only differences are a full-bleed <main> (sections set their own .container)
+  and no legacy styles.css, whose .hero/.project-card rules predate this design.
+{%- endcomment -%}
+{%- include lang.html %}
+<html lang="{{ page_lang }}" data-theme="dark">
+  <head>
+{% include head.html legacy_css=false %}
+  </head>
+  <body>
+    {% include nav.html %}
+    <main>
+{{ content }}
+    </main>
+    {% include footer.html %}
+    <script src="{{ '/assets/js/site.js' | relative_url }}"></script>
+  </body>
+</html>

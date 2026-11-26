@@ -2,11 +2,10 @@
 
 This repo serves two surfaces from one codebase:
 
-1. **Operator-console homepage** — a static `index.html` at the site root
-   (no Jekyll layout) that ships the AI-forward portfolio: hero +
-   operator status, AI workflow recipes, project grid, -mon family,
-   live GitHub feed, career table, articles, NOW/NEXT + activity log,
-   connect block. EN/JA toggle wired against `i18n/strings.ja.json`.
+1. **Operator-console homepage** — `index.html` (layout `home`): hero,
+   products, -mon family, writing, career, connect. The Japanese home
+   (`/ja/`) is generated from it by `scripts/build_ja_home.py`. Language is
+   URL-based site-wide: `/path/` is English, `/ja/path/` is Japanese.
 2. **JD Concierge** — Jekyll widget + Cloudflare Worker for evidence-
    grounded JD fit analysis. Grounding lives in `shared/profile.json`.
 
@@ -14,29 +13,29 @@ This repo serves two surfaces from one codebase:
 
 | File | Role |
 | --- | --- |
-| `index.html` | Static homepage. No Jekyll front matter — copied verbatim to `_site/index.html`. Tagged with `data-i18n="<key>"` and `data-i18n-attr="attr:key"` on every translatable element. `<html data-i18n-page="page.home">` declares the namespace. |
-| `assets/css/site.css` | Operator-console theme (dark-first, brand teal accents). Includes lang-toggle button styling and `html[lang="ja"]` font-stack swap to Noto Sans JP. |
+| `index.html` | Homepage body (layout `home`, shared head/nav/footer). Tagged with `data-i18n="<key>"` and `data-i18n-attr="attr:key"` on every translatable element. |
+| `ja/index.html` | **Generated** Japanese home — `python3 scripts/build_ja_home.py` (CI: `--check`). |
+| `_data/nav.yml` | The one nav definition (EN + JA labels) for every page. |
+| `assets/css/site.css` | Operator-console theme (dark-first, brand teal accents). Includes the EN/JA toggle styling and `html[lang="ja"]` font-stack swap to Noto Sans JP. |
 | `assets/js/site.js` | Theme toggle (`data-theme-toggle`), nav active-link highlight, `data-fade` IntersectionObserver. |
 | `assets/js/github-feed.js` | Live fetch of `https://api.github.com/users/<user>/repos`; gracefully falls back to the static cards in the markup. |
-| `assets/js/i18n.js` | EN/JA applier. Caches each EN element's original content on first JA application, swaps `innerHTML`/`textContent` (or attributes) keyed by `data-i18n`, persists choice in `localStorage.kk_lang`, and lazy-fetches the JA bundle only on first JA toggle. |
-| `i18n/strings.ja.json` | Full JA translation table — `_global` + page namespaces (currently `page.home` is consumed). Keys ending in `.html` are injected with `innerHTML`; everything else is `textContent`. |
+| `i18n/strings.ja.json` | JA strings for the homepage (`page.home`). Build input only — not published. Keys ending in `.html` are inserted as markup; everything else as text. |
 
 ### Adding or editing copy
 
 1. Add the markup with EN as the canonical source (EN lives in the HTML).
 2. Tag the element: `<h2 data-i18n="page.home.section.h2">…</h2>` — or
    `data-i18n-attr="placeholder:foo,aria-label:bar"` for attributes.
-3. Add the JA value under the matching namespace in
-   `i18n/strings.ja.json`. If the key ends in `.html`, the value may
-   contain inline tags (`<em>`, `<strong>`) and will be injected via
-   `innerHTML`.
-4. Reload the page and toggle JA — confirm no `[i18n] missing key`
-   warnings in the console.
+3. Add the JA value under `page.home` in `i18n/strings.ja.json`. If the
+   key ends in `.html`, the value may contain inline tags (`<em>`,
+   `<strong>`).
+4. Run `python3 scripts/build_ja_home.py` and commit `ja/index.html`.
+   It fails on any key without a JA string.
 
 ### Internal links
 
-The homepage is static HTML but references Jekyll-generated pages.
-Link to **pretty permalinks**, not flat `.html` paths:
+Link to **pretty permalinks**, not flat `.html` paths (the JA generator
+rewrites them to their `/ja/` twin when one exists):
 
 - `/` (homepage)
 - `/kinokomon/`
@@ -138,13 +137,13 @@ Notes:
 All Jekyll source lives at the repo root — there is no `site/` subdirectory.
 
 ```text
-index.html                ← static operator-console homepage
+index.html                ← homepage (EN, layout: home)
+ja/index.html             ← GENERATED Japanese homepage (scripts/build_ja_home.py)
 i18n/
-  strings.ja.json         ← JA translation bundle for the homepage
+  strings.ja.json         ← JA strings for the homepage (build input)
 assets/
   css/site.css            ← operator-console theme + JA font swap
   css/styles.css          ← legacy Jekyll-page styles
-  js/i18n.js              ← EN/JA applier
   js/site.js              ← theme toggle + scroll fade
   js/github-feed.js       ← live GitHub repo cards (with fallback)
   js/jd_concierge.js
@@ -153,9 +152,9 @@ assets/
 _config.yml
 _includes/
   jd_concierge.html
-  nav.html · footer.html · icon.html
+  lang.html · head.html · nav.html · footer.html · icon.html
 _layouts/
-  default.html · project.html
+  home.html · default.html · project.html
 _data/                    ← projects + site config (YAML)
 projects/                 ← per-project Jekyll pages (markdown)
 kinokomon.md · about.md · work-history.md

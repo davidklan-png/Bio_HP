@@ -20,7 +20,7 @@ html.lang-ja [class*="mono"] {
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Language toggle buttons (replace the static EN · JA span). */
+/* Language toggle: links to the other language's URL (the URL is the language state). */
 .nav__lang {
   display: inline-flex;
   align-items: center;
@@ -37,7 +37,10 @@ html.lang-ja [class*="mono"] {
   transition: opacity 0.15s ease;
 }
 .nav__lang-btn:hover { opacity: 0.85; }
-.nav__lang-btn[aria-pressed="true"] {
+a.nav__lang-btn { text-decoration: none; }
+.nav__lang-btn.is-current {
+  cursor: default;
+  color: var(--ink-2);
   opacity: 1;
   font-weight: 700;
 }
@@ -1149,6 +1152,14 @@ code, .mono, .label {
   flex-wrap: wrap;
   gap: 0.9rem;
 }
+.footer__links { display: flex; gap: 0.9rem; }
+.footer__links a { color: inherit; }
+.footer__links a:hover { color: var(--brand); }
+
+/* Scroll fade-in (site.js adds .is-in when an element enters the viewport). */
+[data-fade] { opacity: 0; transform: translateY(10px); transition: opacity .55s ease, transform .55s ease; }
+[data-fade].is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { [data-fade] { opacity: 1; transform: none; transition: none; } }
 
 /* ============ Writing (homepage block, /articles/ index, article pages) ============ */
 .writing-grid {
@@ -1255,7 +1266,14 @@ code, .mono, .label {
 }
 
 /* ============ Responsive ============ */
+/* Header and footer keep the same width on every page (styles.css narrows
+   .container on legacy Jekyll pages; the chrome must not shift between pages). */
+.nav .container, .footer .container { width: min(1240px, 94vw); }
 @media (max-width: 1100px) {
+  .nav__inner { gap: 1rem; }
+  .nav__brand-host { display: none; }
+  .nav__links { gap: 0; font-size: 0.78rem; }
+  .nav__link { padding: 0.45rem 0.45rem; white-space: nowrap; }
   .stack-strip { grid-template-columns: repeat(3, 1fr); }
   .stack-cell:nth-child(3) { border-right: none; }
   .recipes, .articles, .gh-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1268,8 +1286,20 @@ code, .mono, .label {
   .now-next { grid-template-columns: 1fr; }
   .connect { grid-template-columns: 1fr; }
   .nav__brand-host { display: none; }
-  .nav__links { display: none; }
   .career td.scope { display: none; }
+  table.career { display: block; overflow-x: auto; }
+}
+
+@media (max-width: 960px) {
+  /* Narrow screens: the nav becomes a second, horizontally scrollable row (it used to be hidden). */
+  .nav__inner { flex-wrap: wrap; height: auto; padding: 0.55rem 0 0.35rem; row-gap: 0.2rem; }
+  .nav__links {
+    order: 3; width: 100%;
+    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    gap: 0; font-size: 0.78rem; margin: 0 -0.45rem;
+  }
+  .nav__links::-webkit-scrollbar { display: none; }
+  .nav__link { padding: 0.4rem 0.45rem; white-space: nowrap; }
 }
 
 /* Reduced motion */

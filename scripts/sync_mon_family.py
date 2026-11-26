@@ -23,6 +23,7 @@ import argparse
 import difflib
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def render_cards(family: list[dict]) -> str:
         slug = e["slug"]
         cards.append(
             f'      <a class="mon-card" href="{e["href"]}"{target} data-fade>\n'
-            f'        <div class="mon-card__art"><img src="assets/images/{e["icon"]}" alt="{html_escape(e["name"])}"></div>\n'
+            f'        <div class="mon-card__art"><img src="/assets/images/{e["icon"]}" alt="{html_escape(e["name"])}"></div>\n'
             f'        <div class="mon-card__body">\n'
             f'          <div class="mon-card__name">{html_escape(e["name"])}{ja}</div>\n'
             f'          <p class="mon-card__desc" data-i18n="fam.{slug}.desc">{html_escape(e["desc_en"])}</p>\n'
@@ -137,6 +138,9 @@ def main() -> int:
         return 1
     if not args.check and not stale:
         print("already in sync; nothing to do")
+    if not args.check and stale:
+        # /ja/ is generated from index.html + strings.ja.json; keep it in step (CI checks it).
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "build_ja_home.py")], check=True)
     return 0
 
 
