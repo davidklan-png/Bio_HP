@@ -1,106 +1,13 @@
 <!doctype html>
-<html lang="{% if page.lang %}{{ page.lang }}{% else %}en{% endif %}" data-theme="dark">
-  {% assign current_url = page.url | default: "/" %}
-  {% assign current_slice = current_url | slice: 0, 4 %}
-  {% assign is_ja_path = false %}
-  {% if current_url == '/ja' or current_url == '/ja/' or current_slice == '/ja/' %}
-    {% assign is_ja_path = true %}
-  {% endif %}
-  {% assign en_alt = current_url %}
-  {% assign ja_alt = current_url %}
-  {% if is_ja_path %}
-    {% if current_url == '/ja' or current_url == '/ja/' %}
-      {% assign en_alt = '/' %}
-      {% assign ja_alt = '/ja/' %}
-    {% else %}
-      {% assign en_alt = current_url | remove_first: '/ja' %}
-      {% assign ja_alt = current_url %}
-    {% endif %}
-  {% else %}
-    {% assign en_alt = current_url %}
-    {% if current_url == '/' %}
-      {% assign ja_alt = '/ja/' %}
-    {% else %}
-      {% assign ja_alt = '/ja' | append: current_url %}
-    {% endif %}
-  {% endif %}
-  {% if en_alt == '' %}
-    {% assign en_alt = '/' %}
-  {% endif %}
+{%- include lang.html %}
+<html lang="{{ page_lang }}" data-theme="dark">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.data.site.site_title }}</title>
-    <meta name="description" content="{{ page.description | default: page.summary | default: site.description | escape }}">
-    <link rel="icon" type="image/png" href="{{ '/assets/images/Kinokomon_512x512.png' | relative_url }}">
-    {% if page.collection == 'articles' %}
-    {% if site.articles_canonical == 'self' %}
-    <link rel="canonical" href="{{ page.url | absolute_url }}">
-    {% else %}
-    <link rel="canonical" href="{{ page.original_url }}">
-    {% endif %}
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="{{ page.title | escape }}">
-    <meta property="og:description" content="{{ page.description | default: page.summary | escape }}">
-    <meta property="og:url" content="{{ page.url | absolute_url }}">
-    {% if page.cover %}<meta property="og:image" content="{{ page.cover | absolute_url }}">{% endif %}
-    <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
-    <meta name="twitter:card" content="{% if page.cover %}summary_large_image{% else %}summary{% endif %}">
-    {% else %}
-    <link rel="alternate" hreflang="en" href="{{ en_alt | absolute_url }}">
-    <link rel="alternate" hreflang="ja" href="{{ ja_alt | absolute_url }}">
-    <link rel="alternate" hreflang="x-default" href="{{ en_alt | absolute_url }}">
-    {% endif %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ "/assets/css/site.css" | relative_url }}">
-    <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
-    {% if page.custom_css %}
-      {% for stylesheet in page.custom_css %}
-    <link rel="stylesheet" href="{{ stylesheet | relative_url }}">
-      {% endfor %}
-    {% endif %}
-    <script>
-      // Language persistence and page-specific switching for the Jekyll EN/JA mirror.
-      (function() {
-        const baseUrl = {{ site.baseurl | default: "" | jsonify }};
-        const stripBaseUrl = (pathname) => {
-          if (baseUrl && pathname.indexOf(baseUrl + '/') === 0) {
-            return pathname.slice(baseUrl.length);
-          }
-          if (baseUrl && pathname === baseUrl) {
-            return '/';
-          }
-          return pathname;
-        };
-
-        const currentPath = stripBaseUrl(window.location.pathname);
-        const isJaPage = currentPath === '/ja' || currentPath.indexOf('/ja/') === 0;
-
-        document.addEventListener('DOMContentLoaded', function() {
-          const pagePath = stripBaseUrl(window.location.pathname);
-          const isJa = pagePath === '/ja' || pagePath.indexOf('/ja/') === 0;
-          const enLink = document.querySelector('.lang-toggle a[data-lang-switch="en"]');
-          const jaLink = document.querySelector('.lang-toggle a[data-lang-switch="ja"]');
-          if (enLink) enLink.setAttribute('aria-pressed', isJa ? 'false' : 'true');
-          if (jaLink) jaLink.setAttribute('aria-pressed', isJa ? 'true' : 'false');
-        });
-
-        document.addEventListener('click', function(e) {
-          const target = e.target.closest('.lang-toggle a');
-          if (target) {
-            const lang = target.getAttribute('data-lang-switch');
-            try { localStorage.setItem('site-lang', lang); } catch (err) {}
-          }
-        });
-      })();
-    </script>
+{% include head.html legacy_css=true %}
   </head>
   <body>
     {% include nav.html %}
     <main class="container page-content">{{ content }}</main>
     {% include footer.html %}
-    <script src="{{ "/assets/js/site.js" | relative_url }}"></script>
+    <script src="{{ '/assets/js/site.js' | relative_url }}"></script>
   </body>
 </html>

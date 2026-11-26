@@ -448,6 +448,9 @@ def sync(check: bool) -> int:
         return 1
     INDEX.write_text(updated, encoding="utf-8")
     print("homepage writing block: rewritten")
+    if INDEX == ROOT / "index.html":
+        # /ja/ is generated from index.html; keep it in step (CI checks it).
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "build_ja_home.py")], check=True)
     return 0
 
 

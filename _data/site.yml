@@ -1,5 +1,6 @@
-site_title: LLM Project Portfolio - David Klan
-site_title_ja: LLMプロジェクトポートフォリオ - David Klan
+# Suffix for page titles ("<page title> | <site_title>"). The home page sets its own full title.
+site_title: David Klan · kinokoholic.com
+site_title_ja: David Klan · kinokoholic.com
 owner_name: David Klan
 owner_role: IT Consultant + Application PM + AI/Data Builder
 owner_role_ja: ITコンサルタント + アプリケーションPM + AI／データビルダー

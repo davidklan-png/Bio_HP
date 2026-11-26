@@ -1,48 +1,18 @@
-<!doctype html>
-<html lang="en" data-theme="dark" data-i18n-page="page.home">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="title">David Klan · AI products that hold up</title>
-  <meta name="description" data-i18n-attr="content:meta.description" content="AI products for real decisions: horse-racing ML, receipt automation, and citation-first Japanese tax research.">
-  <link rel="icon" type="image/png" href="assets/images/Kinokomon_512x512.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <style>
-    [data-fade] { opacity: 0; transform: translateY(10px); transition: opacity .55s ease, transform .55s ease; }
-    [data-fade].is-in { opacity: 1; transform: none; }
-  </style>
-</head>
-<body>
-
-<header class="nav">
-  <div class="container nav__inner">
-    <a class="nav__brand" href="/">
-      <span class="nav__brand-mark">き</span>
-      <span>kinokoholic<span class="nav__brand-host">.com</span></span>
-    </a>
-    <nav class="nav__links" aria-label="Primary">
-      <a class="nav__link" href="/" data-i18n="nav.home">/home</a>
-      <a class="nav__link" href="#projects" data-i18n="nav.projects">/products</a>
-      <a class="nav__link" href="#family" data-i18n="nav.family">/-mon family</a>
-      <a class="nav__link" href="#writing" data-i18n="nav.writing">/writing</a>
-      <a class="nav__link" href="#career" data-i18n="nav.career">/career</a>
-      <a class="nav__link" href="#connect" data-i18n="nav.contact">/contact</a>
-    </nav>
-    <div class="nav__util">
-      <div class="nav__lang" role="group" aria-label="Language">
-        <button type="button" class="nav__lang-btn" data-lang="en" aria-pressed="true" data-i18n="nav.lang_label_en">EN</button>
-        <span aria-hidden="true">·</span>
-        <button type="button" class="nav__lang-btn" data-lang="ja" aria-pressed="false" data-i18n="nav.lang_label_ja">JA</button>
-      </div>
-      <button class="nav__theme" data-theme-toggle aria-label="Toggle theme" data-i18n-attr="aria-label:nav.theme_aria"></button>
-    </div>
-  </div>
-</header>
-
-<main>
+---
+# Home page (English). Rendered with _layouts/home.html — the same head, nav and
+# footer as every other page.
+#
+# The Japanese home (/ja/) is GENERATED from this file + i18n/strings.ja.json by
+# scripts/build_ja_home.py. After editing anything here, run:
+#     python3 scripts/build_ja_home.py
+# CI fails if ja/index.html is stale. Every translatable element carries a
+# data-i18n="<key>" (or data-i18n-attr="attr:key") whose JA text lives under
+# "page.home" in i18n/strings.ja.json.
+layout: home
+title: "David Klan · AI products that hold up"
+description: "AI products for real decisions: horse-racing ML, receipt automation, and citation-first Japanese tax research."
+permalink: /
+---
   <!-- ============ HERO ============ -->
   <section class="container hero" data-screen-label="01 Home — Hero">
     <div class="hero__rail">
@@ -75,7 +45,7 @@
           <div class="opcard__row"><span class="k" data-i18n="opcard.based.k">based</span><span class="v" data-i18n="opcard.based.v">Tokyo, JP</span></div>
         </div>
         <div class="hero__avatar" data-fade>
-          <img src="assets/images/DK_Avatar.jpeg" alt="David Klan">
+          <img src="/assets/images/DK_Avatar.jpeg" alt="David Klan">
           <div>
             <div class="name">David Klan</div>
             <div class="role" data-i18n="avatar.role">AI/ML engineer · IT project manager · Tokyo</div>
@@ -91,7 +61,7 @@
     <div class="section-head">
       <div>
         <span class="modlabel" data-i18n="proj.modlabel">// SELECTED PRODUCTS · BUILT SYSTEMS</span>
-        <h2 style="margin-top:.5rem" data-i18n="proj.h2">Five products with real systems behind them.</h2>
+        <h2 style="margin-top:.5rem" data-i18n="proj.h2">Six products with real systems behind them.</h2>
       </div>
       <p class="section-head__lead" data-i18n="proj.lead">Working data paths, explicit failure modes, and inspectable outputs—not prototype theater.</p>
     </div>
@@ -176,6 +146,21 @@
           </div>
         </div>
       </a>
+      <a class="project-card" id="nfc-card" href="/projects/nfc-networking-card-contact-capture/" data-fade>
+        <div class="project-card__hdr">
+          <span class="project-card__id" data-i18n="proj.p6.id">PRODUCT 06 · CONTACT CAPTURE</span>
+          <span class="project-card__status project-card__status--ship" data-i18n="proj.p6.status">live · built in public</span>
+        </div>
+        <div class="project-card__body">
+          <h3 class="project-card__title" data-i18n="proj.p6.title">NFC Networking Card</h3>
+          <p class="project-card__sum" data-i18n="proj.p6.summary">A card tap that becomes a digital handshake: an immediate contact save, one-tap Google sign-in or a manual form, every tap logged before sign-in, and automatic follow-up.</p>
+          <p class="project-card__proof"><span data-i18n="proj.system_label">system</span><strong data-i18n="proj.p6.system">Card token → logged tap → nonce cookie → Google sign-in / manual form → D1 contact → Discord + acknowledgment email</strong></p>
+          <div class="project-card__foot">
+            <div class="project-card__tags"><span data-i18n="proj.p6.tag1">Cloudflare Pages</span><span data-i18n="proj.p6.tag2">OAuth / Google GIS</span><span data-i18n="proj.p6.tag3">Edge / D1</span></div>
+            <span class="project-card__cta" data-i18n="proj.p6.cta">Open case study</span>
+          </div>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -192,7 +177,7 @@
     <div class="mon-grid">
       <!-- AUTOGEN:mon-family:start (source: shared/profile.json -> mon_family; regenerate: python3 scripts/sync_mon_family.py) -->
       <a class="mon-card" href="/kinokomon/agent/" data-fade>
-        <div class="mon-card__art"><img src="assets/images/Kinokomon_512x512.png" alt="Kinokomon"></div>
+        <div class="mon-card__art"><img src="/assets/images/Kinokomon_512x512.png" alt="Kinokomon"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Kinokomon <span class="mon-card__ja">きのこモン</span></div>
           <p class="mon-card__desc" data-i18n="fam.kk.desc">Governed autonomous agent. Speaks for the portfolio, evaluates fit, runs the orchestrator.</p>
@@ -200,7 +185,7 @@
         </div>
       </a>
       <a class="mon-card" href="https://kosa.bountymon.com" target="_blank" rel="noreferrer" data-fade>
-        <div class="mon-card__art"><img src="assets/images/bountymon.png" alt="Bountymon / Project Kōsa"></div>
+        <div class="mon-card__art"><img src="/assets/images/bountymon.png" alt="Bountymon / Project Kōsa"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Bountymon / Project Kōsa <span class="mon-card__ja">バウンティモン／プロジェクト交差</span></div>
           <p class="mon-card__desc" data-i18n="fam.bm.desc">Project Kōsa, an invite-only Tokyo guild where experienced professionals form temporary Cells to test real problems with small, evidence-led experiments.</p>
@@ -208,7 +193,7 @@
         </div>
       </a>
       <a class="mon-card" href="#projects" data-fade>
-        <div class="mon-card__art"><img src="assets/images/keirimon.png" alt="Keirimon"></div>
+        <div class="mon-card__art"><img src="/assets/images/keirimon.png" alt="Keirimon"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Keirimon <span class="mon-card__ja">経理モン</span></div>
           <p class="mon-card__desc" data-i18n="fam.km.desc">Mascot shared by JTES and Dazbeez Receipts; not a standalone product.</p>
@@ -216,7 +201,7 @@
         </div>
       </a>
       <a class="mon-card" href="#projects" data-fade>
-        <div class="mon-card__art"><img src="assets/images/kenkoumon.png" alt="Kenkoumon"></div>
+        <div class="mon-card__art"><img src="/assets/images/kenkoumon.png" alt="Kenkoumon"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Kenkoumon <span class="mon-card__ja">健康モン</span></div>
           <p class="mon-card__desc" data-i18n="fam.ke.desc">Paused doctor-visit transcription and structured patient-summary concept.</p>
@@ -224,7 +209,7 @@
         </div>
       </a>
       <a class="mon-card" href="https://keibamon.com" target="_blank" rel="noreferrer" data-fade>
-        <div class="mon-card__art"><img src="assets/images/keibamon.png" alt="Keibamon"></div>
+        <div class="mon-card__art"><img src="/assets/images/keibamon.png" alt="Keibamon"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Keibamon <span class="mon-card__ja">競馬モン</span></div>
           <p class="mon-card__desc" data-i18n="fam.kb.desc">Pilot horse-racing data and ML platform for test users, with point-in-time research and backtesting.</p>
@@ -232,7 +217,7 @@
         </div>
       </a>
       <a class="mon-card" href="#connect" data-fade>
-        <div class="mon-card__art"><img src="assets/images/kanrimon.png" alt="Kanrimon"></div>
+        <div class="mon-card__art"><img src="/assets/images/kanrimon.png" alt="Kanrimon"></div>
         <div class="mon-card__body">
           <div class="mon-card__name">Kanrimon <span class="mon-card__ja">管理モン</span></div>
           <p class="mon-card__desc" data-i18n="fam.kan.desc">Evidence-backed condominium management copilot for board continuity, compliance readiness, and archive onboarding.</p>
@@ -321,6 +306,7 @@
         </tr>
       </tbody>
     </table>
+    <p class="writing-more"><a class="chip chip--brand" href="/work-history/" data-i18n="career.cta">▸ full work history</a></p>
   </section>
 
   <!-- ============ CONNECT ============ -->
@@ -347,17 +333,3 @@
       </div>
     </div>
   </section>
-
-</main>
-
-<footer class="footer">
-  <div class="container footer__inner">
-    <span data-i18n="footer.copyright">© 2026 David Klan · kinokoholic.com</span>
-    <span data-i18n="footer.tag_home">selected products · evidence-first systems</span>
-  </div>
-</footer>
-
-<script src="assets/js/i18n.js"></script>
-<script src="assets/js/site.js"></script>
-</body>
-</html>

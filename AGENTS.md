@@ -1,21 +1,45 @@
 # Agent Handover Guide
 
-Last updated: 2026-10-05
+Last updated: 2026-11-26
 
 ## Purpose
 
 This repository serves two surfaces from one codebase:
 
-1. A **static operator-console homepage** (`index.html` at the root) —
-   the AI-forward portfolio with hero, AI workflow recipes, projects,
-   -mon family, GitHub feed, career, articles, and a build-in-public
-   activity log. EN/JA toggle wired via `assets/js/i18n.js` reading
-   `i18n/strings.ja.json`. No Jekyll layout — the file is shipped
-   verbatim.
-2. A **Jekyll-rendered set of deeper pages** — project case studies
-   (`projects/*.md`), Kinokomon hub (`kinokomon.md`), about,
-   work history, and the JA mirror under `ja/`. These use
-   `_layouts/default.html` and the data files under `_data/`.
+1. The **operator-console homepage** (`index.html`, layout `home`) — hero,
+   products, -mon family, writing, career and connect. Its Japanese twin
+   `ja/index.html` is **generated** by `scripts/build_ja_home.py` from
+   `index.html` + `i18n/strings.ja.json`.
+2. **Deeper Jekyll pages** — project case studies (`projects/*.md`), the Shroom
+   Hunter fungi dashboard (`kinokomon.md`, URL `/kinokomon/`), the Kinokomon
+   agent hub (`kinokomon/agent/` and siblings), articles, about, work history,
+   chat — each with a hand-written JA page under `ja/`. Layout `default`.
+
+Both layouts share one `<head>` (`_includes/head.html`), one header
+(`_includes/nav.html`, items in `_data/nav.yml`) and one footer
+(`_includes/footer.html`). Never give a page its own header or footer.
+
+## Language Model (decided 2026-11-26)
+
+- **The URL is the language.** English at `/path/`, Japanese at `/ja/path/`.
+  No client-side translation, no stored language preference. A reader in
+  Japanese stays in Japanese because every JA page links to JA pages.
+- `_includes/lang.html` computes the counterpart URL. The EN/JA toggle goes to
+  the counterpart if it exists, else that section's index (`/ja/articles/`),
+  else the language's home — it never 404s. `hreflang` tags are emitted only
+  for counterparts that exist.
+- Article bodies are English-only (LinkedIn originals); JA readers reach them
+  from `/ja/articles/` and the toggle on an article returns to `/ja/articles/`.
+- **New page?** Add the EN page and its `ja/` twin (`lang: ja`, `permalink:
+  /ja/...`). Without a twin the toggle falls back to the section index.
+
+## Navigation (decided 2026-11-26)
+
+`_data/nav.yml` is the only place nav items are defined. Labels use
+"products" (not "projects"); URLs under `/projects/` stay as they are.
+**Shroom Hunter** = the Japan fungi dashboard, kept at its historical URL
+`/kinokomon/`. **Kinokomon** = the agent (`/kinokomon/agent/`), part of the
+-mon family.
 
 Most copy edits should happen in YAML data files, Markdown content, or
 the JA translation bundle — not in layout logic.
@@ -26,8 +50,8 @@ All source files live at the repository root. There is **no `site/` subdirectory
 
 ```
 Bio_HP/
-├── index.html           ← Static operator-console homepage (no Jekyll layout)
-├── i18n/                ← JA translation bundle (strings.ja.json)
+├── index.html           ← Homepage (EN, layout: home)
+├── i18n/                ← JA strings for the homepage (build input, not published)
 ├── _config.yml          ← Single Jekyll config
 ├── _includes/           ← All Jekyll includes
 ├── _layouts/            ← All Jekyll layouts
@@ -36,7 +60,7 @@ Bio_HP/
 ├── projects/            ← Project pages (markdown)
 ├── _articles/           ← Full-text LinkedIn article archive (generated, curatable)
 ├── kinokomon.md, about.md, work-history.md
-├── ja/                  ← JA mirror of Jekyll pages
+├── ja/                  ← JA pages (ja/index.html is generated)
 ├── tests/               ← JS unit tests
 ├── worker/              ← Cloudflare Worker (API backend)
 ├── scripts/             ← Build/CI helper scripts
@@ -47,18 +71,19 @@ Bio_HP/
 ## High-Impact Paths
 
 ### Operator-console homepage
-- `index.html`: static homepage at site root. Tagged with `data-i18n="<key>"`
-  and `data-i18n-attr="attr:key,…"` on every translatable element.
-  `<html data-i18n-page="page.home">` declares the namespace.
+- `index.html`: homepage body (front matter + sections; layout `home`).
+  Tagged with `data-i18n="<key>"` and `data-i18n-attr="attr:key,…"` on every
+  translatable element — the contract `scripts/build_ja_home.py` translates.
+- `ja/index.html`: **generated** — never edit by hand.
+- `_layouts/home.html`, `_includes/{lang,head,nav,footer}.html`, `_data/nav.yml`:
+  shared chrome for every page.
 - `assets/css/site.css`: operator-console theme. Includes lang-toggle
   button styles and `html[lang="ja"]` font swap to Noto Sans JP.
 - `assets/js/site.js`: theme toggle, nav active-link highlight,
   IntersectionObserver scroll-fade for `[data-fade]`.
 - `assets/js/github-feed.js`: live GitHub fetch with static-card fallback.
-- `assets/js/i18n.js`: EN/JA applier (lazy-loads `i18n/strings.ja.json`
-  on first JA toggle, persists choice in `localStorage.kk_lang`).
-- `i18n/strings.ja.json`: translation table. Top-level keys: `_global`
-  + `page.<name>`. Keys ending in `.html` are injected via `innerHTML`.
+- `i18n/strings.ja.json`: JA strings for the homepage under `page.home`.
+  Keys ending in `.html` are inserted as markup.
 
 ### Jekyll surfaces
 - `_data/projects/*.yml`: project content source of truth
@@ -86,20 +111,18 @@ If you need to test something in isolation, use a separate git branch — not a 
 
 ## Editing Homepage Copy
 
-The homepage is direct-edit (no build step, no Liquid). To change a
-visible string:
-
-1. Find the element in `index.html`. EN is canonical and lives in the
-   HTML itself.
+1. Find the element in `index.html`. EN is canonical and lives in the HTML.
 2. Edit the EN text/markup in place.
-3. Open `i18n/strings.ja.json` and update the matching key under the
-   page namespace (e.g. `page.home.hero.summary`). If the key ends in
-   `.html`, the value may contain inline tags (`<em>`, `<strong>`).
-4. Hard-reload the page, click the JA toggle, and watch the dev
-   console — `[i18n] missing key` warnings flag any orphans.
+3. Update the matching key under `page.home` in `i18n/strings.ja.json`
+   (e.g. `hero.summary`). Keys ending in `.html` may contain inline tags.
+4. Run `python3 scripts/build_ja_home.py` and commit `ja/index.html` with the
+   change. It fails on a key with no JA string and warns on unused strings;
+   CI (`.github/workflows/homepage-ja.yml`) fails if `ja/index.html` is stale.
 
-To add a new translatable element: add a `data-i18n="<page>.<new.key>"`
-attribute and the matching JA entry. No JS change required.
+To add a new translatable element: add a `data-i18n="<new.key>"` attribute,
+the matching JA entry, and regenerate. The generator also points internal
+links at their `/ja/` twin when one exists. `sync_mon_family.py` and
+`linkedin_articles.py sync` regenerate `ja/index.html` automatically.
 
 Internal links from the homepage must use **pretty Jekyll permalinks**
 (`/kinokomon/`, `/projects/<slug>/`), not flat `.html` paths.
@@ -181,8 +204,11 @@ PY
 # Validate JA translation bundle is parseable JSON
 python3 -c "import json; json.load(open('i18n/strings.ja.json'))" && echo I18N_OK
 
+# Japanese home page is in sync with index.html + strings
+python3 scripts/build_ja_home.py --check && python3 tests/test_build_ja_home.py
+
 # Run all site JS tests (covers jd_concierge, about, kinokomon, site,
-# github-feed, i18n)
+# github-feed, fungi dashboard)
 ./scripts/run-site-js-tests.sh
 
 # Optional: inspect repo state before commit

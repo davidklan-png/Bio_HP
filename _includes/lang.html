@@ -1,0 +1,72 @@
+{%- comment -%}
+  Language context for the current page. Every layout includes this once, before
+  head.html / nav.html / footer.html, which read the variables it assigns.
+
+  The site's language model is URL-based: English at /path/, Japanese at /ja/path/.
+  There is no client-side translation and no stored language preference; the URL
+  is the state, so the language survives every click, reload and shared link.
+
+  Assigns:
+    is_ja       true on any /ja/ page (or a page with lang: ja)
+    page_lang   'ja' | 'en'
+    lang_home   '/ja/' | '/'
+    en_url      this page's English path (the /ja prefix removed)
+    ja_alt      the Japanese counterpart if it exists, else ''
+    en_alt      the English counterpart if it exists, else ''
+    ja_switch   where the JA toggle goes: the counterpart, else the section index
+                (/ja/<section>/), else /ja/ — so the toggle never 404s
+    en_switch   the same for EN
+{%- endcomment -%}
+{%- assign current_url = page.url | default: '/' -%}
+{%- assign url_head = current_url | slice: 0, 4 -%}
+{%- assign is_ja = false -%}
+{%- if current_url == '/ja/' or current_url == '/ja' or url_head == '/ja/' or page.lang == 'ja' -%}
+  {%- assign is_ja = true -%}
+{%- endif -%}
+{%- if is_ja -%}
+  {%- assign page_lang = 'ja' -%}
+  {%- assign lang_home = '/ja/' -%}
+  {%- assign en_url = current_url | remove_first: '/ja' -%}
+  {%- if en_url == '' -%}{%- assign en_url = '/' -%}{%- endif -%}
+{%- else -%}
+  {%- assign page_lang = 'en' -%}
+  {%- assign lang_home = '/' -%}
+  {%- assign en_url = current_url -%}
+{%- endif -%}
+{%- if en_url == '/' -%}
+  {%- assign ja_url = '/ja/' -%}
+{%- else -%}
+  {%- assign ja_url = '/ja' | append: en_url -%}
+{%- endif -%}
+
+{%- assign ja_alt = '' -%}
+{%- assign hits = site.pages | where: 'url', ja_url | size -%}
+{%- if hits > 0 -%}{%- assign ja_alt = ja_url -%}{%- endif -%}
+
+{%- assign en_alt = '' -%}
+{%- assign hits = site.pages | where: 'url', en_url | size -%}
+{%- assign doc_hits = site.articles | where: 'url', en_url | size -%}
+{%- if hits > 0 or doc_hits > 0 -%}{%- assign en_alt = en_url -%}{%- endif -%}
+
+{%- assign url_parts = en_url | split: '/' -%}
+{%- assign section = url_parts[1] -%}
+
+{%- assign ja_switch = ja_alt -%}
+{%- if ja_switch == '' -%}
+  {%- assign ja_switch = '/ja/' -%}
+  {%- if section -%}
+    {%- assign candidate = '/ja/' | append: section | append: '/' -%}
+    {%- assign hits = site.pages | where: 'url', candidate | size -%}
+    {%- if hits > 0 -%}{%- assign ja_switch = candidate -%}{%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- assign en_switch = en_alt -%}
+{%- if en_switch == '' -%}
+  {%- assign en_switch = '/' -%}
+  {%- if section -%}
+    {%- assign candidate = '/' | append: section | append: '/' -%}
+    {%- assign hits = site.pages | where: 'url', candidate | size -%}
+    {%- if hits > 0 -%}{%- assign en_switch = candidate -%}{%- endif -%}
+  {%- endif -%}
+{%- endif -%}

@@ -1,5 +1,5 @@
-title: LLM Project Portfolio
-description: LLM Project Portfolio - David Klan. Senior AI/ML Engineer showcasing practical AI systems with agentic workflows, RAG architecture, and enterprise automation.
+title: David Klan · kinokoholic.com
+description: "AI products for real decisions: horse-racing ML, receipt automation, and citation-first Japanese tax research."
 baseurl: ""
 url: "https://kinokoholic.com"
 markdown: kramdown
@@ -31,3 +31,12 @@ exclude:
   - README.md
   - REVISION_PLAYBOOK.md
   - TDD.md
+  # Repo/build files that are not part of the site
+  - Gemfile
+  - Gemfile.lock
+  - KINOKOMON_PAGE.md
+  - PII-REMEDIATION.sh
+  - handoff/
+  - prompts/
+  # Build input for ja/index.html (scripts/build_ja_home.py); not used at runtime
+  - i18n/
