@@ -143,6 +143,16 @@ html[lang="ja"] .fd-mapspecies > summary { font-family: "Noto Sans JP", var(--sa
    two-line rows), so nth-child would hit the wrong column. */
 .fd-table td.num, .fd-table th.num { text-align: right; font-family: var(--mono); white-space: nowrap; }
 .fd-table a { color: var(--brand); }
+/* Leads table: with auto layout the four leading columns' nowrap headers eat the card
+   at narrow widths and the prose column collapses. Fixed layout: species and family get
+   what their longest live names need, "What to check" takes the rest; below 630px the
+   wrapper scrolls instead. Sized against the 60 live rows in EN and JA. */
+#fd-leads-table { table-layout: fixed; min-width: 630px; }
+#fd-leads-table th { white-space: normal; }
+#fd-leads-table td { overflow-wrap: anywhere; }
+#fd-leads-table th:nth-child(1) { width: 144px; }
+#fd-leads-table th:nth-child(2) { width: 154px; }
+#fd-leads-table th:nth-child(3), #fd-leads-table th:nth-child(4) { width: 14.5%; }
 .fd-method ul { margin: 0 0 10px; padding-left: 1.1em; font: 13.5px/1.7 var(--mono); }
 .fd-method a { color: var(--brand); }
 .fd-method p { color: var(--muted); font-size: 14px; margin: 6px 0 0; }

@@ -4,7 +4,7 @@
   which the ShroomHunt repo regenerates and sends here as a pull request. Do not hand-edit the data.
 {%- endcomment -%}
 {%- assign ja = false -%}{%- if page.lang == 'ja' -%}{%- assign ja = true -%}{%- endif -%}
-<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-25-5">
+<link rel="stylesheet" href="{{ '/assets/css/fungi-dashboard.css' | relative_url }}?v=2026-11-27-1">
 <section class="fd" data-src="{{ '/assets/data/shroomhunt/dashboard.json' | relative_url }}">
   <header class="fd-head">
     <p class="fd-kicker">{% if ja %}日本の菌類フィールドアプリ{% else %}Japan fungi field app{% endif %}</p>
@@ -18,7 +18,7 @@
   {%- comment -%} Workspace (TASK-007): one toolbar above both columns — sticky map left,
     inspector right. The inspector shows the All Japan overview until an area is
     selected, then the area's header + tabs. National stats live below, under
-    "All of Japan, all time", so nothing there reads as area-specific. {%- endcomment -%}
+    "Identification Opportunities in Japan", so nothing there reads as area-specific. {%- endcomment -%}
   <div class="fd-workspace">
     <div class="fd-toolbar">
       {%- comment -%} One combobox (TASK-008): index areas, reference-geography places and,
@@ -166,7 +166,7 @@
         <div role="tabpanel" id="fd-panel-overview" aria-labelledby="fd-tab-overview">
           <div id="fd-ov">
             <p class="fd-empty" id="fd-ov-ph" hidden></p>
-            <h3 class="fd-area__h">{% if ja %}記録の種類{% else %}What the evidence is{% endif %}</h3>
+            <h3 class="fd-area__h">{% if ja %}記録の種類{% else %}Evidence types{% endif %}</h3>
             <div id="fd-ov-evidence"></div>
             <h3 class="fd-area__h">{% if ja %}種の多い科{% else %}Top families{% endif %}</h3>
             <div id="fd-ov-families"></div>
@@ -200,10 +200,10 @@
   </div>
 
   <section class="fd-national">
-    <h2 class="fd-national__title">{% if ja %}日本全体・全期間{% else %}All of Japan, all time{% endif %}</h2>
+    <h2 class="fd-national__title">{% if ja %}日本での同定の機会{% else %}Identification Opportunities in Japan{% endif %}</h2>
     <div class="fd-national__grid">
       <section class="fd-card fd-leads" id="fd-leads">
-        <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: recorded next door, never in Japan{% endif %}</h2>
+        <h2>{% if ja %}調査の手がかり：近隣国で記録、日本では未記録{% else %}Leads: not yet found in Japan{% endif %}</h2>
         <p>{% if ja %}中国（東経100度以東）、朝鮮半島、台湾、ロシア極東で記録された<b id="fd-lead-total"></b>種がGBIFの日本の記録にありません。うちMushroom Observerにも写真記録がある目立つ菌類が<b id="fd-lead-mo"></b>種、そのうち<b id="fd-lead-unres"></b>種は同じ属の属止まり標本が国内にあり、まずそれを再確認するのが近道です。{% else %}<b id="fd-lead-total"></b> species recorded in eastern China, Korea, Taiwan or the Russian Far East have no Japanese record in GBIF. <b id="fd-lead-mo"></b> of them are conspicuous enough to appear on Mushroom Observer, and for <b id="fd-lead-unres"></b> of those, Japan already holds same-genus specimens never identified to species: the cheapest place to start.{% endif %}</p>
         <p class="fd-note">{% if ja %}各行は「発見」ではなく確認待ちの手がかりです。名前の違い、未調査、真の不在のいずれかで、判定には専門家と証拠標本が必要です。{% else %}Each row is a lead, not a discovery: it is a naming mismatch, an under-recorded species, or a true absence. Telling them apart takes a specialist and a voucher specimen.{% endif %}</p>
         <div class="fd-scroll"><table class="fd-table" id="fd-leads-table"></table></div>
@@ -217,7 +217,7 @@
         <div id="fd-unresolved" class="fd-cols"></div>
       </div>
       <div class="fd-card fd-national__half">
-        <h2>{% if ja %}記録の種類{% else %}What the evidence is{% endif %}</h2>
+        <h2>{% if ja %}記録の種類{% else %}Evidence types{% endif %}</h2>
         <div id="fd-evidence"></div>
       </div>
       <div class="fd-card fd-national__half">

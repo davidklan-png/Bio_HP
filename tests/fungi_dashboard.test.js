@@ -913,7 +913,13 @@ describe('TASK-008: unified search markup', () => {
   it('deletes the picker and toggle CSS and bumps the stamp', () => {
     assert.ok(!css.includes('.fd-picker'), 'picker CSS gone');
     assert.ok(!css.includes('.fd-search__field'), 'joined-field CSS gone');
-    assert.ok(inc.includes('?v=2026-11-25-5'), 'CSS stamp bumped (TASK-018, again over TASK-017)');
+    assert.ok(inc.includes('?v=2026-11-27-1'), 'CSS stamp bumped (TASK-018, again over TASK-017)');
+  });
+  it('gives the leads table fixed columns and lets the prose column take the rest (TASK-020)', () => {
+    assert.ok(/#fd-leads-table \{ table-layout: fixed; min-width: 630px; \}/.test(css), 'fixed layout with a floor, so narrow cards scroll instead of starving the last column');
+    assert.ok(/#fd-leads-table th \{ white-space: normal; \}/.test(css), 'headers wrap');
+    assert.ok(/#fd-leads-table th:nth-child\(1\) \{ width: 144px; \}/.test(css) && /#fd-leads-table th:nth-child\(2\) \{ width: 154px; \}/.test(css), 'species and family keep their longest live names on one line');
+    assert.ok(/#fd-leads-table th:nth-child\(3\), #fd-leads-table th:nth-child\(4\) \{ width: 14\.5%; \}/.test(css) && !/th:nth-child\(5\)/.test(css), 'numeric columns share; the prose column is auto');
   });
   it('renders role=option items inside role=group sections and manages the combobox pattern', () => {
     assert.ok(src.includes("el.setAttribute('role', 'option')"), 'options carry role=option');
@@ -1588,8 +1594,8 @@ describe('TASK-013: honest filters (source level)', () => {
     const line = /function researchCellLine\(key\) \{([\s\S]*?)\n  \}/.exec(src)[1];
     assert.ok(line.includes("t('noEstimate')"), 'a square without an estimate previews with the legend text');
   });
-  it('labels what is never filtered: KPI tiles, the national heading, area totals', () => {
-    assert.ok(inc.includes('<h2 class="fd-national__title">{% if ja %}日本全体・全期間{% else %}All of Japan, all time{% endif %}</h2>'));
+  it('labels what is never filtered: KPI tiles and area totals; the national heading names the section, not a scope', () => {
+    assert.ok(inc.includes('<h2 class="fd-national__title">{% if ja %}日本での同定の機会{% else %}Identification Opportunities in Japan{% endif %}</h2>'));
     assert.ok(!inc.includes('Across all of Japan') && !inc.includes('日本全体のデータ'));
     assert.ok(src.includes("allTimeScope: ['All of Japan, all time', '日本全体・全期間']"));
     assert.ok(/function renderKpis\(d\) \{[\s\S]*?fd-kpis__scope[\s\S]*?\n  \}/.test(src), 'every KPI render carries the caption');
@@ -1782,7 +1788,7 @@ describe('TASK-018: attribution, All-Japan label, mobile KPIs, species-on-map so
     assert.ok(inc.includes('Japanese names come from Japanese Wikipedia article titles (some species only, for now).'), 'EN sentence');
     assert.ok(!/Katumoto/.test(inc), 'Katumoto 2010 is no longer cited as a 和名 source');
   });
-  it('labels the inspector\'s Japan panel all-time, like the KPI caption and the national section', () => {
+  it('labels the inspector\'s Japan panel all-time, like the KPI caption', () => {
     assert.ok(
       /<h2 class="fd-inspector__title">\{% if ja %\}日本全体・全期間\{% else %\}All of Japan, all time\{% endif %\}<\/h2>/.test(inc),
       'the heading gains the 全期間 / all-time wording');
@@ -1791,7 +1797,7 @@ describe('TASK-018: attribution, All-Japan label, mobile KPIs, species-on-map so
     assert.ok(/@media \(max-width: 599px\) \{\s*\.fd-kpis \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/.test(css),
       'a two-column grid under 600 px');
     assert.ok(/\.fd-kpi:last-child \{ grid-column: 1 \/ -1; \}/.test(css), 'the leads tile spans both columns');
-    assert.ok(/fungi-dashboard\.css' \| relative_url \}\}\?v=2026-11-25-5"/.test(inc), 'the CSS stamp is bumped');
+    assert.ok(/fungi-dashboard\.css' \| relative_url \}\}\?v=2026-11-27-1"/.test(inc), 'the CSS stamp is bumped');
     assert.ok(!inc.includes('?v=2026-11-25-4'), 'the old stamp is gone');
   });
   it('mapSpeciesRank over the areas a visit opened keeps a 6th area\'s predecessors', () => {
