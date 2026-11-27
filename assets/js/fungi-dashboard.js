@@ -2758,7 +2758,7 @@
   function renderLeads(d) {
     var head = lang === 'ja'
       ? ['種', '科', '近隣国の記録', 'MOの記録', '次の確認']
-      : ['Species', 'Family', 'Records next door', 'Mushroom Observer', 'What to check'];
+      : ['Species', 'Family', 'Nearby records', 'MO records', 'What to check'];
     var body = d.leads.map(function (l) {
       var url = gbifTaxonUrl(l[5], l[6], l[0]);
       return '<tr><td><a href="' + url + '" target="_blank" rel="noopener"><i>' + esc(l[0]) + '</i></a></td><td>' + esc(l[1] || '') +
