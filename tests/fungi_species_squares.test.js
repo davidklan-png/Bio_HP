@@ -329,6 +329,6 @@ describe('species squares (TASK-017): browser wiring (source level)', () => {
     assert.ok(/if \(tr\.action === 'open'\) \{ clearPreview\(\); selectArea\(aid\); \}/.test(src), 'second tap still opens the area');
   });
   it('CSS stamp bumped for the new rules', () => {
-    assert.ok(inc.includes('?v=2026-11-25-5'), 'CSS stamp bumped (TASK-018 carries it past TASK-017)');
+    assert.ok(inc.includes('?v=2026-11-27-1'), 'CSS stamp bumped (TASK-018 carries it past TASK-017)');
   });
 });
